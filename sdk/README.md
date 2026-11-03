@@ -64,3 +64,6 @@ from this directory. Canonical imports are
 Development is public at [syn-acc/scrucraft](https://github.com/syn-acc/scrucraft).
 Public visibility does not grant server access. No repository-wide open-source
 licence has been selected; existing component notices remain applicable.
+
+Source checkout: **0.3.0.dev2**, with additional transport optimizations that are
+not deployed. The published download above remains the frozen 0.3.0.dev1.

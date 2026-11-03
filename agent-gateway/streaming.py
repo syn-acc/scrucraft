@@ -38,6 +38,7 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                 raise ValueError('body_already_connected')
             gateway.body_connections[name]=connection
         ended=threading.Event()
+        changed=gateway.body_condition(name)
         def receive():
             try:
                 for message in connection:
@@ -50,7 +51,7 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                 close_error(connection,'body','receive',error)
             finally:
                 ended.set()
-                with gateway.changed:gateway.changed.notify_all()
+                with changed:changed.notify_all()
         reader=threading.Thread(target=receive,daemon=True);reader.start()
         previous_payload=None;renew_at=0
         try:
@@ -65,8 +66,8 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                 if payload!=previous_payload or time.monotonic()>=renew_at:
                     connection.send(payload)
                     previous_payload=payload;renew_at=time.monotonic()+.1
-                with gateway.changed:
-                    gateway.changed.wait_for(lambda:ended.is_set() or gateway.body_revisions.get(name,0)!=revision,
+                with changed:
+                    changed.wait_for(lambda:ended.is_set() or gateway.body_revisions.get(name,0)!=revision,
                                              timeout=max(0,renew_at-time.monotonic()))
         finally:
             ended.set();connection.close()
@@ -81,6 +82,7 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         with gateway.changed:
             principal=gateway.authenticate('Bearer '+token);gateway.body(name,principal)
         stopped=threading.Event()
+        changed=gateway.body_condition(name)
         owned_lease=None
         send_lock=threading.Lock()
         def send(value):
@@ -117,7 +119,7 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                 close_error(connection,'player','receive',error)
             finally:
                 stopped.set()
-                with gateway.changed:gateway.changed.notify_all()
+                with changed:changed.notify_all()
         reader=threading.Thread(target=receive,daemon=True);reader.start()
         previous_id=None;previous_terrain=None;sequence=0
         try:
@@ -128,7 +130,8 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                     if body['data'].get('removed'):break
                     current=gateway.snapshot(body);frame_id=current['id'];event=None
                     if frame_id!=previous_id:
-                        frame=dict(current);frame['action_results']=gateway.compact_results(gateway.result_rows(name))
+                        frame=dict(current);frame['action_results']=gateway.stream_results(name)
+                        frame['action_results_truncated']=len(gateway.actions.get(name,{}))>len(frame['action_results'])
                         sequence+=1
                         # Terrain is sent initially, then only when a fresh terrain sample arrives.
                         observation=frame if previous_id is None else {k:v for k,v in frame.items() if k not in {'blocks','walkable'}}
@@ -137,10 +140,10 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                         event={'type':'snapshot','sequence':sequence,'resync':previous_id is None,'observation':observation}
                         previous_id,previous_terrain=frame_id,terrain
                     if event is None:
-                        gateway.changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1);continue
+                        changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1);continue
                 send(event)
-                with gateway.changed:
-                    gateway.changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1)
+                with changed:
+                    changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1)
         except Exception as error:
             close_error(connection,'player','snapshot',error)
         finally:

@@ -159,7 +159,8 @@ class RealtimeClient(PrimitiveMethods):
         with self.changed:
             row=cached()
             submitted=self.submitted.get(action_id)
-            query_missing=row is None and (not submitted or time.monotonic()>=submitted['deadline'])
+            query_missing=row is None and (not submitted or time.monotonic()>=submitted['deadline']
+                or (self.observation or {}).get('action_results_truncated',False))
         # New accepted work normally waits on push only. Old/unknown handles reconcile once,
         # and a final authoritative read distinguishes expired evidence from pending execution.
         if query_missing:

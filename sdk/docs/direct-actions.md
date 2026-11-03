@@ -308,3 +308,16 @@ eligible for delivery until acknowledged, even outside the latest-64 window.
 Following a gateway restart, complete native outcomes may be recovered with
 `recovered:true`; their original request payload and lease are unknown, so replay
 is not authorized. Already-compacted or expired outcomes remain explicitly unknown.
+
+## Development transport change (0.3.0.dev2, not deployed)
+
+The public WebSocket pushes the latest 64 receipt transitions plus every
+unfinished or deferred result. `action_results_truncated` reports when retained
+history exceeds that push window. A long-running action's new terminal transition
+returns to the recent window even after many newer actions. Full results remain
+available by ID under the existing 512-row, 8 MiB, ten-minute bounds. SDK handles
+reconcile a missing result once when truncation is explicit; they never replay it.
+Native ACKs are pruned only after same-epoch compact-receipt confirmation.
+Body notifications target that body's waiters; authority still renews/rechecks
+within the 100 ms heartbeat. These optimizations have local tests and synthetic
+profiles, but no successful native ten-body run yet.

@@ -16,7 +16,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = '0.3.0.dev1'
+VERSION = '0.3.0.dev2'
 TERMINAL = {'done', 'failed', 'cancelled'}
 RESULT_CORE = {'id','state','reason','body_epoch','tick','expires_at'}
 
@@ -124,14 +124,37 @@ class Gateway:
         self.body_connections = {}
         self.stream_revision = 0
         self.body_revisions = {}
+        self.body_conditions = {}
         self.actions = {}  # Bounded, epoch-scoped receipts, including commands not seen by Java yet.
         self.native_acks = {}
+        self.result_sequence = 0
+        self.stream_windows = {}
+
+    def body_condition(self, name):
+        with self.lock:
+            return self.body_conditions.setdefault(name, threading.Condition(self.lock))
 
     def notify_body(self, name):
         with self.changed:
             self.stream_revision += 1
             self.body_revisions[name] = self.body_revisions.get(name,0)+1
+            self.body_condition(name).notify_all()
             self.changed.notify_all()
+
+    def result_changed(self, name, record):
+        self.result_sequence += 1
+        record['change_sequence'] = self.result_sequence
+        record['stream_result'] = self.compact_results([record['result']])[0]
+        self.stream_windows.pop(name, None)
+
+    def stream_results(self, name):
+        """Push recent transitions and all unfinished work; full history remains queryable."""
+        if name not in self.stream_windows:
+            records = sorted(self.actions.get(name, {}).values(), key=lambda r:r.get('change_sequence',0))
+            recent = records[-64:]
+            selected = [r for r in records[:-64] if unfinished(r)] + recent
+            self.stream_windows[name] = [r.get('stream_result') or self.compact_results([r['result']])[0] for r in selected]
+        return self.stream_windows[name]
 
     def update_results(self, name, observation=None):
         records = self.actions.setdefault(name, {})
@@ -144,6 +167,7 @@ class Gateway:
             for record in records.values():
                 if unfinished(record) and record['control']['body_epoch'] != epoch:
                     settle(record, 'cancelled', 'body_changed')
+                    self.result_changed(name, record)
             for result in observation.get('action_results', []):
                 rid=result.get('id')
                 full_native=(result.get('state') in TERMINAL and not result.get('details_pending')
@@ -152,6 +176,10 @@ class Gateway:
                 if full_native and isinstance(rid,str):
                     acknowledgements['ids'][rid]=None
                     while len(acknowledgements['ids'])>512:acknowledgements['ids'].pop(next(iter(acknowledgements['ids'])))
+                elif (result.get('details_retained_by_gateway') and result.get('state') in TERMINAL
+                      and result.get('body_epoch',epoch)==epoch):
+                    # A compact native receipt proves the previous ACK arrived. Full replay re-adds it.
+                    acknowledgements['ids'].pop(rid, None)
                 record = records.get(rid)
                 if record is None and full_native and isinstance(epoch,str) and isinstance(rid,str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',rid):
                     # A gateway restart may lose acceptance history while Java still has a full result.
@@ -160,10 +188,12 @@ class Gateway:
                             'result':dict(result,recovered=True),'lease_id':None,'created_at':now,
                             'expires_at':now,'acknowledged':True,'full_result':True,'last_native':dict(result)}
                     record['size']=len(json.dumps(record['result']));records[rid]=record
+                    self.result_changed(name, record)
                 if record and record['control']['body_epoch'] == epoch and result.get('body_epoch', epoch) == epoch:
                     if result.get('state') in TERMINAL | {'started'}:
                         # Native terminal receipts supersede a conservative disconnect/timeout result.
                         if (record['result']['state'] not in TERMINAL or result['state'] in TERMINAL) and result != record.get('last_native'):
+                            previous_result=record['result']
                             if result.get('details_pending') or result.get('details_retained_by_gateway'):
                                 if not record.get('full_result'):
                                     record['result']=dict(result,body_epoch=epoch)
@@ -172,19 +202,23 @@ class Gateway:
                                 record['full_result']=result['state'] in TERMINAL
                             record['size']=len(json.dumps(record['result']))
                             record['last_native']=dict(result)
+                            if record['result'] != previous_result:self.result_changed(name, record)
                         record['acknowledged'] = True
         for record in records.values():
             if unfinished(record) and now >= record['expires_at']:
                 reason='result_details_timeout' if record['result'].get('details_pending') else 'outcome_unknown_timeout'
                 settle(record, 'failed', reason)
+                self.result_changed(name, record)
         while len(records)>512:
             oldest=next((rid for rid,record in records.items() if not unfinished(record)),None)
             if oldest is None:break
             del records[oldest]
+            self.stream_windows.pop(name,None)
         # Terminal results remain available for ten minutes, and at most 512 per body.
         for rid in list(records):
             if not unfinished(records[rid]) and now-records[rid]['created_at'] > 600:
                 del records[rid]
+                self.stream_windows.pop(name,None)
                 if name in self.frames:
                     self.frames[name]['action_results']=[r for r in self.frames[name].get('action_results',[]) if r.get('id')!=rid]
         # An additional memory bound protects against retained recipe/component payloads.
@@ -194,6 +228,7 @@ class Gateway:
             if not unfinished(records[rid]):
                 size-=records[rid].get('size',512)
                 del records[rid]
+                self.stream_windows.pop(name,None)
                 if name in self.frames:
                     self.frames[name]['action_results']=[r for r in self.frames[name].get('action_results',[]) if r.get('id')!=rid]
         return [dict(record['result']) for record in records.values()]
@@ -202,6 +237,7 @@ class Gateway:
         for record in self.actions.get(name, {}).values():
             if (lease_id is None or record['lease_id'] == lease_id) and unfinished(record):
                 settle(record, 'cancelled', reason)
+                self.result_changed(name, record)
         frame = self.frames.get(name)
         if frame:
             frame['action_results'] = self.update_results(name)
@@ -523,6 +559,7 @@ class Gateway:
                 receipt={'id':rid,'state':'accepted','body_epoch':frame['body_epoch'],'expires_at':self.clock()+ttl}
                 records[rid]={'control':control,'payload':payload,'receipt':dict(receipt),'result':dict(receipt),
                               'lease_id':lease['id'],'created_at':self.clock(),'expires_at':self.clock()+ttl,'acknowledged':False}
+                self.result_changed(name, records[rid])
                 if protocol<2:lease.update(control=control,control_until=self.clock()+ttl)
                 lease['goal']=None
                 frame['action_results']=self.result_rows(name);frame['id']=secrets.token_urlsafe(18)

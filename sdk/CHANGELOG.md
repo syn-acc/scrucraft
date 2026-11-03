@@ -8,6 +8,13 @@ See [release status](docs/release-status.md) before using development features.
 
 
 
+## 0.3.0.dev2 — development only, not deployed
+
+- Target body-specific waiters and prune confirmed native ACKs.
+- Push 64 recent result transitions plus unfinished work; retain full bounded
+  lookup and recover missing truncated-history handles without replay.
+- 199 local checks and short synthetic profiles; native load remains unverified.
+
 ## 0.3.0.dev1 — controlled experimental checkpoint
 
 

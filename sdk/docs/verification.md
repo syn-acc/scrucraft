@@ -130,3 +130,11 @@ request. This first smoke result is not a live latency measurement. The publishe
 SDK ZIP has documentation-only adjustments (SHA-256
 `3d760a411eab7837960a93cfd1ff4d95bdd4f8cd5d9b26ef6b20c0947cf0f95c`);
 PLAYER verified its runtime matches the frozen handoff.
+
+## Subsequent development work: 0.3.0.dev2 (not deployed)
+
+199 local checks cover targeted stream conditions, acknowledged-result pruning,
+64 recent transitions plus unfinished work, and authoritative SDK fallback.
+The [synthetic benchmark](../../benchmarks/transport/README.md) records a short
+repeat with less traffic and CPU. It does not run Minecraft, and short-run latency
+varies. No native or live ten-body success is claimed for these changes.

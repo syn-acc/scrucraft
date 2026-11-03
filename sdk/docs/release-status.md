@@ -39,3 +39,8 @@ Deployment on 2026-11-03 preserved offline world/gateway backups and the running
 controller. Architect completed native navigation through the public SDK. This
 does not establish full gameplay, industrial production or multi-body latency.
 The approved restart window is consumed; further Java deployments require a new one.
+
+The current source checkout is SDK/gateway **0.3.0.dev2**, an undeployed transport
+optimization candidate. The live frozen release remains **0.3.0.dev1**.
+See [synthetic measurements](../../benchmarks/transport/README.md); these do not
+establish native multi-body readiness.

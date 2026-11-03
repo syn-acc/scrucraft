@@ -93,3 +93,13 @@ class RealtimeDiagnosticsTests(unittest.TestCase):
         stream.action_results=read
         self.assertEqual('done',stream.wait_action(rid,.001,body_epoch='epoch')['state'])
         self.assertEqual([rid],calls)
+
+    def test_missing_from_bounded_push_window_reads_once_without_waiting(self):
+        stream=self.stream();rid='older_finished_0001';calls=[]
+        stream.observation={'action_results':[],'action_results_truncated':True}
+        stream.submitted[rid]={'body_epoch':'epoch','deadline':time.monotonic()+30}
+        def read(action_id):calls.append(action_id);return [{'id':action_id,'state':'done','body_epoch':'epoch'}]
+        stream.action_results=read
+        with patch.object(stream.changed,'wait_for',side_effect=AssertionError('Old result should reconcile immediately')):
+            self.assertEqual('done',stream.wait_action(rid,30,body_epoch='epoch')['state'])
+        self.assertEqual([rid],calls)

@@ -17,6 +17,42 @@ except ImportError:
 
 @unittest.skipUnless(AVAILABLE,'Install agent-gateway/requirements.txt to test real WebSockets')
 class StreamTests(unittest.TestCase):
+    def test_socket_snapshot_is_bounded_but_old_full_receipt_remains_queryable(self):
+        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        sample=fixtures.frame(tick=101)
+        rows=[dict(id='old_result_'+str(i).zfill(16),state='done',body_epoch='epoch',reason='oriented',tick=i) for i in range(350)]
+        sample.update(body_epoch='epoch',control_protocol=2,raw_capabilities=['look_at'],action_results=rows)
+        fixture.g.frame(sample)
+        streaming=fixtures.module('scru_streaming_bounded_history','agent-gateway/streaming.py')
+        server=streaming.make_server(fixture.g,port=0);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            with connect('ws://127.0.0.1:'+str(server.socket.getsockname()[1])+'/v1/events',proxy=None,close_timeout=.2) as connection:
+                connection.send(json.dumps({'token':fixture.token,'agent':'Forge'}))
+                event=json.loads(connection.recv(timeout=2));observation=event['observation']
+                self.assertEqual(64,len(observation['action_results']));self.assertTrue(observation['action_results_truncated'])
+                self.assertNotIn(rows[0]['id'],[r['id'] for r in observation['action_results']])
+                connection.send(json.dumps({'request_id':'old_history','method':'GET','path':'/v1/action-results','body':{'action_id':rows[0]['id']}}))
+                while True:
+                    response=json.loads(connection.recv(timeout=2))
+                    if response.get('request_id')=='old_history':break
+                self.assertEqual(200,response['status']);self.assertEqual('done',response['result']['results'][0]['state'])
+                self.assertEqual(rows[0]['id'],response['result']['results'][0]['id'])
+                self.assertEqual(350,len(fixture.g.actions['Forge']))
+        finally:
+            server.shutdown();server.socket.close();thread.join(3);fixture.tearDown()
+
+    def test_body_notifications_do_not_wake_other_body_waiters(self):
+        fixture=fixtures.GatewayTests();fixture.setUp()
+        unrelated=fixture.g.body_condition('Other');awake=[];ready=threading.Event()
+        def waiter():
+            with unrelated:
+                ready.set();awake.append(unrelated.wait(timeout=.15))
+        worker=threading.Thread(target=waiter);worker.start();self.assertTrue(ready.wait(1))
+        try:
+            for _ in range(20):fixture.g.notify_body('Forge')
+            worker.join(1);self.assertEqual([False],awake,'Another body notification woke this condition')
+        finally:fixture.tearDown()
+
     def test_unrelated_body_telemetry_does_not_amplify_grants(self):
         fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
         fixture.g.handle('POST','/v1/agents',fixture.headers,{'name':'Second','area':fixtures.AREA})

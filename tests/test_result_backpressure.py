@@ -45,9 +45,33 @@ class ResultBackpressureTests(unittest.TestCase):
         self.sample['action_results']=[dict(id=receipt['id'],state='done',body_epoch='epoch',details_retained_by_gateway=True)]
         self.sample['tick']+=1;self.g.frame(self.sample)
         self.assertEqual(row['blocks'],self.f.call('GET','/v1/action-results',{'action_id':receipt['id']})['results'][0]['blocks'])
+        self.assertNotIn(receipt['id'],self.grant()['acknowledged_results'])
+        self.sample['action_results']=[dict(row,details_retained_by_gateway=False)]
+        self.sample['tick']+=1;self.g.frame(self.sample)
+        self.assertIn(receipt['id'],self.grant()['acknowledged_results'],'A full native replay must be acknowledged again')
     def test_ack_window_includes_old_action_after_many_new_outcomes(self):
         self.g.leases.clear()
         ids=['old_completion_'+str(n).zfill(8) for n in range(100)]
         self.sample.update(tick=103,action_results=[dict(id=rid,state='done',body_epoch='epoch',tick=n) for n,rid in enumerate(ids)])
         self.g.frame(self.sample)
         self.assertEqual(set(ids),set(self.grant()['acknowledged_results']))
+
+    def test_push_window_tracks_transitions_and_keeps_unfinished_details(self):
+        old=self.query(1)['id'];pending=self.query(2)['id']
+        self.sample.update(tick=103,action_results=[dict(id=pending,state='done',body_epoch='epoch',details_pending=True)])
+        self.g.frame(self.sample)
+        newer=[dict(id='completed_'+str(n).zfill(16),state='done',reason='oriented',body_epoch='epoch',tick=n) for n in range(100)]
+        self.sample.update(tick=104,action_results=newer);self.g.frame(self.sample)
+        rows=self.g.stream_results('Forge')
+        self.assertEqual(66,len(rows));self.assertIn(old,[r['id'] for r in rows]);self.assertIn(pending,[r['id'] for r in rows])
+        self.sample.update(tick=105,action_results=[dict(id=old,state='done',reason='arrived',body_epoch='epoch',tick=105)])
+        self.g.frame(self.sample)
+        rows=self.g.stream_results('Forge');self.assertEqual(old,rows[-1]['id']);self.assertEqual('done',rows[-1]['state'])
+        self.assertEqual(65,len(rows));self.assertIn(pending,[r['id'] for r in rows])
+        self.assertEqual('done',self.f.call('GET','/v1/action-results',{'action_id':newer[0]['id']})['results'][0]['state'])
+
+    def test_push_cache_expires_with_authoritative_retention(self):
+        self.sample.update(tick=103,action_results=[dict(id='old_completion_00000001',state='done',body_epoch='epoch')])
+        self.g.frame(self.sample);self.assertEqual(1,len(self.g.stream_results('Forge')))
+        self.f.now+=601;self.g.update_results('Forge')
+        self.assertEqual([],self.g.stream_results('Forge'))

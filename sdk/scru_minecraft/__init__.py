@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 import uuid
 
-__version__ = '0.3.0.dev1'
+__version__ = '0.3.0.dev2'
 
 
 class GatewayError(RuntimeError):
