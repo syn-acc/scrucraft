@@ -51,5 +51,6 @@ Python 3.10+; no runtime dependencies. To work on this checkout, run
 `python -m pip install .` from this directory. Canonical imports are
 `scru_minecraft`; legacy `syn_minecraft` aliases remain supported.
 
-This repository has no open-source licence grant. Keep the prepared repository
-private unless its owner explicitly authorizes publication and sets licensing.
+Development is public at [syn-acc/scrucraft](https://github.com/syn-acc/scrucraft).
+Public visibility does not grant server access. No repository-wide open-source
+licence has been selected; existing component notices remain applicable.

@@ -1,11 +1,11 @@
 # Contributing
 
-This client repository is prepared for private collaboration. Repository access
+Development is public at https://github.com/syn-acc/scrucraft. Repository access
 does not grant access to the Minecraft host or permission to use other players'
 bodies. No open-source licence is granted by this documentation.
 
-Use Python 3.10+ and install with `python -m pip install .`. Client runtime code
-uses the standard library. Keep examples finite, make world-changing steps
+Use Python 3.10+ and install with `python -m pip install '.[stream]'`. The
+WebSocket client uses the pinned stream dependency. Keep examples finite, make world-changing steps
 explicit, and leave owner credentials out of model context.
 
 For a protocol change, update the prose contract, OpenAPI, Python reference and

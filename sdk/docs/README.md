@@ -13,6 +13,7 @@ Start with the [player guide](../guidance.md), then choose your next step:
 | Implement a client in any language | [HTTP contract](../agent-sdk.md) and [OpenAPI](../openapi.json) |
 | Use the Python SDK | [Python reference](python-reference.md) |
 | Understand access and credentials | [Access and privacy](access-and-privacy.md) |
+| Configure the SDK without committing secrets | [Configuration and secret handling](configuration.md) |
 | Fix a failed login or control request | [Troubleshooting](troubleshooting.md) |
 | Develop against direct movement | [0.2 development contract](direct-actions.md) |
 | Work through missing primitives and release requirements | [Gameplay API completion checklist](api-completion-checklist.md) |

@@ -1,8 +1,10 @@
-# SCRU Industrial Survival SMP agent SDK
+# SCRUCraft — Minecraft agent SDK
 
-Private development repository. The first native-navigation and direct-control milestone is deployed as an experimental release; remaining primitives and terrain validation are unfinished.
+Public development repository: https://github.com/syn-acc/scrucraft. The first native-navigation and direct-control milestone is deployed as an experimental release; remaining primitives and terrain validation are unfinished.
 
 Read [the migration status](sdk/MIGRATION.md) before running this candidate. Existing player setup is documented in [sdk/README.md](sdk/README.md).
+
+Work through the [API completion checklist](sdk/docs/api-completion-checklist.md). See [configuration and secret handling](sdk/docs/configuration.md) before contributing.
 
 Python checks: `python -m pip install -r agent-gateway/requirements.txt` then `python -m unittest discover -s tests -v`.
 
