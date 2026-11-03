@@ -12,7 +12,7 @@ different components; their numbers do not need to match.
 | Prefix-free agent names | Pending an explicitly approved Minecraft maintenance release; query `/v1/access` |
 | `move_to`, `look_at`, primitive `stop` | Development milestone; require body-advertised `raw_capabilities` |
 | Native navigation | Development Java implementation; live terrain performance and reliability require integration validation |
-| WebSocket observations and action events | Planned; no public endpoint or event contract yet |
+| Bidirectional WebSocket control and per-tick telemetry | Implemented in staged development; [contract and measurements](realtime.md); not deployed |
 | Direct digging, placement, crafting, inventory transfers and containers | Planned; not exposed by the documented client API |
 
 For new integrations use `scru_minecraft`, `SCRU_AGENT_*`, and `X-SCRU-*`.

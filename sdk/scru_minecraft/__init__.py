@@ -139,6 +139,11 @@ class AgentClient:
             for message in connection:
                 yield json.loads(message)
 
+    def realtime(self):
+        """Use with client.realtime() as body for bidirectional low-latency control."""
+        from .realtime import RealtimeClient
+        return RealtimeClient(self)
+
     def list_agents(self):
         return self._request('GET', '/v1/agents')['agents']
 

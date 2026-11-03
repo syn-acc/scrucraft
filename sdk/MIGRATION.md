@@ -27,14 +27,25 @@ navigator or Baritone integration.
 - `POST /v1/actions`, `GET /v1/action-results`, and SDK movement/orientation methods.
   Existing owner/whitelist/lease/human-stop checks apply. Goal submission replaces
   raw control and vice versa. Direct movement bypasses goal planning.
-- Authenticated WebSocket snapshots on `/v1/events`. First-message auth keeps
+- Bidirectional authenticated WebSockets on `/v1/events`. First-message auth keeps
   tokens out of URLs. Slow receivers do not hold the gateway/controller mutex.
   Reconnect creates a fresh snapshot sequence; it does not replay commands.
 
-The stream currently reflects the existing adapter snapshot cadence (about 1 Hz),
-not a promised high-frequency game-event stream. Enable `websocket_enabled` only
-after installing the pinned dependency and the nginx upgrade route. The WebSocket
-listener binds loopback port 8769 and shares the HTTP gateway's authorization state.
+The staged adapter now has a direct loopback WebSocket bridge, bypassing the
+one-second controller HTTP cycle. Lightweight telemetry and action results are
+sampled each game tick (nominally 20 Hz); terrain scans remain about once a second.
+Snapshots coalesce under backpressure. Grants expire after 200 ms without renewal;
+public stream disconnect releases its acquired lease. No commands replay on
+reconnection. Native search scheduling rotates bodies under a shared tick budget.
+See [the realtime contract and measurements](docs/realtime.md).
+
+Enable gateway `websocket_enabled` only after installing the pinned dependency and
+the nginx upgrade route. The listener binds loopback port 8769. The adapter opts
+in using `control_transport: "websocket"` in the existing private
+`agent-service/gateway.json`; it reads that file's `token_file`. In this mode it
+does not call the goal controller, and goal submissions are explicitly rejected.
+Never expose `/internal/body` through nginx. These are staged configuration
+instructions; do not enable them on the current live adapter.
 
 ## Still required before production release
 
@@ -47,8 +58,8 @@ listener binds loopback port 8769 and shares the HTTP gateway's authorization st
    recipe-ID crafting with authoritative completion and real conservation checks.
    Work-area checks must cover destinations and each container transaction.
 4. Add raw block queries, complete slot snapshots, nearby entity observations and
-   incoming public chat. Private chat remains excluded. Separate fast telemetry
-   from costly terrain snapshots before increasing the adapter's update frequency.
+   incoming public chat. Private chat remains excluded. Fast telemetry is separated
+   from terrain scans, but aggregate cost still needs measurement in Minecraft.
 5. Expand receipt retention and cancellation/reconnect tests; integrate navigation
    with an explicit primitive scheduler. Unsupported operations must stay rejected.
 6. Build one maintenance release including prefix-free names. Preserve the world's

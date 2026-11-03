@@ -12,6 +12,7 @@ neoForge {
 }
 dependencies {
     compileOnly fileTree(dir: '../../artifacts', include: ['LuckPerms-*.jar'])
+    testImplementation 'com.google.code.gson:gson:2.10.1'
 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.register('verifyInventoryPlan', JavaExec) {

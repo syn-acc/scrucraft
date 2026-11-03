@@ -56,6 +56,8 @@ public final class SynAgents {
     private MinecraftServer server;
     private long ticks;
     private String token="";
+    private String streamToken="";
+    private boolean realtime;
     private JsonObject config=new JsonObject();
 
     public SynAgents() {
@@ -72,6 +74,13 @@ public final class SynAgents {
             if(config.has("settlement")) project=SettlementProject.load(config.getAsJsonObject("settlement"));
             Path tokenPath=Path.of("../agent-service/token");
             if (Files.exists(tokenPath)) token=Files.readString(tokenPath).trim();
+            Path bridge=Path.of("../agent-service/gateway.json");
+            if(Files.exists(bridge)) {
+                JsonObject settings=JSON.fromJson(Files.readString(bridge),JsonObject.class);
+                realtime=settings.has("control_transport")&&settings.get("control_transport").getAsString().equals("websocket");
+                if(realtime)streamToken=Files.readString(Path.of(settings.get("token_file").getAsString())).trim();
+                if(realtime&&streamToken.isBlank())throw new IllegalStateException("Missing body stream credential");
+            }
             var rules=server.overworld().getGameRules();
             rules.getRule(GameRules.RULE_KEEPINVENTORY).set(false,server);
             rules.getRule(GameRules.RULE_NATURAL_REGENERATION).set(true,server);
@@ -83,7 +92,7 @@ public final class SynAgents {
         } catch(Exception ex) { LOG.error("Agent startup failed",ex); }
     }
     private void stop(ServerStoppingEvent e) {
-        for (AgentPlayer a:List.copyOf(agents.values())) server.getPlayerList().remove(a);
+        for (AgentPlayer a:List.copyOf(agents.values())) {if(a.stream!=null)a.stream.close();server.getPlayerList().remove(a);}
         agents.clear();
     }
     private void spawn(String name,String job) {
@@ -131,22 +140,35 @@ public final class SynAgents {
         // Vanilla advances once per tick. Cancel one third of those advances,
         // preserving vanilla sleep-to-morning and other daylight behavior.
         if ((!humans && agents.isEmpty()) || ticks%3==0) for (ServerLevel l:server.getAllLevels()) if (l.dimensionType().hasSkyLight() && l.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)) l.setDayTime(l.getDayTime()-1);
-        for (AgentPlayer a:List.copyOf(agents.values())) {
+        List<AgentPlayer> scheduled=new ArrayList<>(agents.values());
+        if(!scheduled.isEmpty())Collections.rotate(scheduled,-(int)(ticks%scheduled.size()));
+        for (AgentPlayer a:scheduled) {
             if (!a.isAlive()) {
                 a.controls.cancel("dead");
+                if(a.stream!=null){a.stream.close();a.stream=null;}
                 long due=respawns.computeIfAbsent(a.getGameProfile().getName(),n->ticks+200);
                 if (ticks>=due) try { respawn(a); } catch(Exception ex) { LOG.error("Agent respawn failed",ex); respawns.put(a.getGameProfile().getName(),ticks+600); }
                 continue;
             }
             try {
                 String name=a.getGameProfile().getName();
-                JsonObject plan=plans.get(name);
-                if (plan!=null && ticks<=expiries.getOrDefault(name,0L)) act(a,plan);
+                if(realtime&&a.stream==null)a.stream=new BodyStream(http,name,a.controls.epoch,streamToken);
+                if(realtime)a.stream.connect();
+                JsonObject plan=realtime?a.stream.poll():plans.get(name);
+                if (plan!=null && (realtime||ticks<=expiries.getOrDefault(name,0L))) act(a,plan);
                 else { a.controls.cancel("control_expired"); a.zza=0; a.xxa=0; abortMining(a); }
                 a.controls.tick(navigationDeadline);
                 // Emergency reactions run locally even when inference is down.
                 if (ticks%20==0 && a.getFoodData().getFoodLevel()<12) consume(a);
-                if (ticks%20==0 && !inFlight.contains(name) && !token.isBlank()) request(a);
+                if(realtime&&a.stream.ready()) {
+                    String dimension=a.level().dimension().location().toString();
+                    boolean terrain=ticks>=a.terrainDue||!dimension.equals(a.terrainDimension);
+                    if(a.stream.send(observation(a,!terrain))&&terrain) {
+                        a.terrainDue=ticks+20+Math.floorMod(name.hashCode(),3);
+                        a.terrainDimension=dimension;
+                    }
+                }
+                if (!realtime && ticks%20==0 && !inFlight.contains(name) && !token.isBlank()) request(a);
             } catch(Exception ex) { LOG.error("Agent {} step failed",a.getGameProfile().getName(),ex); }
         }
     }
@@ -157,9 +179,14 @@ public final class SynAgents {
         plans.remove(name); breaking.remove(name); respawns.remove(name);
     }
     private JsonObject observation(AgentPlayer a) {
+        return observation(a,false);
+    }
+    private JsonObject observation(AgentPlayer a,boolean fast) {
         long began=System.nanoTime();
         JsonObject o=new JsonObject();
         o.addProperty("body_epoch",a.controls.epoch);
+        o.addProperty("partial",fast);o.addProperty("control_transport",realtime?"websocket":"http");
+        o.addProperty("selected_slot",a.getInventory().selected);
         JsonArray raw=new JsonArray();for(String op:List.of("move_to","look_at","stop"))raw.add(op);
         o.add("raw_capabilities",raw);o.add("action_results",a.controls.observations());
         o.addProperty("schema",1); o.addProperty("agent",a.getGameProfile().getName()); o.addProperty("job",a.job);
@@ -172,7 +199,7 @@ public final class SynAgents {
         o.addProperty("night",a.level().isNight()); o.addProperty("raining",a.level().isRaining());
         o.addProperty("sheltered",!a.level().canSeeSky(a.blockPosition()));
         o.addProperty("last_action",lastAction.getOrDefault(a.getGameProfile().getName(),"starting"));
-        ProgressionAdapter.metadata(a,o);
+        if(!fast)ProgressionAdapter.metadata(a,o);
         JsonArray context=new JsonArray(); chat.forEach(context::add); o.add("chat",context);
         JsonArray teammates=new JsonArray(),humans=new JsonArray();
         for(ServerPlayer p:server.getPlayerList().getPlayers()) {
@@ -181,7 +208,7 @@ public final class SynAgents {
             if(p instanceof AgentPlayer agent) { row.addProperty("job",agent.job); row.addProperty("action",lastAction.getOrDefault(agent.getGameProfile().getName(),"starting"));teammates.add(row); } else humans.add(row);
         }
         o.add("teammates",teammates);o.add("humans",humans);
-        if(project!=null) o.add("project",project.observe(a));
+        if(!fast&&project!=null) o.add("project",project.observe(a));
         JsonArray inv=new JsonArray();
         for (int i=0;i<a.getInventory().items.size();i++) {
             ItemStack s=a.getInventory().getItem(i); if (s.isEmpty()) continue;
@@ -199,6 +226,7 @@ public final class SynAgents {
             if (entities.size()>=24) break;
         }
         o.add("entities",entities);
+        if(fast) {o.addProperty("observation_ms",(System.nanoTime()-began)/1_000_000.0);return o;}
         JsonArray blocks=new JsonArray(),walkable=new JsonArray(),workstations=new JsonArray();
         List<JsonObject> resources=new ArrayList<>();
         BlockPos origin=a.blockPosition();
@@ -240,7 +268,7 @@ public final class SynAgents {
             if (error!=null || response.statusCode()!=200 || response.body().length()>16384 || agents.get(name)!=a || ticks-sourceTick>100) return;
             try {
                 JsonObject result=JSON.fromJson(response.body(),JsonObject.class);
-                if (result.get("tick").getAsLong()!=sourceTick || !name.equals(result.get("agent").getAsString())) return;
+                if (realtime || result.get("tick").getAsLong()!=sourceTick || !name.equals(result.get("agent").getAsString())) return;
                 plans.put(name,result.getAsJsonObject("action")); expiries.put(name,ticks+100);
                 if(result.has("say")&&result.has("announcement_id")) {
                     String id=result.get("announcement_id").getAsString();
@@ -427,7 +455,7 @@ public final class SynAgents {
         root.then(Commands.literal("inspect").executes(c->{ JsonArray rows=new JsonArray();agents.values().forEach(a->rows.add(observation(a)));try { Files.writeString(Path.of("config/syn-agents-observations.json"),JSON.toJson(rows)); } catch(Exception ex) { LOG.warn("Cannot write agent observations",ex);return 0; }return 1;}));
         root.then(Commands.literal("list").executes(c->{ c.getSource().sendSuccess(()->Component.literal("Survival agents: "+agents.keySet()),false); return agents.size(); }));
         root.then(Commands.literal("spawn").then(Commands.argument("name",com.mojang.brigadier.arguments.StringArgumentType.word()).then(Commands.argument("job",com.mojang.brigadier.arguments.StringArgumentType.word()).executes(c->{ spawn(com.mojang.brigadier.arguments.StringArgumentType.getString(c,"name"),com.mojang.brigadier.arguments.StringArgumentType.getString(c,"job")); saveConfig(); return 1; }))));
-        root.then(Commands.literal("remove").then(Commands.argument("name",com.mojang.brigadier.arguments.StringArgumentType.word()).executes(c->{ String n=com.mojang.brigadier.arguments.StringArgumentType.getString(c,"name"); AgentPlayer a=agents.remove(n); if(a!=null) { server.getPlayerList().remove(a); plans.remove(n); saveConfig(); return 1; } return 0; })));
+        root.then(Commands.literal("remove").then(Commands.argument("name",com.mojang.brigadier.arguments.StringArgumentType.word()).executes(c->{ String n=com.mojang.brigadier.arguments.StringArgumentType.getString(c,"name"); AgentPlayer a=agents.remove(n); if(a!=null) { if(a.stream!=null)a.stream.close(); a.controls.cancel("removed"); server.getPlayerList().remove(a); plans.remove(n); saveConfig(); return 1; } return 0; })));
         e.getDispatcher().register(root);
     }
 }

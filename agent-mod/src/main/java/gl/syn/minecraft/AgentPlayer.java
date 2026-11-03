@@ -22,6 +22,9 @@ import net.minecraft.world.level.GameType;
 public final class AgentPlayer extends ServerPlayer {
     public String job;
     public final PrimitiveControl controls;
+    BodyStream stream;
+    long terrainDue;
+    String terrainDimension="";
     public AgentPlayer(ServerLevel level, String name, String job) {
         super(level.getServer(), level, new GameProfile(UUID.nameUUIDFromBytes(("syn-agent:"+name).getBytes(java.nio.charset.StandardCharsets.UTF_8)),name),ClientInformation.createDefault());
         this.job=job;

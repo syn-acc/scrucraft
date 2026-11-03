@@ -104,6 +104,8 @@ class Gateway:
         self.frame_ids = {}
         self.last_chat = 0
         self.enrollments = {}
+        self.body_connections = {}
+        self.stream_revision = 0
 
     def settings(self):
         return json.loads(self.config.read_text())
@@ -225,7 +227,7 @@ class Gateway:
                         'max_agents': 10, 'agent_ownership': 'creating_player'}
             p = self.authenticate(headers.get('Authorization', ''))
             # Bound all authenticated work, including failed mutations.
-            self.limit(('request', p['hash']), .05)
+            self.limit(('request', p['hash']), .005)
             if path == '/v1/me' and method == 'GET':
                 return {'version': VERSION, 'owner': p['owner'], 'role': p['role'], 'agent': p['agent'],
                         'goals': sorted(GOALS), 'lease_seconds': 30, 'observation_max_age_seconds': 5,
@@ -301,7 +303,7 @@ class Gateway:
                     previous,receipt=self.receipts[key]
                     require(previous==payload,'request_id_reused',409)
                     return receipt
-                self.limit(('primitive',name),.1)
+                self.limit(('primitive',name),.05)
                 ttl=value.get('ttl_seconds',30)
                 require(type(ttl) is int and 1<=ttl<=30)
                 control={'id':rid,'op':op,'body_epoch':frame['body_epoch'],'timeout_ticks':ttl*20}
@@ -314,6 +316,8 @@ class Gateway:
                 require(len(self.receipts)<4096,'receipt_capacity',503)
                 lease.update(control=control,control_until=self.clock()+ttl,goal=None)
                 self.receipts[key]=(payload,receipt)
+                self.stream_revision += 1
+                self.changed.notify_all()
                 return receipt
             if path == '/v1/lease' and method == 'PUT':
                 lease['expires_at'] = self.clock()+30
@@ -321,6 +325,8 @@ class Gateway:
             if (path, method) in {('/v1/lease', 'DELETE'), ('/v1/goal', 'DELETE')}:
                 lease['goal'], lease['chat'] = None, None
                 lease.pop('control',None)
+                self.stream_revision += 1
+                self.changed.notify_all()
                 if path == '/v1/lease':
                     self.leases.pop(name, None)
                 return {'status': 'stopped', 'agent': name}
@@ -335,6 +341,7 @@ class Gateway:
                 require(payload == old_payload, 'request_id_reused', 409)
                 return receipt
             if path == '/v1/goal':
+                require(self.snapshot(body).get('control_transport') != 'websocket', 'use_primitive_stream', 409)
                 self.limit(('goal', name), 1)
                 frame = self.snapshot(body)
                 observed = self.frame_ids.get(name, {}).get(value.get('observation_id'))
@@ -440,16 +447,22 @@ class Gateway:
         fields = ('agent', 'tick', 'dimension', 'position', 'health', 'food', 'inventory',
                   'night', 'raining', 'sheltered', 'blocks', 'walkable', 'entities', 'last_action',
                   'adapter_version', 'survival_profile', 'advancements', 'deaths')
-        fields += ('body_epoch','raw_capabilities','action_results')
+        fields += ('body_epoch','raw_capabilities','action_results','control_transport','selected_slot','observation_ms')
         snapshot = {k: observation[k] for k in fields if k in observation}
+        old = self.frames.get(name)
+        if observation.get('partial') and old and old.get('body_epoch') == observation.get('body_epoch') and old.get('dimension') == observation.get('dimension'):
+            snapshot = {**old, **snapshot}
+        else:
+            snapshot['terrain_captured_at'] = self.clock()
         snapshot['inventory'] = [{k: v for k, v in row.items() if k != 'hydration'}
                                  for row in snapshot.get('inventory', [])]
         # Opaque per-tick IDs stay stable if the controller retries the same frame.
         old = self.frames.get(name)
-        snapshot['id'] = old['id'] if old and old.get('tick') == observation['tick'] else secrets.token_urlsafe(18)
+        snapshot['id'] = old['id'] if old and old.get('tick') == observation['tick'] and old.get('body_epoch') == observation.get('body_epoch') else secrets.token_urlsafe(18)
         snapshot['captured_at'] = old['captured_at'] if old and old['id'] == snapshot['id'] else self.clock()
         self.frames[name] = snapshot
         with self.changed:
+            self.stream_revision += 1
             self.changed.notify_all()
         history = self.frame_ids.setdefault(name, {})
         history[snapshot['id']] = snapshot['captured_at']
@@ -479,6 +492,23 @@ class Gateway:
         if lease and lease.get('chat') and lease['chat']['expires_at'] > self.clock():
             result.update({k: lease['chat'][k] for k in ('say', 'announcement_id')})
         return result
+
+    def realtime_control(self, name):
+        """Short renewable grants: a stalled bridge cannot leave movement latched on."""
+        body=self.body(name)
+        frame=self.snapshot(body)
+        reply={'kind':'idle','body_epoch':frame.get('body_epoch'),'valid_for_ticks':4}
+        lease=self.active(name)
+        if not lease or body['data'].get('suspended') or body['data'].get('removed'):
+            return reply
+        token=self.db.execute('SELECT * FROM tokens WHERE hash=? AND enabled=1',(lease['token_hash'],)).fetchone()
+        if not token:return reply
+        self.member(token['owner'],token['player_uuid'])
+        control=lease.get('control')
+        if control and lease.get('control_until',0)>self.clock() and control['body_epoch']==frame.get('body_epoch'):
+            done=any(row.get('id')==control['id'] and row.get('state') in {'done','failed','cancelled'} for row in frame.get('action_results',[]))
+            if not done:reply.update(control,kind='control')
+        return reply
 
 
 class Server(ThreadingHTTPServer):
