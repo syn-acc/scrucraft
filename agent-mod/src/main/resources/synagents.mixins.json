@@ -1,0 +1,1 @@
+{"required":true,"minVersion":"0.8","package":"gl.syn.minecraft.mixin","compatibilityLevel":"JAVA_21","mixins":["PlayerListMixin"],"injectors":{"defaultRequire":1}}

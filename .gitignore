@@ -1,0 +1,9 @@
+*.env
+*.sqlite*
+__pycache__/
+*.pyc
+.gradle/
+build/
+artifacts/
+*.jar
+*.mrpack

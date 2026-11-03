@@ -1,0 +1,28 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+[[mods]]
+modId="synagents"
+version="0.4.0"
+displayName="Syn MRIC Agents"
+description='''Player survival agents with asynchronous multi-rate control.'''
+[[mixins]]
+config="synagents.mixins.json"
+[[dependencies.synagents]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.265,)"
+ordering="NONE"
+side="SERVER"
+[[dependencies.synagents]]
+modId="luckperms"
+type="required"
+versionRange="[5.4.150,)"
+ordering="AFTER"
+side="SERVER"
+[[dependencies.synagents]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+ordering="NONE"
+side="SERVER"
