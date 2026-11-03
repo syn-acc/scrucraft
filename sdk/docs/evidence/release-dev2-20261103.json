@@ -1,0 +1,26 @@
+{
+  "source_commit": "2fa4c493f71ff4b08378e173e357f2d8320cda1a",
+  "gateway_sdk": "0.3.0.dev2",
+  "adapter": "0.5.0-dev2",
+  "adapter_sha256": "6b6f676f6c0f7aa74090b5adf0e82406ec5434d68ca2905156a429891eba05d8",
+  "sdk_url": "https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev2.zip",
+  "sdk_sha256": "c2a19d89da97e1f60bab6150639315ace463335b708da390edae5fa3e90d59d9",
+  "packaged_python_tests_passed": 190,
+  "java_build_and_checks_passed": true,
+  "native_reports": [
+    "api-fixture-run-10.json",
+    "api-fixture-run-11.json",
+    "api-fixture-run-12.json"
+  ],
+  "live_report": "live-dev2-20261103.json",
+  "offline_world_and_gateway_backups_retained": true,
+  "paired_rollback_prepared": true,
+  "controller_process_preserved": true,
+  "human_stop_preserved": true,
+  "full_checklist_complete": false,
+  "ten_body_performance_passed": false,
+  "limitations": [
+    "Full checklist and sustained industrial-production acceptance remain open.",
+    "Live read RTT is not action completion latency or ten-body throughput."
+  ]
+}

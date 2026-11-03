@@ -357,3 +357,19 @@ losing health. All 36 seed drops were accounted for. Initial crops, raw logs,
 crafting table and work scaffold were declared fixture inputs. This finite proof
 does not establish sustained self-sufficiency, industrial output, or completion
 of every original/additional checklist criterion. Run 11 remains recorded as failed.
+
+## Live dev2 deployment verification
+
+SDK/gateway **0.3.0.dev2** and adapter **0.5.0-dev2** are deployed from
+[source commit 2fa4c49](https://github.com/syn-acc/scrucraft/commit/2fa4c493f71ff4b08378e173e357f2d8320cda1a).
+The [release manifest](evidence/release-dev2-20261103.json) records artifact hashes
+and retained backup/rollback evidence. The published SDK installs successfully.
+
+The [live smoke report](evidence/live-dev2-20261103.json) records 100 authenticated
+public TLS WebSocket reads from a desktop to the UK server: p50 **6.137 ms**,
+p95 **8.772 ms**, p99 **14.784 ms**. Native-to-gateway lag p95 was **4 ms**.
+These are read/transport measurements, not active command-completion latency.
+Human stop persisted through restart; fresh control was rejected with HTTP423
+`human_stop_requires_resume`. No gameplay actions or automatic resume occurred.
+The controller process was preserved. The ten-body action-performance targets
+and full-checklist acceptance remain open as documented above.

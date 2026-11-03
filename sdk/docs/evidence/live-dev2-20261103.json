@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "checked_at_unix": 1793748850.6556637,
+  "gateway": "0.3.0.dev2",
+  "adapter": "0.5.0-dev2",
+  "sdk_archive_sha256": "c2a19d89da97e1f60bab6150639315ace463335b708da390edae5fa3e90d59d9",
+  "samples": 100,
+  "public_wss_read_round_trip_ms": {
+    "p50": 6.137,
+    "p95": 8.772,
+    "p99": 14.784
+  },
+  "application_snapshot_drain_gap_ms": {
+    "p50": 71.028,
+    "p95": 73.248,
+    "p99": 80.251
+  },
+  "native_to_gateway_ms": {
+    "p50": 1,
+    "p95": 4,
+    "p99": 9
+  },
+  "skipped_or_skewed_native_lag_samples": 0,
+  "human_stop_persisted": true,
+  "control_rejected_http": 423,
+  "measurement": "Desktop to live UK public TLS WebSocket; authenticated read-only result queries",
+  "limitations": [
+    "Read round trips do not measure action dispatch or native completion.",
+    "Snapshot drain gaps include intentional 65 ms client pauses; they are not server observation cadence.",
+    "Single suspended body; not ten-body throughput or active gameplay acceptance."
+  ],
+  "gameplay_actions_executed": 0
+}
