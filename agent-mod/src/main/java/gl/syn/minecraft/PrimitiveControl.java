@@ -364,13 +364,14 @@ public final class PrimitiveControl {
             if(area!=null) {
                 BodyAccess.require(body,pos.relative(face),area);
                 if(block.getBlock() instanceof DoorBlock)BodyAccess.require(body,block.getValue(DoorBlock.HALF)==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER?pos.above():pos.below(),area);
-                if((!menuCandidate||body.isShiftKeyDown())&&(held.getItem() instanceof BlockItem||held.getItem() instanceof BucketItem||held.getItem() instanceof BoneMealItem))
+                boolean reviewedBucket=FluidPortView.reviewedBucketUse(body,pos,held,area);
+                if(!reviewedBucket&&(!menuCandidate||body.isShiftKeyDown())&&(held.getItem() instanceof BlockItem||held.getItem() instanceof BucketItem||held.getItem() instanceof BoneMealItem))
                     throw new NativeActionException("unsupported_use_footprint");
                 // Unreviewed mod item/block callbacks may write neighboring cells. Ordinary
                 // unrestricted play delegates them natively; configured bounds must not be bypassed.
                 String itemNamespace=BuiltInRegistries.ITEM.getKey(held.getItem()).getNamespace();
                 String blockNamespace=BuiltInRegistries.BLOCK.getKey(block.getBlock()).getNamespace();
-                if(!itemNamespace.equals("minecraft")||!blockNamespace.equals("minecraft"))throw new NativeActionException("unsupported_use_footprint");
+                if(!reviewedBucket&&(!itemNamespace.equals("minecraft")||!blockNamespace.equals("minecraft")))throw new NativeActionException("unsupported_use_footprint");
             }
             if(menuCandidate)inventory.prepareOpen(pos,area);
             var previousMenu=body.containerMenu;

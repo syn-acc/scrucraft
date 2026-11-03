@@ -13,11 +13,14 @@ def run_cases(fixture, stream):
     def reset():
         stream.stop()
         fixture.console('tp VerifyBuilder 0.5 64 0.5')
-        fixture.console('clear VerifyBuilder')
-        fixture.console('kill @e[type=minecraft:item]')
         fixture.console('fill -3 64 -3 5 70 5 air')
         fixture.console('fill -3 63 -3 5 63 5 stone')
+        # Removing prior mod block entities can spill their contents. Clean after removal,
+        # otherwise a later pickup silently changes the first new container revision.
+        fixture.console('kill @e[type=minecraft:item]')
+        fixture.console('clear VerifyBuilder')
         time.sleep(.3)
+        wait_for(lambda: not any(r.get('count') for r in stream.observe()['inventory']), description='empty workstation fixture inventory')
         done(stream, stream.sneak(False))
 
     def opened(receipt):
@@ -27,7 +30,17 @@ def run_cases(fixture, stream):
         return wait_for(lambda: stream.observe().get('container') if stream.observe().get('container', {}).get('open') else None)
 
     def transfer(state, source, destination, count):
-        return opened(stream.move_item(source, destination, count, session_id=state['session_id'], revision=state['revision']))
+        receipt = stream.move_item(source, destination, count, session_id=state['session_id'], revision=state['revision'])
+        try:
+            return opened(receipt)
+        except AssertionError as error:
+            current = stream.observe().get('container', {})
+            def contents(value):
+                return [{k: r.get(k) for k in ('inventory', 'slot', 'item', 'count', 'damage')}
+                        for r in value.get('slots', []) if r.get('count')]
+            raise AssertionError({'result': str(error), 'requested_revision': state['revision'],
+                                  'observed_revision': current.get('revision'), 'before': contents(state),
+                                  'after': contents(current), 'mutation_replayed': False}) from error
 
     def storage(block):
         reset()

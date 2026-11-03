@@ -657,7 +657,9 @@ def run_industrial_cases(fixture, stream, reset, failed, container):
             processed = wait_for(lambda: current() if amount(current(), 'minecraft:wheat') == 0 else None,
                                  timeout=35, description='native 16-wheat milling batch')
             flour, seeds = amount(processed, 'create:wheat_flour'), amount(processed, 'minecraft:wheat_seeds')
-            assert 16 <= flour <= 48 and (flour - 16) % 2 == 0 and 0 <= seeds <= 16, processed
+            # Create rolls chance independently for each item in a counted ProcessingOutput.
+            # A count2/chance.25 entry can yield zero, one or two bonus flour, not only pairs.
+            assert 16 <= flour <= 48 and 0 <= seeds <= 16, processed
             batches.append({'wheat_consumed': 16, 'flour_actual': flour, 'seed_actual': seeds})
             for item, destination in [('create:wheat_flour', 2 + batch), ('minecraft:wheat_seeds', 4 + batch)]:
                 while amount(current(), item):

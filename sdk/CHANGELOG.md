@@ -8,12 +8,17 @@ See [release status](docs/release-status.md) before using development features.
 
 
 
-## 0.3.0.dev2 — development only, not deployed
+## 0.3.0.dev2 — experimental gameplay release
 
 - Target body-specific waiters and prune confirmed native ACKs.
 - Push 64 recent result transitions plus unfinished work; retain full bounded
   lookup and recover missing truncated-history handles without replay.
-- 199 local checks and short synthetic profiles; native load remains unverified.
+- Fix delayed dig cancellation, stale grant acceptance and bounded reconnect/
+  subscription recovery; retain uncertain outcomes without mutation replay.
+- Add complete paged metadata reads and reviewed mod menus/item/fluid ports.
+- Resolve fractional navigation surfaces and airborne starts.
+- Comprehensive gameplay, industrial survival and ten-body performance remain
+  governed by the [completion checklist](docs/api-completion-checklist.md).
 
 ## 0.3.0.dev1 — controlled experimental checkpoint
 

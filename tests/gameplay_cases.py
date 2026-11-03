@@ -28,6 +28,12 @@ def slot(stream, item):
 def run_cases(fixture):
     client = fixture.client()
     with client.realtime() as stream:
+        def recover_failed_case():
+            stream.reconnect(attempts=2)
+            stream.stop()
+            return {'recovered': True, 'explicit_fixture_reconnect': True,
+                    'mutation_replayed': False, 'human_stop_resumed': False}
+        fixture.failure_recovery = recover_failed_case
         def reset():
             stream.stop()
             fixture.console('tp VerifyBuilder 0.5 64 0.5')
@@ -149,12 +155,22 @@ def run_cases(fixture):
         container_cases(fixture, stream)
         from mod_workstations_gameplay_cases import run_cases as mod_cases
         mod_cases(fixture, stream)
+        from create_controls_gameplay_cases import run_cases as create_cases
+        create_cases(fixture, stream)
+        from fluid_processing_gameplay_cases import run_cases as fluid_cases
+        fluid_cases(fixture, stream)
+        from survival_gameplay_cases import run_cases as survival_cases
+        survival_cases(fixture, stream)
         from body_gameplay_cases import run_cases as body_cases
         body_cases(fixture, stream)
         from authorization_gameplay_cases import run_cases as authorization_cases
         authorization_cases(fixture, stream)
         from navigation_gameplay_cases import run_cases as navigation_cases
         navigation_cases(fixture, stream)
+        from fractional_navigation_gameplay_cases import run_cases as fractional_navigation_cases
+        fractional_navigation_cases(fixture, stream)
+        from chat_privacy_gameplay_cases import run_cases as chat_cases
+        chat_cases(fixture, stream)
         from result_receipt_gameplay_cases import run_cases as receipt_cases
         receipt_cases(fixture, stream)
 
@@ -203,3 +219,4 @@ def run_cases(fixture):
         lifecycle_cases(fixture, stream)
         from sdk_examples_gameplay_cases import run_cases as example_cases
         example_cases(fixture, stream)
+    fixture.failure_recovery = None

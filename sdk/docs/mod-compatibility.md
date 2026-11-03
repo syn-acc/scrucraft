@@ -124,6 +124,23 @@ human GUI test.
 
 ## Installed mod inventory and outstanding work
 
+The development fluid extension provides read-only native tank observations for
+basins, fluid tanks, spouts and item drains, with millibucket amounts, capacity,
+fluid identity, components and native multiblock membership. Item drains expose
+their actual single item slot only when `open_container(..., face=...)` selects
+a horizontal side; omitted face remains a fluid-only session. Every access
+rechecks native capability identity, reach, structure and optional owner bounds.
+Fluid changes invalidate the same session revision as item changes. See the
+[wire contract](container-crafting-contract.md) for fields and truncation limits.
+
+Six unrun cases in `tests/fluid_processing_gameplay_cases.py` cover basin bucket
+roundtrips, multiblock bounds, drain emptying, water-and-flour mixing, coal-heated
+tea mixing, and a drain → powered pump → spout bucket roundtrip. They use real
+held buckets and native processing ticks, with explicitly seeded infrastructure
+and motors. No output or fluid capability is injected. Ordinary Create tanks
+reject direct survival bucket exchange; the route uses native fluid transport.
+These cases do not establish a survival-built factory or complete MOD-09.
+
 | Installed mod/version | Current compatibility boundary and next verification |
 | --- | --- |
 | Create 6.0.10+mc1.21.1 | Candidate depot/basin/millstone ports and native recipe metadata above; placement/use and full survival power chain pending MOD-01–04/09. Other machine handlers need per-workstation audit. |

@@ -27,6 +27,31 @@ rules, pending full-pack acceptance and processing limits. Native locks, blocked
 apply. Opening follows native block interaction, including statistics and any
 piglin reaction.
 
+The development fluid extension also opens Create basins, fluid tanks, spouts
+and item drains. Optional `face` selects the native **item** capability side;
+omitting it preserves unsided access. Item drains require a horizontal face for
+their one item slot. Opening a drain without a face exposes a read-only fluid
+session, while `up`/`down` fail with `unsupported_item_port_face`. Tank and spout
+sessions have no container item slots. An explicit face on an ordinary menu
+fails with `container_face_not_supported`. A selected machine side is returned
+as `item_port_face` and rechecked throughout the session.
+
+Fluid observations use `fluids` rows containing `tank`, `fluid`, `empty`,
+`amount_mB`, `capacity_mB` and `role`; `fluid_amount_unit` is `mB`. Basin fluid
+indices 0–1 are outputs and 2–3 are inputs, unlike its item-slot order. The
+`fluid_structure` lists actual multiblock members. Every tank member must remain
+loaded, identical and inside optional owner bounds. A fluid stack, component
+or capacity change advances the same container revision. Fluid metadata uses
+the same explicit 2 KiB ambient truncation markers as item metadata; the full
+single-slot query below currently reads items, not omitted fluid components.
+
+No fluid-capability mutation operation exists. Native basin bucket interaction,
+drain emptying, powered pumps, spout filling and heated recipes must perform
+their real survival operations. Ordinary Create tanks do not support direct
+survival bucket exchange in the pinned version; use a native drain/pump route.
+These fluid extensions and their acceptance fixtures are development work and
+remain unverified until recorded in the full-pack evidence report.
+
 `move_item` requires the current `session_id` and `revision`, plus `from`, `to`
 and `count` (1–64). References have the form
 `{"inventory":"player","slot":0}` or

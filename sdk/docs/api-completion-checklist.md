@@ -8,11 +8,15 @@ and human-stop controls remain. This policy is deployed in the controlled experi
 Working backlog, reviewed **2026-11-03**. This is the release checklist for a
 player-ready SDK, not an advertisement of currently supported operations.
 
-Live experimental checkpoint: adapter **0.5.0-dev1**, SDK/gateway **0.3.0.dev1**,
-deployed 2026-11-03 for a controlled single-body session. All 44 isolated native
-gameplay cases passed; the ten-body latency test failed. **8/40** checklist items
-have individually linked completion evidence. Deployment does not complete the
-remaining acceptance criteria or establish multi-body readiness.
+Experimental release: adapter **0.5.0-dev2**, SDK/gateway **0.3.0.dev2**.
+The release includes delayed-dig and recovery corrections, reviewed native mod
+interfaces, fractional-ground/airborne navigation fixes and dimension-completion
+handling. Named navigation and damage regressions pass in runs 10 and 11; see
+[verification](verification.md) for exact build-scoped evidence and retained failures.
+**10/40** original checklist items have individually linked completion evidence;
+30 remain unchecked. Deployment does not complete those criteria, the 13
+additional requirements, or sustained multi-body acceptance. Prior failed
+measurements remain part of the record. MOD-08 train/contraption drafts are excluded.
 
 Signatures below describe the documented SDK interfaces. Keep unsupported cases
 and unverified acceptance criteria visible even where an operation is implemented.
@@ -201,11 +205,19 @@ do not synthesize items, teleport or silently select tools on the server.
 
 ## 4. SDK ergonomics — no player-written transport workarounds
 
-- [ ] **SDK-01 — Complete onboarding helper**: guide login, create/select an owned
+- [x] **SDK-01 — Complete onboarding helper**: guide login, create/select an owned
   body, await readiness with a finite timeout, and acquire control. Preserve
   private credentials and show actionable errors. Validate actual in-game code
   delivery with a participating whitelisted player; administrative test tokens
   do not prove this flow.
+  Evidence: [participating-player enrollment](evidence/live-enrollment-20261103.json)
+  records private-code receipt reported by the player, successful exchange and
+  authenticated owned-body connection. [Run 08](evidence/api-fixture-run-08.json)
+  validates the candidate's clean installed helper/examples over verified TLS;
+  [helper/error regressions](../../tests/test_primitive_contract.py) and
+  [CLI failures](../../tests/test_login_cli.py) cover finite readiness, private
+  credentials and actionable errors. The real enrollment predates this candidate;
+  candidate helper tests use an explicitly synthetic owner.
 - [ ] **SDK-02 — Reconnect and resync**: reconnect the transport with bounded
   backoff, clear stale body/container state and reconcile outstanding actions.
   Never automatically override a human stop or replay uncertain mutations.
@@ -217,10 +229,16 @@ do not synthesize items, teleport or silently select tools on the server.
   [run 04](evidence/api-fixture-run-04.json): `tests/test_streaming.py::test_protocol2_sdk_handles_async_observations_and_reconnect`; native independent-controls cases.
   Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
 
-- [ ] **SDK-04 — Pacing and diagnostics**: expose action limits and retry timing;
+- [x] **SDK-04 — Pacing and diagnostics**: expose action limits and retry timing;
   safely pace submissions without hiding errors or delaying stop behind work.
   Surface connection state, observation freshness and request timing. Check
   packaged installation and examples from a clean environment.
+  Evidence: [run 08](evidence/api-fixture-run-08.json)
+  `packaged_sdk_documented_sync_async_observe_and_stop_examples` passes in a clean
+  environment with verified TLS and matching module hashes. Real HTTP/WSS
+  pacing, structured retries, stop-priority and diagnostics regressions pass in
+  the [216-test checkpoint](evidence/development-checkpoint-20261103.json).
+  Sustained native latency remains a separate, failed **VERIFY-05** gate.
 - [ ] **SDK-05 — One coherent contract**: keep capability discovery, method names,
   HTTP/WSS schemas, examples and the short player guide consistent. Document
   supported mod interactions and precise unsupported cases. Remove misleading

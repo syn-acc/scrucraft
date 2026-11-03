@@ -19,6 +19,35 @@ def run_cases(fixture, stream):
         fixture.console('spawnpoint VerifyBuilder 10 64 0')
         fixture.console('gamerule keepInventory false')
         try:
+            # A local player must acknowledge completed native dimension travel.
+            # Otherwise ServerPlayer's changing-dimension flag makes /kill and
+            # ordinary survival damage ineffective despite command acknowledgement.
+            before_travel_epoch = stream.observe()['body_epoch']
+            fixture.console('execute in minecraft:the_nether run forceload add 0 0')
+            fixture.console('execute in minecraft:the_nether run fill 0 64 0 3 68 3 air')
+            fixture.console('execute in minecraft:the_nether run fill 0 63 0 3 63 3 stone')
+            entered_epoch = None
+            try:
+                fixture.console('execute in minecraft:the_nether run tp VerifyBuilder 0.5 64 0.5')
+                entered = wait_for(lambda: fixture.gateway.frames.get('VerifyBuilder')
+                                   if fixture.gateway.frames.get('VerifyBuilder', {}).get('dimension') == 'minecraft:the_nether'
+                                   and fixture.gateway.frames['VerifyBuilder']['body_epoch'] != before_travel_epoch else None,
+                                   timeout=35, description='lifecycle fixture native dimension transition')
+                entered_epoch = entered['body_epoch']
+            finally:
+                fixture.console('execute in minecraft:overworld run tp VerifyBuilder 0.5 64 0.5')
+                wait_for(lambda: fixture.gateway.frames.get('VerifyBuilder', {}).get('dimension') == 'minecraft:overworld'
+                         and fixture.gateway.frames['VerifyBuilder'].get('body_epoch') != entered_epoch,
+                         timeout=35, description='lifecycle fixture returns from native dimension transition')
+                stream.reconnect()
+                fixture.console('execute in minecraft:the_nether run forceload remove 0 0')
+            health_before = stream.observe()['health']
+            assert health_before > 0, stream.observe().get('health')
+            damage = min(2.0, health_before / 2)
+            fixture.console(f'damage VerifyBuilder {damage:.4f} minecraft:generic')
+            health_after = wait_for(lambda: stream.observe()['health']
+                                    if stream.observe()['health'] <= health_before - damage * .8 else None,
+                                    timeout=5, description='ordinary native damage after dimension transition')
             fixture.console('give VerifyBuilder diamond 2')
             full_pack = bool(getattr(fixture.args, 'full_pack_mods', None))
             protected_tool = None
@@ -85,7 +114,9 @@ def run_cases(fixture, stream):
             # A fresh epoch and live snapshots alone do not prove control resumed.
             resumed = done(stream, stream.look_at(12, 65, 2))
             assert resumed['body_epoch'] == observation['body_epoch'], resumed
-            return {'respawn_seconds': time.monotonic()-started, 'epoch_changed': True,
+            return {'death_to_recovery_and_fresh_control_seconds': time.monotonic()-started, 'epoch_changed': True,
+                    'dimension_roundtrip_before_death': True, 'native_damage_after_dimension_change': damage,
+                    'health_before_damage': health_before, 'health_after_damage': health_after,
                     'old_container_session': opened['session_id'], 'container_closed': True,
                     'prior_movement_outcome': prior['state'], **recovery, 'death_position': death_position,
                     'respawn_position': observation['position'], 'new_epoch_action': resumed['reason'],

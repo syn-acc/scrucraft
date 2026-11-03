@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "checked_at": "2026-11-03T22:32:10.007424+00:00",
+  "checklist": [
+    "SDK-01"
+  ],
+  "account": "Jamie_Syn",
+  "enrollment": {
+    "date": "2026-11-03",
+    "approximate_utc_window": [
+      "20:52:18",
+      "20:53:05"
+    ],
+    "method": "SDK CLI start_login / finish_login with private in-game verification code",
+    "real_player_participated": true,
+    "code_delivery_evidence": "The participating player supplied the requested code and reported seeing it in Minecraft chat.",
+    "exchange_evidence": "The retained login command completed with exit code 0; saved player access was subsequently accepted by the authenticated account endpoint.",
+    "authenticated_read_by_utc": "2026-11-03T20:53:05Z",
+    "gateway_version_at_authenticated_read": "0.2.0.dev1",
+    "private_delivery_independently_captured": false
+  },
+  "current_read_only_account_check": {
+    "owner": "Jamie_Syn",
+    "role": "player",
+    "version": "0.3.0.dev1"
+  },
+  "owned_body": {
+    "name": "Architect",
+    "observed": true,
+    "suspended": true,
+    "removed": false
+  },
+  "connection_evidence": {
+    "at": "2026-11-03T21:31:34.130185+00:00",
+    "event": "connected",
+    "agent": "Architect",
+    "adapter_version": "0.5.0-dev1",
+    "transport": "SDK authenticated WebSocket",
+    "initial_inventory_empty": true
+  },
+  "limitations": [
+    "One successful live enrollment; not an exhaustive enrollment failure/security test.",
+    "Original private message display is player-reported; no screenshot or delivery telemetry is retained here.",
+    "Approximate enrollment timing comes from retained command/result timestamps, not server-side enrollment audit timestamps.",
+    "This predates the current candidate onboarding helper and does not validate every candidate helper step.",
+    "No new login, code delivery, credential issuance, control acquisition, resume or gameplay occurred during this evidence check."
+  ]
+}

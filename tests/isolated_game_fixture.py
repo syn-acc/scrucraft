@@ -56,8 +56,11 @@ class Fixture:
         self.public_url = f"http://127.0.0.1:{self.public_port}"
         self.gateway = None
         self.log = None
+        self.failure_recovery = None
+        self.case_selection = None
         self.evidence = {"schema": 1, "fixture": "isolated_neoforge", "synthetic_identity": True,
-                         "production_world_used": False, "cases": [], "started_at": time.time()}
+                         "production_world_used": False, "suite": getattr(args, 'suite', 'full'),
+                         "cases": [], "started_at": time.time()}
         # Fingerprint the Python actually imported by this run, independently of
         # later edits or repackaging of the development checkout.
         sources = [p for directory in ('sdk/scru_minecraft', 'agent-gateway', 'tests')
@@ -240,6 +243,10 @@ http {{
         return AgentClient(self.public_url, token, name, allow_local_http=True, timeout=8)
 
     def case(self, name, checklist_ids, run):
+        if self.case_selection is not None and name not in self.case_selection:
+            self.evidence.setdefault('excluded_case_names', []).append(name)
+            return True
+        self.evidence.setdefault('selected_case_names', []).append(name)
         started = time.monotonic()
         try:
             result = run() or {}
@@ -250,6 +257,16 @@ http {{
                    "failure_at": [{"file": Path(frame.filename).name, "line": frame.lineno,
                                    "function": frame.name}
                                   for frame in traceback.extract_tb(error.__traceback__)]}
+            # Preserve the original failure, then explicitly recover fixture control
+            # so one disconnected test doesn't turn the rest into identical errors.
+            # Recovery must never resume a human stop or replay a mutation.
+            if self.failure_recovery:
+                try:
+                    row['failure_cleanup'] = self.failure_recovery()
+                except Exception as cleanup_error:
+                    row['failure_cleanup'] = {'recovered': False,
+                        'exception': type(cleanup_error).__name__,
+                        'code': getattr(cleanup_error, 'code', None)}
         row["seconds"] = round(time.monotonic() - started, 3)
         self.evidence["cases"].append(row)
         self.write_evidence()
@@ -306,12 +323,55 @@ def main():
     parser.add_argument("--game-port", type=int, default=18565)
     parser.add_argument("--ws-port", type=int, default=18769)
     parser.add_argument("--performance-seconds", type=int, default=0)
+    parser.add_argument("--suite", choices=('full', 'survival', 'release-regressions'), default='full',
+                        help="Full acceptance (default), finite survival, or explicit movement/survival regressions")
     args = parser.parse_args()
+    if args.suite != 'full' and args.performance_seconds:
+        parser.error('--performance-seconds requires --suite full; focused suites never run load')
     fixture = Fixture(args)
     try:
         fixture.start()
-        from gameplay_cases import run_cases
-        run_cases(fixture)
+        if args.suite in ('survival', 'release-regressions'):
+            with fixture.client().realtime() as stream:
+                def recover_failed_case():
+                    stream.reconnect(attempts=2)
+                    stream.stop()
+                    return {'recovered': True, 'explicit_fixture_reconnect': True,
+                            'mutation_replayed': False, 'human_stop_resumed': False}
+                fixture.failure_recovery = recover_failed_case
+                try:
+                    if args.suite == 'release-regressions':
+                        fixture.evidence['selected_modules'] = [
+                            'body_gameplay_cases (explicit movement subset)',
+                            'navigation_gameplay_cases', 'fractional_navigation_gameplay_cases',
+                            'survival_gameplay_cases']
+                        fixture.case_selection = {
+                            'held_jump_repeats_and_airborne_release_stops_repetition',
+                            'sneak_native_collision_height_and_platform_edge',
+                            'sprint_native_hunger_gate_and_lease_release',
+                            'entity_obstruction_disappearance_and_navigation_collision',
+                            'navigation_half_slab_and_raised_stair_destinations',
+                            'navigation_solid_target_and_timeout',
+                            'navigation_low_ceiling_collision',
+                            'navigation_obstacle_inserted_during_route',
+                        }
+                        from body_gameplay_cases import run_cases as body_cases
+                        body_cases(fixture, stream)
+                        fixture.case_selection = None
+                        from navigation_gameplay_cases import run_cases as navigation_cases
+                        navigation_cases(fixture, stream)
+                        from fractional_navigation_gameplay_cases import run_cases as fractional_cases
+                        fractional_cases(fixture, stream)
+                    else:
+                        fixture.evidence['selected_modules'] = ['survival_gameplay_cases']
+                    from survival_gameplay_cases import run_cases as survival_cases
+                    survival_cases(fixture, stream)
+                finally:
+                    fixture.case_selection = None
+                    fixture.failure_recovery = None
+        else:
+            from gameplay_cases import run_cases
+            run_cases(fixture)
         if args.performance_seconds:
             from performance_gameplay_cases import run_cases as performance_cases
             performance_cases(fixture, seconds=args.performance_seconds)

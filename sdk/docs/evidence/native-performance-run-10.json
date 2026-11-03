@@ -1,0 +1,1560 @@
+{
+  "seconds": 300.2680864240974,
+  "bodies": 10,
+  "actions_per_second_per_body": 5,
+  "fixture_resource_limits": {
+    "cpu_percent": 150,
+    "jvm_heap_mib": 1536,
+    "service_memory_mib": 2400,
+    "tasks": 512
+  },
+  "measurement": "loopback SDK send through gateway to actual Java terminal result",
+  "failures": [],
+  "slow_observer": {
+    "agent": "VerifyBuilder",
+    "lease_operations": 0,
+    "requested_receive_buffer_bytes": 4096,
+    "max_queue": 1,
+    "resume_frame_limit": 256,
+    "resume_timeout_seconds": 10,
+    "actual_receive_buffer_bytes": 8192,
+    "initial_tick": 13693,
+    "initial_sequence": 1,
+    "application_unread_seconds": 300.31641429290175,
+    "state_before_resume": "OPEN",
+    "disconnect_exception": "ConnectionClosedError",
+    "server_close_code": null,
+    "resume_seconds": 0.16599762998521328,
+    "drained_frames": [
+      {
+        "tick": 13694,
+        "sequence": 2,
+        "tick_gap": 1,
+        "current_tick_lag": 6024
+      },
+      {
+        "tick": 13695,
+        "sequence": 3,
+        "tick_gap": 1,
+        "current_tick_lag": 6023
+      },
+      {
+        "tick": 13696,
+        "sequence": 4,
+        "tick_gap": 1,
+        "current_tick_lag": 6022
+      },
+      {
+        "tick": 13697,
+        "sequence": 5,
+        "tick_gap": 1,
+        "current_tick_lag": 6021
+      },
+      {
+        "tick": 13698,
+        "sequence": 6,
+        "tick_gap": 1,
+        "current_tick_lag": 6020
+      },
+      {
+        "tick": 13699,
+        "sequence": 7,
+        "tick_gap": 1,
+        "current_tick_lag": 6019
+      },
+      {
+        "tick": 13700,
+        "sequence": 8,
+        "tick_gap": 1,
+        "current_tick_lag": 6018
+      },
+      {
+        "tick": 13701,
+        "sequence": 9,
+        "tick_gap": 1,
+        "current_tick_lag": 6019
+      },
+      {
+        "tick": 13702,
+        "sequence": 10,
+        "tick_gap": 1,
+        "current_tick_lag": 6018
+      },
+      {
+        "tick": 13703,
+        "sequence": 11,
+        "tick_gap": 1,
+        "current_tick_lag": 6017
+      },
+      {
+        "tick": 13704,
+        "sequence": 12,
+        "tick_gap": 1,
+        "current_tick_lag": 6016
+      },
+      {
+        "tick": 13705,
+        "sequence": 13,
+        "tick_gap": 1,
+        "current_tick_lag": 6015
+      },
+      {
+        "tick": 13706,
+        "sequence": 14,
+        "tick_gap": 1,
+        "current_tick_lag": 6014
+      },
+      {
+        "tick": 13707,
+        "sequence": 15,
+        "tick_gap": 1,
+        "current_tick_lag": 6013
+      },
+      {
+        "tick": 13708,
+        "sequence": 16,
+        "tick_gap": 1,
+        "current_tick_lag": 6012
+      },
+      {
+        "tick": 13709,
+        "sequence": 17,
+        "tick_gap": 1,
+        "current_tick_lag": 6011
+      },
+      {
+        "tick": 13710,
+        "sequence": 18,
+        "tick_gap": 1,
+        "current_tick_lag": 6010
+      },
+      {
+        "tick": 13711,
+        "sequence": 19,
+        "tick_gap": 1,
+        "current_tick_lag": 6009
+      },
+      {
+        "tick": 13712,
+        "sequence": 20,
+        "tick_gap": 1,
+        "current_tick_lag": 6008
+      },
+      {
+        "tick": 13713,
+        "sequence": 21,
+        "tick_gap": 1,
+        "current_tick_lag": 6007
+      },
+      {
+        "tick": 13714,
+        "sequence": 22,
+        "tick_gap": 1,
+        "current_tick_lag": 6006
+      },
+      {
+        "tick": 13715,
+        "sequence": 23,
+        "tick_gap": 1,
+        "current_tick_lag": 6005
+      },
+      {
+        "tick": 13716,
+        "sequence": 24,
+        "tick_gap": 1,
+        "current_tick_lag": 6004
+      },
+      {
+        "tick": 13717,
+        "sequence": 25,
+        "tick_gap": 1,
+        "current_tick_lag": 6003
+      },
+      {
+        "tick": 13718,
+        "sequence": 26,
+        "tick_gap": 1,
+        "current_tick_lag": 6002
+      },
+      {
+        "tick": 13719,
+        "sequence": 27,
+        "tick_gap": 1,
+        "current_tick_lag": 6001
+      },
+      {
+        "tick": 13720,
+        "sequence": 28,
+        "tick_gap": 1,
+        "current_tick_lag": 6000
+      },
+      {
+        "tick": 13721,
+        "sequence": 29,
+        "tick_gap": 1,
+        "current_tick_lag": 5999
+      },
+      {
+        "tick": 13722,
+        "sequence": 30,
+        "tick_gap": 1,
+        "current_tick_lag": 5998
+      },
+      {
+        "tick": 13723,
+        "sequence": 31,
+        "tick_gap": 1,
+        "current_tick_lag": 5997
+      },
+      {
+        "tick": 13724,
+        "sequence": 32,
+        "tick_gap": 1,
+        "current_tick_lag": 5996
+      },
+      {
+        "tick": 13725,
+        "sequence": 33,
+        "tick_gap": 1,
+        "current_tick_lag": 5995
+      },
+      {
+        "tick": 13725,
+        "sequence": 34,
+        "tick_gap": 0,
+        "current_tick_lag": 5995
+      },
+      {
+        "tick": 13728,
+        "sequence": 35,
+        "tick_gap": 3,
+        "current_tick_lag": 5992
+      },
+      {
+        "tick": 13729,
+        "sequence": 36,
+        "tick_gap": 1,
+        "current_tick_lag": 5991
+      },
+      {
+        "tick": 13730,
+        "sequence": 37,
+        "tick_gap": 1,
+        "current_tick_lag": 5990
+      },
+      {
+        "tick": 13730,
+        "sequence": 38,
+        "tick_gap": 0,
+        "current_tick_lag": 5990
+      },
+      {
+        "tick": 13731,
+        "sequence": 39,
+        "tick_gap": 1,
+        "current_tick_lag": 5989
+      },
+      {
+        "tick": 13734,
+        "sequence": 40,
+        "tick_gap": 3,
+        "current_tick_lag": 5986
+      },
+      {
+        "tick": 13735,
+        "sequence": 41,
+        "tick_gap": 1,
+        "current_tick_lag": 5985
+      },
+      {
+        "tick": 13737,
+        "sequence": 42,
+        "tick_gap": 2,
+        "current_tick_lag": 5983
+      },
+      {
+        "tick": 13739,
+        "sequence": 43,
+        "tick_gap": 2,
+        "current_tick_lag": 5981
+      },
+      {
+        "tick": 13741,
+        "sequence": 44,
+        "tick_gap": 2,
+        "current_tick_lag": 5979
+      },
+      {
+        "tick": 13742,
+        "sequence": 45,
+        "tick_gap": 1,
+        "current_tick_lag": 5978
+      },
+      {
+        "tick": 13743,
+        "sequence": 46,
+        "tick_gap": 1,
+        "current_tick_lag": 5977
+      },
+      {
+        "tick": 13745,
+        "sequence": 47,
+        "tick_gap": 2,
+        "current_tick_lag": 5975
+      },
+      {
+        "tick": 13747,
+        "sequence": 48,
+        "tick_gap": 2,
+        "current_tick_lag": 5973
+      },
+      {
+        "tick": 13750,
+        "sequence": 49,
+        "tick_gap": 3,
+        "current_tick_lag": 5970
+      },
+      {
+        "tick": 13750,
+        "sequence": 50,
+        "tick_gap": 0,
+        "current_tick_lag": 5970
+      },
+      {
+        "tick": 13751,
+        "sequence": 51,
+        "tick_gap": 1,
+        "current_tick_lag": 5969
+      },
+      {
+        "tick": 13753,
+        "sequence": 52,
+        "tick_gap": 2,
+        "current_tick_lag": 5967
+      },
+      {
+        "tick": 13755,
+        "sequence": 53,
+        "tick_gap": 2,
+        "current_tick_lag": 5965
+      },
+      {
+        "tick": 13757,
+        "sequence": 54,
+        "tick_gap": 2,
+        "current_tick_lag": 5963
+      },
+      {
+        "tick": 13757,
+        "sequence": 55,
+        "tick_gap": 0,
+        "current_tick_lag": 5963
+      },
+      {
+        "tick": 13759,
+        "sequence": 56,
+        "tick_gap": 2,
+        "current_tick_lag": 5961
+      },
+      {
+        "tick": 13761,
+        "sequence": 57,
+        "tick_gap": 2,
+        "current_tick_lag": 5959
+      },
+      {
+        "tick": 13761,
+        "sequence": 58,
+        "tick_gap": 0,
+        "current_tick_lag": 5959
+      },
+      {
+        "tick": 13762,
+        "sequence": 59,
+        "tick_gap": 1,
+        "current_tick_lag": 5958
+      },
+      {
+        "tick": 13764,
+        "sequence": 60,
+        "tick_gap": 2,
+        "current_tick_lag": 5956
+      },
+      {
+        "tick": 13765,
+        "sequence": 61,
+        "tick_gap": 1,
+        "current_tick_lag": 5955
+      },
+      {
+        "tick": 13765,
+        "sequence": 62,
+        "tick_gap": 0,
+        "current_tick_lag": 5955
+      },
+      {
+        "tick": 13766,
+        "sequence": 63,
+        "tick_gap": 1,
+        "current_tick_lag": 5954
+      },
+      {
+        "tick": 13768,
+        "sequence": 64,
+        "tick_gap": 2,
+        "current_tick_lag": 5952
+      },
+      {
+        "tick": 13769,
+        "sequence": 65,
+        "tick_gap": 1,
+        "current_tick_lag": 5951
+      },
+      {
+        "tick": 13769,
+        "sequence": 66,
+        "tick_gap": 0,
+        "current_tick_lag": 5951
+      },
+      {
+        "tick": 13770,
+        "sequence": 67,
+        "tick_gap": 1,
+        "current_tick_lag": 5950
+      },
+      {
+        "tick": 13771,
+        "sequence": 68,
+        "tick_gap": 1,
+        "current_tick_lag": 5949
+      },
+      {
+        "tick": 13772,
+        "sequence": 69,
+        "tick_gap": 1,
+        "current_tick_lag": 5948
+      },
+      {
+        "tick": 13773,
+        "sequence": 70,
+        "tick_gap": 1,
+        "current_tick_lag": 5947
+      },
+      {
+        "tick": 13776,
+        "sequence": 71,
+        "tick_gap": 3,
+        "current_tick_lag": 5944
+      },
+      {
+        "tick": 13777,
+        "sequence": 72,
+        "tick_gap": 1,
+        "current_tick_lag": 5943
+      },
+      {
+        "tick": 13777,
+        "sequence": 73,
+        "tick_gap": 0,
+        "current_tick_lag": 5943
+      },
+      {
+        "tick": 13778,
+        "sequence": 74,
+        "tick_gap": 1,
+        "current_tick_lag": 5942
+      },
+      {
+        "tick": 13779,
+        "sequence": 75,
+        "tick_gap": 1,
+        "current_tick_lag": 5941
+      },
+      {
+        "tick": 13780,
+        "sequence": 76,
+        "tick_gap": 1,
+        "current_tick_lag": 5940
+      },
+      {
+        "tick": 13781,
+        "sequence": 77,
+        "tick_gap": 1,
+        "current_tick_lag": 5939
+      },
+      {
+        "tick": 13782,
+        "sequence": 78,
+        "tick_gap": 1,
+        "current_tick_lag": 5938
+      },
+      {
+        "tick": 13784,
+        "sequence": 79,
+        "tick_gap": 2,
+        "current_tick_lag": 5936
+      },
+      {
+        "tick": 13785,
+        "sequence": 80,
+        "tick_gap": 1,
+        "current_tick_lag": 5935
+      },
+      {
+        "tick": 13787,
+        "sequence": 81,
+        "tick_gap": 2,
+        "current_tick_lag": 5933
+      },
+      {
+        "tick": 13788,
+        "sequence": 82,
+        "tick_gap": 1,
+        "current_tick_lag": 5932
+      },
+      {
+        "tick": 13789,
+        "sequence": 83,
+        "tick_gap": 1,
+        "current_tick_lag": 5931
+      },
+      {
+        "tick": 13790,
+        "sequence": 84,
+        "tick_gap": 1,
+        "current_tick_lag": 5930
+      },
+      {
+        "tick": 13790,
+        "sequence": 85,
+        "tick_gap": 0,
+        "current_tick_lag": 5930
+      },
+      {
+        "tick": 13791,
+        "sequence": 86,
+        "tick_gap": 1,
+        "current_tick_lag": 5929
+      },
+      {
+        "tick": 13792,
+        "sequence": 87,
+        "tick_gap": 1,
+        "current_tick_lag": 5928
+      },
+      {
+        "tick": 13793,
+        "sequence": 88,
+        "tick_gap": 1,
+        "current_tick_lag": 5927
+      },
+      {
+        "tick": 13793,
+        "sequence": 89,
+        "tick_gap": 0,
+        "current_tick_lag": 5927
+      },
+      {
+        "tick": 13795,
+        "sequence": 90,
+        "tick_gap": 2,
+        "current_tick_lag": 5925
+      },
+      {
+        "tick": 13796,
+        "sequence": 91,
+        "tick_gap": 1,
+        "current_tick_lag": 5924
+      },
+      {
+        "tick": 13797,
+        "sequence": 92,
+        "tick_gap": 1,
+        "current_tick_lag": 5923
+      },
+      {
+        "tick": 13797,
+        "sequence": 93,
+        "tick_gap": 0,
+        "current_tick_lag": 5923
+      },
+      {
+        "tick": 13798,
+        "sequence": 94,
+        "tick_gap": 1,
+        "current_tick_lag": 5922
+      },
+      {
+        "tick": 13799,
+        "sequence": 95,
+        "tick_gap": 1,
+        "current_tick_lag": 5921
+      },
+      {
+        "tick": 13800,
+        "sequence": 96,
+        "tick_gap": 1,
+        "current_tick_lag": 5920
+      },
+      {
+        "tick": 13801,
+        "sequence": 97,
+        "tick_gap": 1,
+        "current_tick_lag": 5919
+      },
+      {
+        "tick": 13802,
+        "sequence": 98,
+        "tick_gap": 1,
+        "current_tick_lag": 5918
+      },
+      {
+        "tick": 13803,
+        "sequence": 99,
+        "tick_gap": 1,
+        "current_tick_lag": 5917
+      },
+      {
+        "tick": 13804,
+        "sequence": 100,
+        "tick_gap": 1,
+        "current_tick_lag": 5916
+      },
+      {
+        "tick": 13805,
+        "sequence": 101,
+        "tick_gap": 1,
+        "current_tick_lag": 5915
+      },
+      {
+        "tick": 13806,
+        "sequence": 102,
+        "tick_gap": 1,
+        "current_tick_lag": 5914
+      },
+      {
+        "tick": 13808,
+        "sequence": 103,
+        "tick_gap": 2,
+        "current_tick_lag": 5912
+      },
+      {
+        "tick": 13809,
+        "sequence": 104,
+        "tick_gap": 1,
+        "current_tick_lag": 5911
+      },
+      {
+        "tick": 13809,
+        "sequence": 105,
+        "tick_gap": 0,
+        "current_tick_lag": 5911
+      },
+      {
+        "tick": 13810,
+        "sequence": 106,
+        "tick_gap": 1,
+        "current_tick_lag": 5910
+      },
+      {
+        "tick": 13811,
+        "sequence": 107,
+        "tick_gap": 1,
+        "current_tick_lag": 5909
+      },
+      {
+        "tick": 13813,
+        "sequence": 108,
+        "tick_gap": 2,
+        "current_tick_lag": 5907
+      },
+      {
+        "tick": 13815,
+        "sequence": 109,
+        "tick_gap": 2,
+        "current_tick_lag": 5905
+      },
+      {
+        "tick": 13817,
+        "sequence": 110,
+        "tick_gap": 2,
+        "current_tick_lag": 5903
+      },
+      {
+        "tick": 13817,
+        "sequence": 111,
+        "tick_gap": 0,
+        "current_tick_lag": 5903
+      },
+      {
+        "tick": 13818,
+        "sequence": 112,
+        "tick_gap": 1,
+        "current_tick_lag": 5902
+      },
+      {
+        "tick": 13819,
+        "sequence": 113,
+        "tick_gap": 1,
+        "current_tick_lag": 5901
+      },
+      {
+        "tick": 13820,
+        "sequence": 114,
+        "tick_gap": 1,
+        "current_tick_lag": 5900
+      },
+      {
+        "tick": 13821,
+        "sequence": 115,
+        "tick_gap": 1,
+        "current_tick_lag": 5899
+      },
+      {
+        "tick": 13821,
+        "sequence": 116,
+        "tick_gap": 0,
+        "current_tick_lag": 5899
+      },
+      {
+        "tick": 13822,
+        "sequence": 117,
+        "tick_gap": 1,
+        "current_tick_lag": 5898
+      },
+      {
+        "tick": 13824,
+        "sequence": 118,
+        "tick_gap": 2,
+        "current_tick_lag": 5896
+      },
+      {
+        "tick": 13825,
+        "sequence": 119,
+        "tick_gap": 1,
+        "current_tick_lag": 5895
+      },
+      {
+        "tick": 13825,
+        "sequence": 120,
+        "tick_gap": 0,
+        "current_tick_lag": 5895
+      },
+      {
+        "tick": 13826,
+        "sequence": 121,
+        "tick_gap": 1,
+        "current_tick_lag": 5894
+      },
+      {
+        "tick": 13827,
+        "sequence": 122,
+        "tick_gap": 1,
+        "current_tick_lag": 5893
+      },
+      {
+        "tick": 13828,
+        "sequence": 123,
+        "tick_gap": 1,
+        "current_tick_lag": 5892
+      },
+      {
+        "tick": 13829,
+        "sequence": 124,
+        "tick_gap": 1,
+        "current_tick_lag": 5891
+      },
+      {
+        "tick": 13829,
+        "sequence": 125,
+        "tick_gap": 0,
+        "current_tick_lag": 5891
+      },
+      {
+        "tick": 13830,
+        "sequence": 126,
+        "tick_gap": 1,
+        "current_tick_lag": 5890
+      },
+      {
+        "tick": 13832,
+        "sequence": 127,
+        "tick_gap": 2,
+        "current_tick_lag": 5888
+      },
+      {
+        "tick": 13833,
+        "sequence": 128,
+        "tick_gap": 1,
+        "current_tick_lag": 5887
+      },
+      {
+        "tick": 13833,
+        "sequence": 129,
+        "tick_gap": 0,
+        "current_tick_lag": 5887
+      },
+      {
+        "tick": 13834,
+        "sequence": 130,
+        "tick_gap": 1,
+        "current_tick_lag": 5886
+      },
+      {
+        "tick": 13835,
+        "sequence": 131,
+        "tick_gap": 1,
+        "current_tick_lag": 5885
+      },
+      {
+        "tick": 13836,
+        "sequence": 132,
+        "tick_gap": 1,
+        "current_tick_lag": 5884
+      },
+      {
+        "tick": 13837,
+        "sequence": 133,
+        "tick_gap": 1,
+        "current_tick_lag": 5883
+      },
+      {
+        "tick": 13837,
+        "sequence": 134,
+        "tick_gap": 0,
+        "current_tick_lag": 5883
+      },
+      {
+        "tick": 13838,
+        "sequence": 135,
+        "tick_gap": 1,
+        "current_tick_lag": 5882
+      },
+      {
+        "tick": 13839,
+        "sequence": 136,
+        "tick_gap": 1,
+        "current_tick_lag": 5881
+      },
+      {
+        "tick": 13840,
+        "sequence": 137,
+        "tick_gap": 1,
+        "current_tick_lag": 5880
+      },
+      {
+        "tick": 13841,
+        "sequence": 138,
+        "tick_gap": 1,
+        "current_tick_lag": 5879
+      },
+      {
+        "tick": 13841,
+        "sequence": 139,
+        "tick_gap": 0,
+        "current_tick_lag": 5879
+      },
+      {
+        "tick": 13842,
+        "sequence": 140,
+        "tick_gap": 1,
+        "current_tick_lag": 5878
+      },
+      {
+        "tick": 13844,
+        "sequence": 141,
+        "tick_gap": 2,
+        "current_tick_lag": 5876
+      },
+      {
+        "tick": 13844,
+        "sequence": 142,
+        "tick_gap": 0,
+        "current_tick_lag": 5876
+      },
+      {
+        "tick": 13846,
+        "sequence": 143,
+        "tick_gap": 2,
+        "current_tick_lag": 5874
+      },
+      {
+        "tick": 13848,
+        "sequence": 144,
+        "tick_gap": 2,
+        "current_tick_lag": 5872
+      },
+      {
+        "tick": 13849,
+        "sequence": 145,
+        "tick_gap": 1,
+        "current_tick_lag": 5871
+      },
+      {
+        "tick": 13849,
+        "sequence": 146,
+        "tick_gap": 0,
+        "current_tick_lag": 5871
+      },
+      {
+        "tick": 13850,
+        "sequence": 147,
+        "tick_gap": 1,
+        "current_tick_lag": 5870
+      },
+      {
+        "tick": 13852,
+        "sequence": 148,
+        "tick_gap": 2,
+        "current_tick_lag": 5868
+      },
+      {
+        "tick": 13853,
+        "sequence": 149,
+        "tick_gap": 1,
+        "current_tick_lag": 5867
+      },
+      {
+        "tick": 13853,
+        "sequence": 150,
+        "tick_gap": 0,
+        "current_tick_lag": 5867
+      },
+      {
+        "tick": 13854,
+        "sequence": 151,
+        "tick_gap": 1,
+        "current_tick_lag": 5866
+      },
+      {
+        "tick": 13856,
+        "sequence": 152,
+        "tick_gap": 2,
+        "current_tick_lag": 5864
+      },
+      {
+        "tick": 13857,
+        "sequence": 153,
+        "tick_gap": 1,
+        "current_tick_lag": 5863
+      },
+      {
+        "tick": 13857,
+        "sequence": 154,
+        "tick_gap": 0,
+        "current_tick_lag": 5863
+      },
+      {
+        "tick": 13858,
+        "sequence": 155,
+        "tick_gap": 1,
+        "current_tick_lag": 5862
+      },
+      {
+        "tick": 13859,
+        "sequence": 156,
+        "tick_gap": 1,
+        "current_tick_lag": 5861
+      },
+      {
+        "tick": 13860,
+        "sequence": 157,
+        "tick_gap": 1,
+        "current_tick_lag": 5860
+      },
+      {
+        "tick": 13861,
+        "sequence": 158,
+        "tick_gap": 1,
+        "current_tick_lag": 5859
+      },
+      {
+        "tick": 13862,
+        "sequence": 159,
+        "tick_gap": 1,
+        "current_tick_lag": 5858
+      },
+      {
+        "tick": 13863,
+        "sequence": 160,
+        "tick_gap": 1,
+        "current_tick_lag": 5857
+      },
+      {
+        "tick": 13864,
+        "sequence": 161,
+        "tick_gap": 1,
+        "current_tick_lag": 5856
+      },
+      {
+        "tick": 13865,
+        "sequence": 162,
+        "tick_gap": 1,
+        "current_tick_lag": 5855
+      },
+      {
+        "tick": 13865,
+        "sequence": 163,
+        "tick_gap": 0,
+        "current_tick_lag": 5855
+      },
+      {
+        "tick": 13866,
+        "sequence": 164,
+        "tick_gap": 1,
+        "current_tick_lag": 5854
+      },
+      {
+        "tick": 13868,
+        "sequence": 165,
+        "tick_gap": 2,
+        "current_tick_lag": 5852
+      },
+      {
+        "tick": 13869,
+        "sequence": 166,
+        "tick_gap": 1,
+        "current_tick_lag": 5851
+      },
+      {
+        "tick": 13870,
+        "sequence": 167,
+        "tick_gap": 1,
+        "current_tick_lag": 5850
+      },
+      {
+        "tick": 13871,
+        "sequence": 168,
+        "tick_gap": 1,
+        "current_tick_lag": 5849
+      },
+      {
+        "tick": 13872,
+        "sequence": 169,
+        "tick_gap": 1,
+        "current_tick_lag": 5848
+      },
+      {
+        "tick": 13873,
+        "sequence": 170,
+        "tick_gap": 1,
+        "current_tick_lag": 5847
+      },
+      {
+        "tick": 13874,
+        "sequence": 171,
+        "tick_gap": 1,
+        "current_tick_lag": 5846
+      },
+      {
+        "tick": 13875,
+        "sequence": 172,
+        "tick_gap": 1,
+        "current_tick_lag": 5845
+      },
+      {
+        "tick": 13876,
+        "sequence": 173,
+        "tick_gap": 1,
+        "current_tick_lag": 5844
+      },
+      {
+        "tick": 13877,
+        "sequence": 174,
+        "tick_gap": 1,
+        "current_tick_lag": 5843
+      },
+      {
+        "tick": 13877,
+        "sequence": 175,
+        "tick_gap": 0,
+        "current_tick_lag": 5843
+      },
+      {
+        "tick": 13879,
+        "sequence": 176,
+        "tick_gap": 2,
+        "current_tick_lag": 5841
+      },
+      {
+        "tick": 13881,
+        "sequence": 177,
+        "tick_gap": 2,
+        "current_tick_lag": 5839
+      },
+      {
+        "tick": 13882,
+        "sequence": 178,
+        "tick_gap": 1,
+        "current_tick_lag": 5838
+      },
+      {
+        "tick": 13882,
+        "sequence": 179,
+        "tick_gap": 0,
+        "current_tick_lag": 5838
+      },
+      {
+        "tick": 13884,
+        "sequence": 180,
+        "tick_gap": 2,
+        "current_tick_lag": 5836
+      },
+      {
+        "tick": 13886,
+        "sequence": 181,
+        "tick_gap": 2,
+        "current_tick_lag": 5834
+      },
+      {
+        "tick": 13886,
+        "sequence": 182,
+        "tick_gap": 0,
+        "current_tick_lag": 5834
+      },
+      {
+        "tick": 13888,
+        "sequence": 183,
+        "tick_gap": 2,
+        "current_tick_lag": 5832
+      },
+      {
+        "tick": 13889,
+        "sequence": 184,
+        "tick_gap": 1,
+        "current_tick_lag": 5831
+      },
+      {
+        "tick": 13890,
+        "sequence": 185,
+        "tick_gap": 1,
+        "current_tick_lag": 5830
+      },
+      {
+        "tick": 13891,
+        "sequence": 186,
+        "tick_gap": 1,
+        "current_tick_lag": 5829
+      },
+      {
+        "tick": 13892,
+        "sequence": 187,
+        "tick_gap": 1,
+        "current_tick_lag": 5828
+      },
+      {
+        "tick": 13894,
+        "sequence": 188,
+        "tick_gap": 2,
+        "current_tick_lag": 5826
+      },
+      {
+        "tick": 13895,
+        "sequence": 189,
+        "tick_gap": 1,
+        "current_tick_lag": 5825
+      },
+      {
+        "tick": 13898,
+        "sequence": 190,
+        "tick_gap": 3,
+        "current_tick_lag": 5822
+      },
+      {
+        "tick": 13899,
+        "sequence": 191,
+        "tick_gap": 1,
+        "current_tick_lag": 5821
+      },
+      {
+        "tick": 13900,
+        "sequence": 192,
+        "tick_gap": 1,
+        "current_tick_lag": 5820
+      },
+      {
+        "tick": 13901,
+        "sequence": 193,
+        "tick_gap": 1,
+        "current_tick_lag": 5819
+      },
+      {
+        "tick": 13902,
+        "sequence": 194,
+        "tick_gap": 1,
+        "current_tick_lag": 5818
+      },
+      {
+        "tick": 13903,
+        "sequence": 195,
+        "tick_gap": 1,
+        "current_tick_lag": 5817
+      },
+      {
+        "tick": 13904,
+        "sequence": 196,
+        "tick_gap": 1,
+        "current_tick_lag": 5819
+      },
+      {
+        "tick": 13906,
+        "sequence": 197,
+        "tick_gap": 2,
+        "current_tick_lag": 5817
+      },
+      {
+        "tick": 13907,
+        "sequence": 198,
+        "tick_gap": 1,
+        "current_tick_lag": 5816
+      },
+      {
+        "tick": 13908,
+        "sequence": 199,
+        "tick_gap": 1,
+        "current_tick_lag": 5815
+      }
+    ],
+    "disconnected": true,
+    "caught_up": false,
+    "largest_coalesced_tick_gap": 3,
+    "isolation_behavior": "server_disconnected_slow_observer",
+    "client_socket_closed": true,
+    "controlling_lease_preserved": true,
+    "control_after_observer_close": "done"
+  },
+  "per_body_counts": [
+    1020,
+    1038,
+    1030,
+    1043,
+    1036,
+    1042,
+    1029,
+    1031,
+    1028,
+    1025
+  ],
+  "per_body_tps": [
+    19.99573686722664,
+    19.998952363790035,
+    19.995711820584297,
+    19.995628087954792,
+    19.99229338023852,
+    19.98908046536054,
+    19.99583148829016,
+    19.9956268236216,
+    19.992381054122514,
+    19.998968172389926
+  ],
+  "startup": [
+    {
+      "body": 0,
+      "existing_body": true,
+      "connect_seconds": 0.127110306173563
+    },
+    {
+      "body": 1,
+      "existing_body": false,
+      "prepare_seconds": 0.9901853241026402,
+      "connect_seconds": 0.05277225747704506
+    },
+    {
+      "body": 2,
+      "existing_body": false,
+      "prepare_seconds": 1.0144593268632889,
+      "connect_seconds": 0.04365280643105507
+    },
+    {
+      "body": 3,
+      "existing_body": false,
+      "prepare_seconds": 1.0269059371203184,
+      "connect_seconds": 0.07220057584345341
+    },
+    {
+      "body": 4,
+      "existing_body": false,
+      "prepare_seconds": 0.49845828860998154,
+      "connect_seconds": 0.0330811720341444
+    },
+    {
+      "body": 5,
+      "existing_body": false,
+      "prepare_seconds": 1.0074389446526766,
+      "connect_seconds": 0.08577468246221542
+    },
+    {
+      "body": 6,
+      "existing_body": false,
+      "prepare_seconds": 1.1211317908018827,
+      "connect_seconds": 0.07156117632985115
+    },
+    {
+      "body": 7,
+      "existing_body": false,
+      "prepare_seconds": 1.0021291431039572,
+      "connect_seconds": 0.022491199895739555
+    },
+    {
+      "body": 8,
+      "existing_body": false,
+      "prepare_seconds": 0.5237888470292091,
+      "connect_seconds": 0.031800635159015656
+    },
+    {
+      "body": 9,
+      "existing_body": false,
+      "prepare_seconds": 1.0040484257042408,
+      "connect_seconds": 0.0881138313561678
+    }
+  ],
+  "setup_seconds": 1.7555950656533241,
+  "cpu_usage": {
+    "process_cpu_seconds": 64.348631682,
+    "process_cpu_percent": 21.430393235701466,
+    "process_scope": "Driver Python process: SDK clients and watchers only; excludes gateway/JVM/nginx",
+    "cgroup_diagnostic_only": true,
+    "cgroup_cpu_stat_delta": {
+      "usage_usec": 410564140,
+      "user_usec": 371126183,
+      "system_usec": 39437958,
+      "nr_periods": 3003,
+      "nr_throttled": 763,
+      "throttled_usec": 33725143
+    },
+    "cgroup_cpu_max": "150000 100000",
+    "cgroup_scope": "Current process cgroup; includes inherited JVM/nginx and any other members"
+  },
+  "failure_reconciliation": null,
+  "per_body_latency": [
+    {
+      "body": 0,
+      "ack_ms": {
+        "p50": 46.473,
+        "p95": 143.225,
+        "p99": 218.396,
+        "max": 638.129
+      },
+      "completion_ms": {
+        "p50": 255.743,
+        "p95": 524.571,
+        "p99": 736.774,
+        "max": 1128.3
+      }
+    },
+    {
+      "body": 1,
+      "ack_ms": {
+        "p50": 46.012,
+        "p95": 149.572,
+        "p99": 239.815,
+        "max": 451.481
+      },
+      "completion_ms": {
+        "p50": 246.889,
+        "p95": 512.912,
+        "p99": 657.156,
+        "max": 1054.763
+      }
+    },
+    {
+      "body": 2,
+      "ack_ms": {
+        "p50": 45.456,
+        "p95": 135.333,
+        "p99": 229.736,
+        "max": 374.654
+      },
+      "completion_ms": {
+        "p50": 252.463,
+        "p95": 507.295,
+        "p99": 699.49,
+        "max": 952.226
+      }
+    },
+    {
+      "body": 3,
+      "ack_ms": {
+        "p50": 47.239,
+        "p95": 140.117,
+        "p99": 222.255,
+        "max": 664.319
+      },
+      "completion_ms": {
+        "p50": 247.115,
+        "p95": 510.214,
+        "p99": 649.851,
+        "max": 788.255
+      }
+    },
+    {
+      "body": 4,
+      "ack_ms": {
+        "p50": 46.137,
+        "p95": 143.211,
+        "p99": 270.182,
+        "max": 746.297
+      },
+      "completion_ms": {
+        "p50": 247.751,
+        "p95": 506.002,
+        "p99": 734.349,
+        "max": 975.098
+      }
+    },
+    {
+      "body": 5,
+      "ack_ms": {
+        "p50": 47.006,
+        "p95": 140.894,
+        "p99": 213.729,
+        "max": 686.452
+      },
+      "completion_ms": {
+        "p50": 250.171,
+        "p95": 503.406,
+        "p99": 662.473,
+        "max": 1019.59
+      }
+    },
+    {
+      "body": 6,
+      "ack_ms": {
+        "p50": 47.602,
+        "p95": 150.692,
+        "p99": 272.272,
+        "max": 845.584
+      },
+      "completion_ms": {
+        "p50": 251.035,
+        "p95": 527.277,
+        "p99": 716.864,
+        "max": 923.112
+      }
+    },
+    {
+      "body": 7,
+      "ack_ms": {
+        "p50": 47.92,
+        "p95": 138.676,
+        "p99": 286.822,
+        "max": 601.542
+      },
+      "completion_ms": {
+        "p50": 256.741,
+        "p95": 513.041,
+        "p99": 673.205,
+        "max": 941.64
+      }
+    },
+    {
+      "body": 8,
+      "ack_ms": {
+        "p50": 47.656,
+        "p95": 146.756,
+        "p99": 217.959,
+        "max": 779.471
+      },
+      "completion_ms": {
+        "p50": 253.821,
+        "p95": 506.794,
+        "p99": 732.299,
+        "max": 958.501
+      }
+    },
+    {
+      "body": 9,
+      "ack_ms": {
+        "p50": 48.254,
+        "p95": 135.46,
+        "p99": 221.302,
+        "max": 305.984
+      },
+      "completion_ms": {
+        "p50": 254.144,
+        "p95": 508.527,
+        "p99": 719.042,
+        "max": 1036.474
+      }
+    }
+  ],
+  "ack_ms": {
+    "p50": 46.92,
+    "p95": 143.106,
+    "p99": 237.46,
+    "max": 845.584
+  },
+  "completion_ms": {
+    "p50": 251.494,
+    "p95": 510.853,
+    "p99": 699.554,
+    "max": 1128.3
+  },
+  "observation_gap_ms": {
+    "p50": 122.505,
+    "p95": 316.513,
+    "p99": 459.583,
+    "max": 890.963
+  },
+  "rolling_average_tick_ms": {
+    "p50": 1.43,
+    "p95": 2.085,
+    "p99": 3.568,
+    "max": 4.063
+  },
+  "body_receive_lag_ms": {
+    "p50": 41,
+    "p95": 132,
+    "p99": 210,
+    "max": 526
+  },
+  "sdk_observed_capture_age_ms": {
+    "p50": 90,
+    "p95": 224,
+    "p99": 333,
+    "max": 749
+  },
+  "sdk_after_gateway_receive_age_ms": {
+    "p50": 42,
+    "p95": 127,
+    "p99": 199,
+    "max": 637
+  },
+  "capture_age_measurement": "SDK watcher wall time minus native capture time; includes up to watcher polling delay, not socket receive-only time",
+  "clock_skew_samples": 0,
+  "topology": {
+    "name": "separate_sdk_driver_same_cgroup",
+    "parent": "Gateway and native bridge; no measured SDK/watcher threads",
+    "child": "Ten SDK control streams, ten watcher threads and one slow observer in a separate Python interpreter",
+    "resource_scope": "Parent, SDK driver, JVM and nginx inherit the same150% CPU cgroup; targets unchanged",
+    "credentials_transport": "stdin pipe only; absent from argv and public artifacts",
+    "driver": {
+      "pid": 2603148,
+      "cgroup_path": "/system.slice/scru-api-check-10.service",
+      "cgroup_cpu_max": "150000 100000"
+    },
+    "driver_exit_code": 0,
+    "comparison": "Earlier shared-interpreter performance reports remain separate failed evidence, not superseded passes"
+  },
+  "parent_cpu_usage": {
+    "process_cpu_seconds": 266.107957047,
+    "process_cpu_percent": 88.61827986664912,
+    "process_scope": "Parent fixture Python: gateway and native bridge; SDK consumers are a child process",
+    "cgroup_diagnostic_only": true,
+    "cgroup_cpu_stat_delta": {
+      "usage_usec": 410597213,
+      "user_usec": 371155533,
+      "system_usec": 39441680,
+      "nr_periods": 3003,
+      "nr_throttled": 763,
+      "throttled_usec": 33725143
+    },
+    "cgroup_cpu_max": "150000 100000",
+    "cgroup_scope": "Current process cgroup; includes inherited JVM/nginx and any other members",
+    "window_seconds": 300.2856266759336,
+    "window_alignment": "Received child measured-start/end markers; bounded pipe/scheduling delay is included"
+  },
+  "parent_provisioning_seconds": 53.672892367467284,
+  "acceptance_passed": false,
+  "result": "Five-minute window completed without action errors; original throughput and latency thresholds failed."
+}

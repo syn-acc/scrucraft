@@ -3,6 +3,7 @@ package gl.syn.minecraft;
 import com.google.gson.*;
 import java.util.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -13,7 +14,7 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 /** Explicit, nearby access to reviewed native Create item ports; never a fabricated GUI. */
 final class MachineItemPort {
-    static final Set<String> BLOCKS=Set.of("create:depot","create:basin","create:millstone");
+    static final Set<String> BLOCKS=Set.of("create:depot","create:basin","create:millstone","create:fluid_tank","create:spout","create:item_drain");
     final String session=UUID.randomUUID().toString();
     final BlockPos position;
     final String block;
@@ -21,17 +22,23 @@ final class MachineItemPort {
     private final AgentPlayer body;
     private final BlockEntity entity;
     private final IItemHandler port,player;
+    private final Direction face;
+    private final FluidPortView fluids;
     private final int slots;
     private List<ItemStack> snapshot=List.of();
 
     static boolean supports(BlockState state){return BLOCKS.contains(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());}
-    MachineItemPort(AgentPlayer body,BlockPos pos,JsonObject area) {
+    MachineItemPort(AgentPlayer body,BlockPos pos,JsonObject area,Direction face) {
         this.body=body;position=pos;block=BuiltInRegistries.BLOCK.getKey(body.level().getBlockState(pos).getBlock()).toString();
+        this.face=face;
+        if(block.equals("create:item_drain")&&face!=null&&!face.getAxis().isHorizontal())throw reject("unsupported_item_port_face");
         entity=body.level().getBlockEntity(pos);
-        port=body.level().getCapability(Capabilities.ItemHandler.BLOCK,pos,null);
-        if(entity==null||port==null)throw reject("machine_item_port_unavailable");
-        slots=port.getSlots();
-        int expected=switch(block){case "create:depot"->9;case "create:basin"->18;case "create:millstone"->10;default->0;};
+        port=body.level().getCapability(Capabilities.ItemHandler.BLOCK,pos,face);
+        fluids=FluidPortView.BLOCKS.contains(block)?new FluidPortView(body,pos,area):null;
+        if(entity==null||port==null&&fluids==null)throw reject("machine_item_port_unavailable");
+        if(face!=null&&port==null)throw reject("item_port_unavailable_on_face");
+        slots=port==null?0:port.getSlots();
+        int expected=switch(block){case "create:depot"->9;case "create:basin"->18;case "create:millstone"->10;case "create:item_drain"->face==null?0:1;default->0;};
         if(slots!=expected)throw reject("unsupported_machine_port_layout");
         player=new InvWrapper(body.getInventory());validate(area);
     }
@@ -46,8 +53,9 @@ final class MachineItemPort {
         if(!BodyAccess.reachable(body,position))throw reject("out_of_reach_or_occluded");
         if(body.containerMenu!=body.inventoryMenu||body.level().getBlockEntity(position)!=entity
             ||!block.equals(BuiltInRegistries.BLOCK.getKey(body.level().getBlockState(position).getBlock()).toString())
-            ||body.level().getCapability(Capabilities.ItemHandler.BLOCK,position,null)!=port||port.getSlots()!=slots)
+            ||body.level().getCapability(Capabilities.ItemHandler.BLOCK,position,face)!=port||port!=null&&port.getSlots()!=slots)
             throw reject("container_changed");
+        if(fluids!=null)fluids.validate(area);
         refresh();
     }
     private void refresh() {
@@ -56,6 +64,7 @@ final class MachineItemPort {
         for(int i=0;i<36;i++)current.add(player.getStackInSlot(i).copy());
         boolean changed=current.size()!=snapshot.size();
         if(!changed)for(int i=0;i<current.size();i++)if(!ItemStack.matches(current.get(i),snapshot.get(i))){changed=true;break;}
+        boolean fluidChanged=fluids!=null&&fluids.refresh();changed|=fluidChanged;
         if(changed){revision++;snapshot=current;}
     }
     void requireHandle(JsonObject action) {
@@ -101,9 +110,10 @@ final class MachineItemPort {
         JsonObject result=observe();result.addProperty("moved",count);return result;
     }
     JsonObject observe() {
-        refresh();JsonObject result=new JsonObject();result.addProperty("open",true);result.addProperty("kind","machine_item_port");
+        refresh();JsonObject result=new JsonObject();result.addProperty("open",true);result.addProperty("kind",port==null?"machine_fluid_port":"machine_item_port");
         result.addProperty("session_id",session);result.addProperty("revision",revision);result.addProperty("block",block);
         result.add("position",SettlementProject.pos(position));result.addProperty("dimension",body.level().dimension().location().toString());
+        if(face!=null)result.addProperty("item_port_face",face.getName());
         JsonArray rows=new JsonArray();
         for(int i=0;i<slots+36;i++) {
             boolean local=i>=slots;int index=local?i-slots:i;IItemHandler handler=local?player:port;
@@ -114,10 +124,12 @@ final class MachineItemPort {
             row.addProperty("role",local?(index<9?"hotbar":"main"):switch(block){
                 case "create:depot"->index==0?"input_or_held":"output";
                 case "create:millstone"->index==0?"input":"output";
+                case "create:item_drain"->"input_or_held";
                 default->index<9?"input":"output";});
             rows.add(row);
         }
         result.add("slots",rows);result.add("cursor",BodyInventory.describeStack(body.containerMenu.getCarried(),body.registryAccess()));
+        if(fluids!=null){result.add("fluids",fluids.observe());result.add("fluid_structure",fluids.members());result.addProperty("fluid_amount_unit","mB");}
         result.addProperty("processing_executor","native_world_ticks");return result;
     }
 }

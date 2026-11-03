@@ -1,58 +1,63 @@
 # Comprehensive API completion plan
 
-The [existing 40-item checklist](api-completion-checklist.md) is the governing
-scope. **8/40** entries currently have completion evidence. The controlled
-single-body deployment is historical progress, not the completion target.
-The [coverage matrix](api-coverage-matrix.md) tracks each exact criterion,
-implementation, evidence and next action. Do not replace criteria with labels
-such as implemented or unsupported; define a finite supported release contract.
+The [original 40-item checklist](api-completion-checklist.md) remains the governing
+scope: **10 checked, 30 open**, plus 13 separately open pack/mod/survival
+requirements. Experimental deployment is progress, not comprehensive completion.
+The [coverage matrix](api-coverage-matrix.md) records exact gaps and evidence.
 
-## Ordered queue
+## Current release boundary
 
-1. **ACT-07; EXEC-02/03/04:** reproduce and fix delayed digging after abort,
-   pickup-driven failure, owner/human stop and lease expiry. Assert block and
-   inventory state after the original break would have finished. Correct receipts
-   and reconcile uncertainty. Publish/verify the live known-limit guide warning
-   under **SDK-05**, with a static-file backup and no runtime change.
-2. **All 40 IDs:** audit code, tests and evidence; preserve failed runs and add an
-   exact next action for every unmet criterion. Fix **OBS-02** phantom hostility
-   with native cases for hostile entities outside the Monster base class.
-3. **ACT-08/10/13/14/15; OBS-05/06; VERIFY-02/03/06:** audit the installed pack and
-   implement a precise Create/machine compatibility matrix. Include placement,
-   native use, inventory/menu rules, power-driven processing and conservation.
-   Enumerate additional mod/workflow requirements explicitly; blanket exclusion
-   of the server's central industrial gameplay is not comprehensive completion.
-4. **Remaining EXEC, ACT, OBS and SDK items:** complete per-call authorization,
-   concurrent controls, container viewers, cursor/slot conservation, onboarding,
-   stale-handle recovery, death/respawn and human control. Test actual native
-   behavior; distinguish synthetic identities from real-player evidence.
-5. **VERIFY-01/02/03/04:** finish native terrain coverage and end-to-end successful
-   and failing gameplay on the installed pack. Specify and verify a bounded
-   survival/recovery journey including food, shelter, damage and respawn; agent
-   composition stays outside the gateway.
-6. **VERIFY-05:** run the predeclared five-minute ten-body targets against Java,
-   including startup, fairness, tick cost, outliers and a slow consumer. Local
-   synthetic optimization measurements are supporting evidence only. Do not
-   relax thresholds to select convenient results.
-7. **SDK-04/05; VERIFY-06:** reproduce clean installation/examples and exact
-   release artifacts; publish stable contracts, capabilities, supported mod
-   coverage, privacy/credential scans, hashes, rollback and every item's evidence
-   or explicit blocker. Java deployment requires an approved
-   maintenance window after the candidate is concrete and reviewable.
+Release 04 pairs SDK/gateway **0.3.0.dev2** with adapter **0.5.0-dev2**. It includes
+bounded transport and recovery, the delayed-dig correction, reviewed mod ports,
+fractional-ground/airborne navigation fixes and native dimension-completion
+handling. The latter clears the transition latch that otherwise suppresses native
+damage. Runs 10 and 11 verify the named navigation/damage regressions. MOD-08 train/contraption
+drafts are excluded. The packaged release suite passes 190 tests; no complete
+native or ten-body performance pass follows from that count.
 
-## Workstreams
+Runs 07/08 supply specific native evidence, including delayed-dig guards,
+container contention/reconciliation, reviewed powered workstations and clean SDK
+examples. They also contain retained failures. Real enrollment and idle human
+chat-stop delivery are separate evidence; neither proves an active full gameplay
+journey. See [verification](verification.md) for build boundaries and results.
 
-- Integration: checklist/plan, isolated run scheduling, evidence,
-  documentation and public PR. One native test/build at a time on the UK host.
-- Native body: dig cancellation, controls/entities/navigation.
-- Inventory: industrial pack compatibility, containers/crafting and native
-  conservation/concurrency fixtures. Coordinate shared Java interaction hooks.
-- Gateway/SDK: coverage matrix, execution/recovery contracts,
-  transport behavior, SDK usability and tests.
+## Ordered remaining acceptance
 
-Every test report must name the checklist IDs it advances. A method existing,
-compilation passing or a request being accepted does not close an item. New
-requirements supplement the original IDs and must be visibly counted separately.
+1. **ACT-07; EXEC-02/03/04/06; SURV-02:** retain corrected delayed-dig regressions
+   and finish independent stop/revoke/disconnect/dimension/death cases. Wait beyond
+   original completion deadlines, account for every block/stack, and preserve
+   explicit uncertain outcomes. Verify native damage after dimension completion;
+   do not count the source fix as a survival pass.
+2. **VERIFY-01; ACT-04/05/06; OBS-02/07:** verify release 04 physical navigation
+   through fractional terrain and airborne starts, then all remaining terrain,
+   held-input, entity and execution-state criteria. Preserve run 07's Enemy-marker
+   classification proof and distinguish requested inputs from actual movement.
+3. **ACT-08/10/13/14/15; OBS-05/06; MOD-01–10:** finish the documented installed-pack
+   matrix: placement, native menus/item/fluid ports, power, processing metadata,
+   probabilities, remainders, ownership and contention. Passing depot/press/mixer
+   fixtures with supplied power do not prove an agent-built factory. Excluded
+   train control remains open rather than being removed from scope.
+4. **SDK-02/05; OBS-04; VERIFY-03/04:** finish uncertain-mutation recovery,
+   stale-container/epoch handling, subscriber resync, private-message exclusion
+   and real human stop during active work. Keep all 25-operation HTTP/WSS parity,
+   no-replay and priority-stop regressions. SDK-01/04 remain checked on their
+   linked onboarding and clean-install evidence; re-run relevant checks when
+   source changes without adding unrelated performance gates to those items.
+5. **VERIFY-02; SURV-01/02:** complete a finite end-to-end food, shelter, threat,
+   damage/death/recovery and industrial journey on the installed pack. Identify
+   all supplied infrastructure and measure native consumption, output and losses.
+   The agent supplies task composition; no transport or SDK patches may be needed.
+6. **VERIFY-05:** meet the original five-minute ten-body workload, fairness,
+   tick-cost, latency/cadence and slow-consumer targets. Retain failed runs and
+   outliers. The separate SDK-driver process shares the same 150% aggregate CPU
+   cgroup; it corrects shared-interpreter measurement contention and does not
+   change thresholds or itself establish a performance pass.
+7. **VERIFY-06; SDK-05:** record final native results, exact artifact hashes,
+   private-credential scans, paired deployment/rollback and post-deployment smoke
+   checks. Publish truthful capabilities and remaining limits. Keep the release
+   experimental until the complete checklist and additional requirements pass.
 
-The audit adds **PACK-01, MOD-01–10 and SURV-01–02** (13 open requirements after detailed pack audit),
-tracked separately below the original 40-item checklist.
+Every result must identify its source build and checklist criteria. Compilation,
+a method existing or gateway acceptance cannot replace actual game outcomes.
+Preserve historical measurements and failed fixtures; correct test assumptions
+explicitly and rerun them rather than relabeling failures as passes.

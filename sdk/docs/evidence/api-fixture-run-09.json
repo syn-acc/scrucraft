@@ -1,0 +1,3474 @@
+{
+  "schema": 1,
+  "fixture": "isolated_neoforge",
+  "synthetic_identity": true,
+  "production_world_used": false,
+  "cases": [
+    {
+      "name": "inventory_and_held_controls",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-02",
+        "ACT-04",
+        "ACT-05",
+        "ACT-06",
+        "OBS-01",
+        "OBS-07",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slots": 42,
+        "hotbar_slots_selected": 9,
+        "components_preserved": true,
+        "stop_released_toggles": true
+      },
+      "seconds": 1.177
+    },
+    {
+      "name": "flat_navigation_while_looking",
+      "checklist_ids": [
+        "EXEC-01",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": {
+          "id": "485c4d7b6be045afb615d96e1621644a",
+          "state": "done",
+          "reason": "arrived",
+          "body_epoch": "53a5c57d-f098-4a1a-88ee-bbed4052c2bc",
+          "tick": 174
+        },
+        "position": [
+          8.351674703141503,
+          64.0,
+          0.45021569976327397
+        ],
+        "look_did_not_cancel_or_redirect_navigation": true
+      },
+      "seconds": 5.333
+    },
+    {
+      "name": "dig_craft_place_container_chat",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-12",
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "ACT-16",
+        "OBS-03",
+        "OBS-04",
+        "OBS-05",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "log_consumed": 1,
+        "planks": {
+          "placed": 1,
+          "player": 1,
+          "chest": 2
+        },
+        "fixture_supplied": [
+          "one oak log block",
+          "crafting table",
+          "empty chest"
+        ],
+        "synthetic_identity_only": true
+      },
+      "seconds": 7.203
+    },
+    {
+      "name": "craft_recipe_remainders",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:cake",
+        "output": 1,
+        "bucket_remainders": 3
+      },
+      "seconds": 0.55
+    },
+    {
+      "name": "mutation_retry_conservation",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_retry_executions": 1,
+        "changed_payload_rejected": true
+      },
+      "seconds": 0.521
+    },
+    {
+      "name": "craft_full_inventory_atomic_failure",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "inventory_full",
+        "slots_unchanged": true,
+        "log_count": 2,
+        "occupied_storage_slots": 36
+      },
+      "seconds": 0.821
+    },
+    {
+      "name": "craft_mixed_tag_ingredients",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:chest",
+        "oak_planks_consumed": 4,
+        "birch_planks_consumed": 4,
+        "chests": 1
+      },
+      "seconds": 0.496
+    },
+    {
+      "name": "container_competing_mutation_stale_revision",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "old_revision": 1,
+        "new_revision": 2,
+        "failure": "stale_container_revision",
+        "external_mutation": "fixture console simulates another viewer",
+        "chest_stones": 2,
+        "player_stones": 0
+      },
+      "seconds": 0.771
+    },
+    {
+      "name": "container_two_native_viewers_contested_transfer_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_viewers": 2,
+        "human_or_gui_viewers": false,
+        "contested_requests": 2,
+        "successes": 1,
+        "stale_revision_failures": 1,
+        "fresh_revision_recovery": true,
+        "primary_diamonds": 1,
+        "second_diamonds": 3,
+        "chest_diamonds": 0,
+        "total_diamonds_before_fixture_cleanup": 4,
+        "fixture_second_body_removed": true
+      },
+      "seconds": 1.716
+    },
+    {
+      "name": "container_disconnect_reconcile_without_mutation_replay",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-16",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_action_id_reconciled": true,
+        "native_executions": 1,
+        "moved": 2,
+        "prior_lease_replay_rejected": true,
+        "old_session_invalidated": true,
+        "player_diamonds": 3,
+        "chest_diamonds": 2,
+        "total_diamonds": 5,
+        "disconnect_timing": "after native completion, before application handle wait; no simulated lost network frame"
+      },
+      "seconds": 1.053
+    },
+    {
+      "name": "container_named_damaged_stack_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "components_preserved": true,
+        "damage": 7,
+        "total_pickaxes": 1,
+        "round_trip": "player:0 -> container:0 -> player:1"
+      },
+      "seconds": 0.6
+    },
+    {
+      "name": "double_chest_second_half_work_area",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "inside_half": [
+          23,
+          64,
+          0
+        ],
+        "outside_half": [
+          24,
+          64,
+          0
+        ],
+        "area_max_x_exclusive": 24,
+        "failure": "outside_work_area"
+      },
+      "seconds": 0.694
+    },
+    {
+      "name": "double_chest_complete_layout_second_half_conservation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "storage_slots": 54,
+        "player_slots": 36,
+        "second_menu_half_slot": 53,
+        "deposited": 3,
+        "withdrawn": 1,
+        "persisted_after_reopen": 2,
+        "player_diamonds": 1,
+        "total_diamonds": 3
+      },
+      "seconds": 0.8
+    },
+    {
+      "name": "recipe_discovery_paging_and_machine_rejection",
+      "checklist_ids": [
+        "OBS-06",
+        "ACT-15"
+      ],
+      "status": "passed",
+      "evidence": {
+        "discovered_recipes": 3704,
+        "page_limit_obeyed": true,
+        "distinct_pages": true,
+        "machine_recipe_failure": "machine_processing_required",
+        "full_recipe_metadata": true,
+        "cake_bucket_remainders_described": 3,
+        "recipe_pages_revision_pinned": true,
+        "wrong_revision_rejected": true
+      },
+      "seconds": 0.748
+    },
+    {
+      "name": "craft_missing_batch_ingredient_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "requested_executions": 2,
+        "available_logs": 1,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.65
+    },
+    {
+      "name": "craft_remainder_capacity_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_space_available": true,
+        "four_bottle_remainders_would_not_fit": true,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.818
+    },
+    {
+      "name": "container_blocked_and_removed",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "blocked_open_rejected": true,
+        "removed_session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 0.978
+    },
+    {
+      "name": "container_range_invalidation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "actual_navigation_out_of_range": true,
+        "session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 5.252
+    },
+    {
+      "name": "container_explicit_close_and_stop",
+      "checklist_ids": [
+        "ACT-16",
+        "OBS-05",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "explicit_close_invalidates": true,
+        "reopen_has_new_id": true,
+        "old_handle_rejected": true,
+        "stop_closed_session": true,
+        "stop_reason": "stopped",
+        "cursor_fixture": "empty"
+      },
+      "seconds": 0.797
+    },
+    {
+      "name": "administrator_order_container_stop_persistence_owner_resume",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-16",
+        "EXEC-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "source": "administrator console synagent order through shared native recordOrder",
+        "actual_human_chat_event_verified": false,
+        "persistent_stop_closed_session": true,
+        "reconnect_denied_423_until_owner_resume": true,
+        "deliberate_owner_resume_verified": true,
+        "cursor_fixture": "empty",
+        "chest_diamonds": 1,
+        "player_diamonds": 1,
+        "total_diamonds": 2
+      },
+      "seconds": 1.451
+    },
+    {
+      "name": "container_furnace_native_slot_rules",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_partial_extraction": 1,
+        "output_remaining": 2,
+        "fuel_rule_enforced": true,
+        "output_insert_rejected": true,
+        "fixture_supplied_furnace_output": true,
+        "actual_smelting_or_xp_verified": false
+      },
+      "seconds": 0.703
+    },
+    {
+      "name": "large_components_bounded_observation_exact_transfer",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-01",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_component_bytes": 21349,
+        "ambient_json_omitted": true,
+        "full_metadata_hash_preserved": true,
+        "attributes_available": [
+          "count",
+          "damage",
+          "max_damage"
+        ],
+        "full_metadata_query_implemented": true,
+        "player_and_container_multichunk_unicode_reconstruction": true,
+        "empty_cursor_query": true,
+        "changed_slot_chunk_rejected": true
+      },
+      "seconds": 1.046
+    },
+    {
+      "name": "create_depot_native_port_exact_transfer",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_port": "create:depot",
+        "native_slots": 9,
+        "input_output_rules": true,
+        "full_metadata": true,
+        "stale_revision_rejected": true,
+        "removed_port_closed": true,
+        "iron_ingots_conserved": 3
+      },
+      "seconds": 0.854
+    },
+    {
+      "name": "create_powered_press_depot_real_processing",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "VERIFY-03",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:pressing/iron_ingot",
+        "input_ingots": 1,
+        "output_sheets": 1,
+        "unpowered_no_processing": true,
+        "processing_revision_changed": true,
+        "power": "fixture-seeded native creative motor 64 rpm",
+        "machine_output_seeded": false,
+        "survival_power_construction_verified": false
+      },
+      "seconds": 2.698
+    },
+    {
+      "name": "create_powered_mixer_basin_real_processing",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "VERIFY-03",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:mixing/andesite_alloy",
+        "native_slots": 18,
+        "input_andesite": 1,
+        "input_iron_nugget": 1,
+        "output_alloy": 1,
+        "unpowered_no_processing": true,
+        "output_insertion_rejected": true,
+        "power": "fixture-seeded native creative motor and cogwheel 64 rpm",
+        "machine_output_seeded": false,
+        "survival_power_construction_verified": false
+      },
+      "seconds": 5.313
+    },
+    {
+      "name": "create_millstone_two_batches_dough_furnace_native_chain",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "VERIFY-03",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:milling/wheat",
+        "batches": [
+          {
+            "wheat_consumed": 16,
+            "flour_actual": 22,
+            "seed_actual": 4
+          },
+          {
+            "wheat_consumed": 16,
+            "flour_actual": 19,
+            "seed_actual": 5
+          }
+        ],
+        "flour_total": 41,
+        "seeds_total": 9,
+        "all_native_byproducts_collected": true,
+        "input_extraction_denied_by_native_port": true,
+        "dough_crafted": 1,
+        "empty_buckets_preserved": 1,
+        "furnace_bread": 1,
+        "power": "fixture-seeded native creative motor 256 rpm",
+        "machine_output_seeded": false,
+        "waterwheel_and_32_bread_survival_journey_verified": false
+      },
+      "seconds": 30.093
+    },
+    {
+      "name": "native_sophisticatedstorage_chest_menu_roundtrip",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03",
+        "MOD-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "block": "sophisticatedstorage:chest",
+        "native_storage_slots": 27,
+        "last_storage_slot": 26,
+        "named_damaged_components_preserved": true,
+        "close_reopen_persistence": true,
+        "upgrade_configuration_verified": false
+      },
+      "seconds": 0.84
+    },
+    {
+      "name": "native_sophisticatedstorage_barrel_menu_roundtrip",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03",
+        "MOD-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "block": "sophisticatedstorage:barrel",
+        "native_storage_slots": 27,
+        "last_storage_slot": 26,
+        "named_damaged_components_preserved": true,
+        "close_reopen_persistence": true,
+        "upgrade_configuration_verified": false
+      },
+      "seconds": 0.842
+    },
+    {
+      "name": "native_sophisticatedstorage_shulker_box_menu_roundtrip",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03",
+        "MOD-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "block": "sophisticatedstorage:shulker_box",
+        "native_storage_slots": 27,
+        "last_storage_slot": 26,
+        "named_damaged_components_preserved": true,
+        "close_reopen_persistence": true,
+        "upgrade_configuration_verified": false
+      },
+      "seconds": 0.844
+    },
+    {
+      "name": "native_portable_backpack_context_and_components",
+      "checklist_ids": [
+        "ACT-09",
+        "ACT-14",
+        "ACT-16",
+        "OBS-05",
+        "MOD-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_item_use_open": true,
+        "damage_preserved": 9,
+        "native_backpack_context_invalidated": true,
+        "backpack_held_slot": 0,
+        "worn_slot_and_upgrade_configuration_verified": false
+      },
+      "seconds": 0.949
+    },
+    {
+      "name": "native_farmers_delight_pot_heat_and_serving",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "MOD-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "farmersdelight:cooking/cooked_rice",
+        "native_heat": "lit campfire",
+        "unheated_input_unchanged": true,
+        "rice_consumed": 1,
+        "served_meals": 1,
+        "bowls_initial": 2,
+        "empty_bowls_remaining": 1,
+        "serving_bowl_in_meal": 1,
+        "output_injected": false
+      },
+      "seconds": 6.801
+    },
+    {
+      "name": "native_farmers_delight_cutting_tool_and_output",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-06",
+        "VERIFY-03",
+        "MOD-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_cutting_recipe": "farmersdelight:cutting/beef",
+        "beef_consumed": 1,
+        "minced_beef_output": 2,
+        "knife_durability_consumed": 1,
+        "optional_area": null,
+        "bounded_callback_footprint_verified": false
+      },
+      "seconds": 1.263
+    },
+    {
+      "name": "create_held_machine_placement_and_native_orientation",
+      "checklist_ids": [
+        "ACT-08",
+        "OBS-03",
+        "VERIFY-03",
+        "MOD-01"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'position': [2, 64, 0], 'dimension': 'minecraft:overworld', 'tick': 1794, 'loaded': True, 'block': 'create:cogwheel', 'properties': {'axis': 'y', 'waterlogged': 'false'}, 'replaceable': False, 'destroy_speed': 1.5}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "create_controls_gameplay_cases.py",
+          "line": 103,
+          "function": "placement_orientation"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 4.234
+    },
+    {
+      "name": "create_wrench_native_rotation_and_sneak_recovery",
+      "checklist_ids": [
+        "ACT-08",
+        "ACT-10",
+        "VERIFY-03",
+        "MOD-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "placed_axis": "x",
+        "wrenched_axis": "z",
+        "sneak_wrench_recovered": 1,
+        "wrench_components_preserved": true,
+        "duplicate_drop_entities": 0
+      },
+      "seconds": 1.285
+    },
+    {
+      "name": "create_native_shaft_placement_helper_respects_optional_bounds",
+      "checklist_ids": [
+        "ACT-08",
+        "ACT-10",
+        "EXEC-06",
+        "VERIFY-04",
+        "MOD-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "bounded_helper_rejected_without_consumption": true,
+        "native_unrestricted_helper_placed_one_shaft": true,
+        "resulting_shaft_positions": [
+          [
+            1,
+            64,
+            0
+          ],
+          [
+            2,
+            64,
+            0
+          ]
+        ],
+        "shafts_consumed_total": 2
+      },
+      "seconds": 1.568
+    },
+    {
+      "name": "create_hand_crank_native_forward_reverse_and_expiry",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-03",
+        "MOD-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "forward_native_rpm": 32.0,
+        "reverse_native_rpm": -32.0,
+        "native_decay_to_zero": true,
+        "energy_injected": false,
+        "telemetry_oracle": "read-only fixture console; no SDK kinetic telemetry claim"
+      },
+      "seconds": 2.235
+    },
+    {
+      "name": "create_sdk_waterwheel_flow_powers_and_stops_native_millstone",
+      "checklist_ids": [
+        "ACT-08",
+        "ACT-09",
+        "ACT-10",
+        "ACT-13",
+        "ACT-14",
+        "VERIFY-03",
+        "MOD-01",
+        "MOD-03"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'id': '561d754700f34a0dadd08b9bf2b1b99e', 'state': 'failed', 'reason': 'face_obstructed', 'body_epoch': '53a5c57d-f098-4a1a-88ee-bbed4052c2bc', 'tick': 2648}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "create_controls_gameplay_cases.py",
+          "line": 273,
+          "function": "waterwheel_powers_native_milling"
+        },
+        {
+          "file": "gameplay_cases.py",
+          "line": 16,
+          "function": "done"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 38.616
+    },
+    {
+      "name": "create_basin_native_bucket_fluid_roundtrip",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-05",
+        "MOD-09",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_fill_mB": 1000,
+        "native_withdraw_mB": 1000,
+        "bucket_count": 1,
+        "basin_final_mB": 0,
+        "fluid_change_invalidates_revision": true,
+        "native_bucket_interactions": true,
+        "direct_capability_writes": false
+      },
+      "seconds": 0.706
+    },
+    {
+      "name": "create_fluid_tank_multiblock_observation_and_bounds",
+      "checklist_ids": [
+        "ACT-13",
+        "OBS-05",
+        "MOD-09"
+      ],
+      "status": "passed",
+      "evidence": {
+        "single_capacity_mB": 8000,
+        "double_capacity_mB": 16000,
+        "native_multiblock_members": 2,
+        "out_of_area_upper_member_rejected": true,
+        "all_reads_preserved_empty_fluid": true,
+        "survival_direct_tank_bucket_exchange_supported": false
+      },
+      "seconds": 2.202
+    },
+    {
+      "name": "create_item_drain_sided_input_native_emptying",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "MOD-09",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "input_water_bucket": 1,
+        "native_fluid_output_mB": 1000,
+        "empty_buckets_recovered": 1,
+        "native_item_input_face": "west",
+        "remainder_recovered_through_native_handler": true,
+        "read_only_unsided_port": true,
+        "direct_capability_writes": false
+      },
+      "seconds": 1.703
+    },
+    {
+      "name": "create_mixer_native_item_and_fluid_processing",
+      "checklist_ids": [
+        "ACT-10",
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "MOD-09",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:mixing/dough_by_mixing",
+        "flour_consumed": 1,
+        "water_consumed_mB": 1000,
+        "dough_output": 1,
+        "empty_buckets_preserved": 1,
+        "unpowered_fluid_preserved": true,
+        "power": "fixture-seeded native creative motor64rpm",
+        "fluid_or_output_injected": false
+      },
+      "seconds": 5.294
+    },
+    {
+      "name": "create_heated_native_fluid_recipe_conservation",
+      "checklist_ids": [
+        "ACT-10",
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "MOD-09",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:mixing/tea",
+        "water_input_mB": 1000,
+        "milk_input_mB": 1000,
+        "water_remaining_mB": 750,
+        "milk_remaining_mB": 750,
+        "native_tea_output_mB": 500,
+        "empty_buckets_preserved": 2,
+        "coal_consumed": 1,
+        "leaves_consumed": 1,
+        "unheated_inputs_preserved": true,
+        "power": "fixture-seeded native creative motor64rpm",
+        "burner": "fixture-seeded captured blaze; actual held coal supplies heat",
+        "fluid_or_output_injected": false,
+        "owner_area": null
+      },
+      "seconds": 5.821
+    },
+    {
+      "name": "create_native_drain_pump_spout_bucket_conservation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "MOD-09",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "initial_water_bucket": 1,
+        "initial_empty_bucket": 1,
+        "final_water_bucket": 1,
+        "final_empty_bucket": 1,
+        "native_pumped_water_mB": 1000,
+        "final_spout_mB": 0,
+        "final_drain_mB": 0,
+        "native_spout_bucket_filling": true,
+        "native_drain_bucket_emptying": true,
+        "power": "fixture-seeded native creative motor64rpm",
+        "fluid_or_output_injected": false
+      },
+      "seconds": 4.883
+    },
+    {
+      "name": "survival_native_harvest_food_recovery_shelter_and_threat_response",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-09",
+        "ACT-15",
+        "OBS-02",
+        "OBS-03",
+        "VERIFY-02",
+        "VERIFY-03",
+        "SURV-01"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'id': '7d9bfd754b4e40afb0aa5bcd13fbacc6', 'state': 'failed', 'reason': 'invalid_endpoint', 'body_epoch': '53a5c57d-f098-4a1a-88ee-bbed4052c2bc', 'tick': 3190}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "survival_gameplay_cases.py",
+          "line": 52,
+          "function": "food_recovery_shelter_and_threat"
+        },
+        {
+          "file": "gameplay_cases.py",
+          "line": 16,
+          "function": "done"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 7.495
+    },
+    {
+      "name": "dig_hand_channel_and_explicit_cancel",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-03",
+        "ACT-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "selection_failure": "hand_busy",
+        "cancelled_dig_block_intact": true
+      },
+      "seconds": 5.263
+    },
+    {
+      "name": "dig_pickup_empty_hand_failure_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "held_item_changed",
+        "waited_native_ticks": 90,
+        "target_still_oak_log": true,
+        "injected_dirt_picked_up": 1,
+        "unearned_log_drops": 0,
+        "reconciled_result_unchanged": true
+      },
+      "seconds": 5.108
+    },
+    {
+      "name": "dig_preserves_native_redstone_start_transition",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_start_changed_lit_property": true,
+        "result": "broken",
+        "redstone_drop_count": 4,
+        "pickaxe_damage": 1
+      },
+      "seconds": 4.386
+    },
+    {
+      "name": "dig_stop_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "stop",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false,
+        "explicit_reconnect_after_fault": false
+      },
+      "seconds": 5.206
+    },
+    {
+      "name": "dig_lease_release_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "lease_release",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false,
+        "explicit_reconnect_after_fault": true
+      },
+      "seconds": 8.84
+    },
+    {
+      "name": "dig_grant_expiry_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "grant_expiry",
+        "outcome": "control_expired",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false,
+        "explicit_reconnect_after_fault": true
+      },
+      "seconds": 8.649
+    },
+    {
+      "name": "dig_human_stop_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "human_stop",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": true,
+        "explicit_reconnect_after_fault": true
+      },
+      "seconds": 8.948
+    },
+    {
+      "name": "entity_hostility_uses_native_enemy_marker",
+      "checklist_ids": [
+        "OBS-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "classification": {
+          "minecraft:cow": false,
+          "minecraft:phantom": true,
+          "minecraft:slime": true,
+          "minecraft:ghast": true
+        },
+        "basis": "native Enemy marker, not Monster inheritance",
+        "ai_disabled_for_fixture": true
+      },
+      "seconds": 0.546
+    },
+    {
+      "name": "drop_partial_full_and_idempotent_retry",
+      "checklist_ids": [
+        "ACT-03",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "partial": 2,
+        "remaining_full_drop": 3,
+        "retry_executed_once": true,
+        "world_item_total": 5
+      },
+      "seconds": 0.702
+    },
+    {
+      "name": "inventory_invalid_arguments_and_drop_shortage",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-03",
+        "EXEC-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "invalid_arguments": 5,
+        "insufficient_count": "insufficient_items",
+        "stones_preserved": 2
+      },
+      "seconds": 0.658
+    },
+    {
+      "name": "drop_obeys_vanilla_binding_armor_slot_rule",
+      "checklist_ids": [
+        "ACT-03",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "vanilla_slot_pickup_rejected_binding_curse": "item_cannot_be_removed",
+        "armor_unchanged": true
+      },
+      "seconds": 0.582
+    },
+    {
+      "name": "swap_two_populated_hands_preserves_components",
+      "checklist_ids": [
+        "ACT-02",
+        "OBS-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "both_hands_populated": true,
+        "pick_damage": 11,
+        "diamonds": 3,
+        "two_swaps_preserve_components": true
+      },
+      "seconds": 0.598
+    },
+    {
+      "name": "dig_unbreakable_and_obstructed",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "unbreakable": "unbreakable",
+        "occluded": "out_of_reach_or_obstructed"
+      },
+      "seconds": 0.801
+    },
+    {
+      "name": "dig_tool_durability_and_natural_drop",
+      "checklist_ids": [
+        "ACT-07",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": "broken",
+        "pickaxe_broken": true,
+        "real_cobblestone_drop": 1
+      },
+      "seconds": 3.997
+    },
+    {
+      "name": "dig_unsuitable_tool_uses_native_slow_break_without_drops",
+      "checklist_ids": [
+        "ACT-07",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "bare_hand_stone_break_ticks": 149,
+        "native_slow_break_allowed": true,
+        "no_harvest_drop_without_suitable_tool": true
+      },
+      "seconds": 8.148
+    },
+    {
+      "name": "dig_revalidates_changed_target",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-06",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "target_changed",
+        "replacement_preserved": true
+      },
+      "seconds": 0.698
+    },
+    {
+      "name": "placement_area_and_two_cell_door",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "outside_area": "outside_work_area_gateway_403",
+        "door_cells": 2,
+        "doors_consumed": 1
+      },
+      "seconds": 0.833
+    },
+    {
+      "name": "placement_multiblock_secondary_cell_bounds",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "target_inside_area": true,
+        "upper_half_outside_area_rejected_natively": "outside_work_area",
+        "door_preserved": 1
+      },
+      "seconds": 0.662
+    },
+    {
+      "name": "use_on_thin_door_shape_open_close",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "closed_to_open_to_closed": true,
+        "both_halves_updated": true,
+        "empty_hand": true
+      },
+      "seconds": 1.097
+    },
+    {
+      "name": "unrestricted_native_bucket_and_bonemeal_use",
+      "checklist_ids": [
+        "ACT-09",
+        "ACT-10",
+        "EXEC-06"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'position': [2, 64, 0], 'dimension': 'minecraft:overworld', 'tick': 4605, 'loaded': True, 'block': 'minecraft:wheat', 'properties': {'age': '0'}, 'replaceable': False, 'destroy_speed': 0.0}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 433,
+          "function": "<lambda>"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 389,
+          "function": "unrestricted_policy"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 427,
+          "function": "unrestricted_bucket_and_bonemeal"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 6.165
+    },
+    {
+      "name": "native_place_merges_slab_and_replaces_plant",
+      "checklist_ids": [
+        "ACT-08",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "matching_slab_merged": true,
+        "slabs_consumed": 1,
+        "replaceable_plant_replaced": true,
+        "planks_consumed": 1,
+        "native_context_destination_preserved": true
+      },
+      "seconds": 0.83
+    },
+    {
+      "name": "unrestricted_use_on_places_and_adopts_native_chest_menu",
+      "checklist_ids": [
+        "ACT-08",
+        "ACT-10",
+        "ACT-13",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_block_item_use": true,
+        "planks_consumed": 1,
+        "native_chest_click_adopted_as_session": true,
+        "container_closed": true
+      },
+      "seconds": 1.357
+    },
+    {
+      "name": "explicit_bounds_keep_unknown_air_and_growth_footprints_rejected",
+      "checklist_ids": [
+        "EXEC-06",
+        "ACT-09",
+        "ACT-10",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "explicit_bounds_retained": true,
+        "bucket_rejection": "bounded_air_use_footprint_unknown",
+        "growth_rejection": "unsupported_use_footprint",
+        "inventory_and_target_unchanged": true
+      },
+      "seconds": 0.735
+    },
+    {
+      "name": "unrestricted_dimension_change_cancels_old_world_actions",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-06",
+        "OBS-03",
+        "OBS-07",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "new_dimension": "minecraft:the_nether",
+        "epoch_changed": true,
+        "new_world_target_intact": true,
+        "old_epoch_rejected": true,
+        "navigation_and_digging_cancelled": true,
+        "waited_native_ticks": 90,
+        "old_world_target_intact": true
+      },
+      "seconds": 22.775
+    },
+    {
+      "name": "held_bow_stop_without_release_side_effect",
+      "checklist_ids": [
+        "ACT-09",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "stop_aborted_bow_without_firing": true,
+        "arrows_preserved": 1
+      },
+      "seconds": 0.978
+    },
+    {
+      "name": "native_food_duration_and_consumption",
+      "checklist_ids": [
+        "ACT-09",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": "use_finished",
+        "bread_consumed": 1,
+        "native_duration_observed": true
+      },
+      "seconds": 7.837
+    },
+    {
+      "name": "attack_target_lifetime_and_cooldown",
+      "checklist_ids": [
+        "ACT-11",
+        "OBS-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "missing_target": "entity_missing",
+        "cooldown": "attack_cooldown",
+        "neutral_mob_attack_executed": true
+      },
+      "seconds": 0.645
+    },
+    {
+      "name": "held_jump_repeats_and_airborne_release_stops_repetition",
+      "checklist_ids": [
+        "ACT-04",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'id': 'd9979d50dc0d48908882e1a9d428120d', 'state': 'failed', 'reason': 'invalid_endpoint', 'body_epoch': '9dbffbef-14da-40dd-a37c-bc2bb470b284', 'tick': 5429}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 628,
+          "function": "jump_cycles_and_airborne_release"
+        },
+        {
+          "file": "gameplay_cases.py",
+          "line": 16,
+          "function": "done"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 10.415
+    },
+    {
+      "name": "sneak_native_collision_height_and_platform_edge",
+      "checklist_ids": [
+        "ACT-05",
+        "EXEC-03",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "standing_ceiling_height": 64.20000004768372,
+        "crouched_ceiling_height": 64.5,
+        "narrow_platform_edge_route_supported": true,
+        "stop_released_sneak": true
+      },
+      "seconds": 8.731
+    },
+    {
+      "name": "sprint_native_hunger_gate_and_lease_release",
+      "checklist_ids": [
+        "ACT-06",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "TimeoutError: condition",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 687,
+          "function": "sprint_hunger_and_lease_release"
+        },
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 37,
+          "function": "wait_for"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 21.593
+    },
+    {
+      "name": "offhand_bow_explicit_release_and_unusable_item",
+      "checklist_ids": [
+        "ACT-09",
+        "OBS-01",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "offhand_draw_released": "released",
+        "arrow_consumed": 1,
+        "bow_damage": 1,
+        "unusable_item_rejected_without_consumption": "use_rejected"
+      },
+      "seconds": 2.094
+    },
+    {
+      "name": "entity_obstruction_disappearance_and_navigation_collision",
+      "checklist_ids": [
+        "ACT-10",
+        "ACT-11",
+        "OBS-02",
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "AssertionError: ({'id': 66, 'type': 'minecraft:cow', 'hostile': False, 'alive': True, 'visible': True, 'distance': 2.0, 'position': [2.5, 64.0, 0.5], 'velocity': [0.0, 0.0, 0.0], 'health': 10.0}, {'id': 66, 'type': 'minecraft:cow', 'hostile': False, 'alive': True, 'visible': True, 'distance': 4.921266, 'position': [2.5, 64.0, 0.5], 'velocity': [0.29575335985266177, 0.0, 0.0], 'health': 10.0})",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 751,
+          "function": "entity_obstruction_disappearance_and_collision"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 12.632
+    },
+    {
+      "name": "native_public_chat_rate_limit_identity_and_validation",
+      "checklist_ids": [
+        "ACT-12",
+        "OBS-04",
+        "EXEC-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "delivered": "delivered",
+        "rate_limited": "gateway_rate_limited",
+        "one_message_with_sender_id_timestamp": true,
+        "command_control_formatting_rejected": true
+      },
+      "seconds": 0.538
+    },
+    {
+      "name": "navigation_half_slab_and_raised_stair_destinations",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slab": [
+          2.4772963463756197,
+          64.5,
+          0.5
+        ],
+        "raised": [
+          3.4678944927956663,
+          65.0,
+          0.5
+        ],
+        "stair": [
+          3.5690905996529123,
+          65.0,
+          4.5
+        ],
+        "alternate_routes_not_excluded": true
+      },
+      "seconds": 9.87
+    },
+    {
+      "name": "navigation_solid_target_and_timeout",
+      "checklist_ids": [
+        "VERIFY-01",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "solid_target": "invalid_endpoint",
+        "short_timeout": "timeout"
+      },
+      "seconds": 1.844
+    },
+    {
+      "name": "navigation_low_ceiling_collision",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "two_block_corridor_traversed": true,
+        "one_and_half_clearance_rejected": "timeout"
+      },
+      "seconds": 7.846
+    },
+    {
+      "name": "navigation_obstacle_inserted_during_route",
+      "checklist_ids": [
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "changed_terrain_outcome": "arrived",
+        "position": [
+          12.484499925233957,
+          64.0,
+          0.4999977709209367
+        ],
+        "collision_respected": true
+      },
+      "seconds": 8.103
+    },
+    {
+      "name": "authority_whitelist_removed_during_dig",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "whitelist_removed",
+        "operation": "dig",
+        "native_stop_seconds": 0.23812414519488811,
+        "waited_world_ticks_after_start": 104,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 12.039
+    },
+    {
+      "name": "authority_whitelist_removed_during_navigation",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "whitelist_removed",
+        "operation": "navigation",
+        "native_stop_seconds": 0.27483405731618404,
+        "waited_world_ticks_after_start": 101,
+        "terminal_state": "cancelled",
+        "terminal_reason": "control_expired",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 11.745
+    },
+    {
+      "name": "authority_whitelist_removed_during_use",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "whitelist_removed",
+        "operation": "use",
+        "native_stop_seconds": 0.2224936094135046,
+        "waited_world_ticks_after_start": 102,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 12.043
+    },
+    {
+      "name": "authority_owner_uuid_changed_during_dig",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "owner_uuid_changed",
+        "operation": "dig",
+        "native_stop_seconds": 0.2983612474054098,
+        "waited_world_ticks_after_start": 103,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 12.045
+    },
+    {
+      "name": "authority_owner_uuid_changed_during_navigation",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "owner_uuid_changed",
+        "operation": "navigation",
+        "native_stop_seconds": 0.2624402530491352,
+        "waited_world_ticks_after_start": 101,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 11.897
+    },
+    {
+      "name": "authority_owner_uuid_changed_during_use",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "owner_uuid_changed",
+        "operation": "use",
+        "native_stop_seconds": 0.37418228201568127,
+        "waited_world_ticks_after_start": 103,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 12.551
+    },
+    {
+      "name": "authority_token_revoked_during_dig",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "token_revoked",
+        "operation": "dig",
+        "native_stop_seconds": 0.30990008264780045,
+        "waited_world_ticks_after_start": 102,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 12.445
+    },
+    {
+      "name": "authority_token_revoked_during_navigation",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "token_revoked",
+        "operation": "navigation",
+        "native_stop_seconds": 0.23469417914748192,
+        "waited_world_ticks_after_start": 104,
+        "terminal_state": "cancelled",
+        "terminal_reason": "lease_changed",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 12.349
+    },
+    {
+      "name": "authority_token_revoked_during_use",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "policy_fault": "token_revoked",
+        "operation": "use",
+        "native_stop_seconds": 0.28330155462026596,
+        "waited_world_ticks_after_start": 102,
+        "terminal_state": "cancelled",
+        "terminal_reason": "control_expired",
+        "inventory_unchanged": true,
+        "old_session_rejected": "container_closed",
+        "exact_identity_restored": true,
+        "explicit_reconnect_only": true,
+        "human_chat_not_simulated": true
+      },
+      "seconds": 13.041
+    },
+    {
+      "name": "authority_wrong_owner_rejected_before_native_execution",
+      "checklist_ids": [
+        "EXEC-06",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "different_whitelisted_owner_rejected_before_action": true,
+        "existing_lease_unchanged": true,
+        "accepted_action_count_unchanged": true,
+        "world_inventory_unchanged": true
+      },
+      "seconds": 0.704
+    },
+    {
+      "name": "authority_bounds_change_aborts_active_dig_and_container",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "active_dig_result": "outside_work_area",
+        "new_dig_http_status": 403,
+        "old_container_invalidated": true,
+        "waited_native_ticks": 100,
+        "target_intact": true,
+        "inventory_unchanged": true,
+        "fault_injection": "fixture owner bounds only"
+      },
+      "seconds": 5.886
+    },
+    {
+      "name": "navigation_confined_slab_stair_ascent",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "terminal": "arrived",
+        "samples": [
+          [
+            0.5,
+            64.0,
+            0.5
+          ],
+          [
+            0.5,
+            64.0,
+            0.5
+          ],
+          [
+            0.5,
+            64.0,
+            0.5
+          ],
+          [
+            0.5,
+            64.0,
+            0.5
+          ],
+          [
+            0.5784000050783158,
+            64.0,
+            0.5
+          ],
+          [
+            0.6996064179014687,
+            64.0,
+            0.5
+          ],
+          [
+            0.8441851320680569,
+            64.0,
+            0.5
+          ],
+          [
+            1.0015251242504168,
+            64.0,
+            0.5
+          ],
+          [
+            1.0015251242504168,
+            64.0,
+            0.5
+          ],
+          [
+            1.1658327750386999,
+            64.0,
+            0.5
+          ],
+          [
+            1.3339447678677012,
+            64.0,
+            0.5
+          ],
+          [
+            1.5041339316922038,
+            64.0,
+            0.5
+          ],
+          [
+            1.6754572310119826,
+            64.0,
+            0.5
+          ],
+          [
+            1.6754572310119826,
+            64.0,
+            0.5
+          ],
+          [
+            1.8473997683841086,
+            64.0,
+            0.5
+          ],
+          [
+            2.019680409772088,
+            64.0,
+            0.5
+          ],
+          [
+            2.192145655974165,
+            64.0,
+            0.5
+          ],
+          [
+            2.364711696416448,
+            64.41999998688698,
+            0.5
+          ],
+          [
+            2.364711696416448,
+            64.41999998688698,
+            0.5
+          ],
+          [
+            2.4746127658734967,
+            64.7531999805212,
+            0.5
+          ],
+          [
+            2.590302742393219,
+            65.00133597911214,
+            0.5
+          ],
+          [
+            2.711260624491794,
+            65.16610926093821,
+            0.5
+          ],
+          [
+            2.8370123008052817,
+            65.24918707874468,
+            0.5
+          ],
+          [
+            2.8370123008052817,
+            65.24918707874468,
+            0.5
+          ],
+          [
+            2.967126329980062,
+            65.25220334025373,
+            0.5
+          ],
+          [
+            3.101210100373026,
+            65.17675927506424,
+            0.5
+          ],
+          [
+            3.2389063353786476,
+            65.02442408821369,
+            0.5
+          ],
+          [
+            3.3798899132765285,
+            64.79673560066871,
+            0.5
+          ],
+          [
+            3.523864973292579,
+            64.5,
+            0.5
+          ],
+          [
+            3.523864973292579,
+            64.5,
+            0.5
+          ],
+          [
+            3.7332822867613973,
+            64.91999998688698,
+            0.5
+          ],
+          [
+            3.8633041536280177,
+            65.2531999805212,
+            0.5
+          ],
+          [
+            3.9973040563181392,
+            65.50133597911214,
+            0.5
+          ],
+          [
+            4.134923971711975,
+            65.66610926093821,
+            0.5
+          ],
+          [
+            4.134923971711975,
+            65.66610926093821,
+            0.5
+          ],
+          [
+            4.275838098761128,
+            65.74918707874468,
+            0.5
+          ],
+          [
+            4.419749958503016,
+            65.75220334025373,
+            0.5
+          ],
+          [
+            4.56638975507391,
+            65.67675927506424,
+            0.5
+          ],
+          [
+            4.684151973367668,
+            65.52442408821369,
+            0.5
+          ],
+          [
+            4.684151973367668,
+            65.52442408821369,
+            0.5
+          ],
+          [
+            4.775635594671887,
+            65.29673560066871,
+            0.5
+          ],
+          [
+            4.843205692026443,
+            65.0,
+            0.5
+          ],
+          [
+            4.9830944874695,
+            65.0,
+            0.5
+          ],
+          [
+            4.9830944874695,
+            65.0,
+            0.5
+          ],
+          [
+            5.13787378373138,
+            65.0,
+            0.5
+          ],
+          [
+            5.300783294384684,
+            65.0,
+            0.5
+          ],
+          [
+            5.468131902611317,
+            65.0,
+            0.5
+          ],
+          [
+            5.637904258394514,
+            65.0,
+            0.5
+          ],
+          [
+            5.808999980497306,
+            65.0,
+            0.5
+          ],
+          [
+            5.980818260694524,
+            65.0,
+            0.5
+          ],
+          [
+            5.980818260694524,
+            65.0,
+            0.5
+          ],
+          [
+            6.153031057657123,
+            65.0,
+            0.5
+          ],
+          [
+            6.32545926079864,
+            65.0,
+            0.5
+          ],
+          [
+            6.498005075727507,
+            65.0,
+            0.5
+          ],
+          [
+            6.498005075727507,
+            65.0,
+            0.5
+          ],
+          [
+            6.670615106699726,
+            65.0,
+            0.5
+          ],
+          [
+            6.843260199635688,
+            65.0,
+            0.5
+          ],
+          [
+            7.0159244364060775,
+            65.0,
+            0.5
+          ],
+          [
+            7.188599125711278,
+            65.0,
+            0.5
+          ],
+          [
+            7.361279522101149,
+            65.0,
+            0.5
+          ],
+          [
+            7.361279522101149,
+            65.0,
+            0.5
+          ],
+          [
+            7.533963034559611,
+            65.0,
+            0.5
+          ],
+          [
+            7.54984823823509,
+            65.0,
+            0.5
+          ],
+          [
+            7.480121555371015,
+            65.0,
+            0.5
+          ],
+          [
+            7.520450787183526,
+            65.0,
+            0.5
+          ],
+          [
+            7.520450787183526,
+            65.0,
+            0.5
+          ],
+          [
+            7.464070545232494,
+            65.0,
+            0.5
+          ],
+          [
+            7.511686934629949,
+            65.0,
+            0.5
+          ],
+          [
+            7.459285481182443,
+            65.0,
+            0.5
+          ],
+          [
+            7.459285481182443,
+            65.0,
+            0.5
+          ],
+          [
+            7.459285481182443,
+            65.0,
+            0.5
+          ],
+          [
+            7.508295417815479,
+            65.0,
+            0.5
+          ],
+          [
+            7.508295417815479,
+            65.0,
+            0.5
+          ],
+          [
+            7.457433712786655,
+            65.0,
+            0.5
+          ],
+          [
+            7.5080632236936165,
+            65.0,
+            0.5
+          ],
+          [
+            7.457306934781392,
+            65.0,
+            0.5
+          ],
+          [
+            7.507994002894702,
+            65.0,
+            0.5
+          ],
+          [
+            7.507994002894702,
+            65.0,
+            0.5
+          ],
+          [
+            7.457269140220795,
+            65.0,
+            0.5
+          ],
+          [
+            7.50797336706222,
+            65.0,
+            0.5
+          ],
+          [
+            7.457257873054951,
+            65.0,
+            0.5
+          ],
+          [
+            7.5079672151889545,
+            65.0,
+            0.5
+          ],
+          [
+            7.5079672151889545,
+            65.0,
+            0.5
+          ],
+          [
+            7.457254514131757,
+            65.0,
+            0.5
+          ],
+          [
+            7.507965381216677,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253512782778,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964834480071,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964834480071,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253214264556,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964671489103,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253125271477,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964622898877,
+            65.0,
+            0.5
+          ],
+          [
+            7.4572530987412105,
+            65.0,
+            0.5
+          ],
+          [
+            7.4572530987412105,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964608413349,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253090832112,
+            65.0,
+            0.5
+          ],
+          [
+            7.5079646040949815,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253088474283,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602807606,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602807606,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253087771376,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602423819,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253087561828,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602309405,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602309405,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253087499358,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602275297,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253087480734,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602265128,
+            65.0,
+            0.5
+          ],
+          [
+            7.507964602265128,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253087475182,
+            65.0,
+            0.5
+          ],
+          [
+            7.5079646022620965,
+            65.0,
+            0.5
+          ],
+          [
+            7.457253087473527,
+            65.0,
+            0.5
+          ],
+          [
+            7.4295645971828765,
+            65.0,
+            0.5
+          ]
+        ],
+        "alternate_flat_route_excluded": true,
+        "native_shapes": [
+          "bottom_slab",
+          "stairs",
+          "one_block_ascent"
+        ]
+      },
+      "seconds": 5.104
+    },
+    {
+      "name": "navigation_three_block_drop",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "drop_blocks": 3,
+        "health_preserved": true,
+        "terminal": "arrived",
+        "samples": [
+          [
+            0.5,
+            67.0,
+            0.5
+          ],
+          [
+            0.5,
+            67.0,
+            0.5
+          ],
+          [
+            0.5784000050783158,
+            67.0,
+            0.5
+          ],
+          [
+            0.6996064179014687,
+            67.0,
+            0.5
+          ],
+          [
+            0.6996064179014687,
+            67.0,
+            0.5
+          ],
+          [
+            0.8441851320680569,
+            67.0,
+            0.5
+          ],
+          [
+            1.0015251242504168,
+            67.0,
+            0.5
+          ],
+          [
+            1.1658327750386999,
+            67.0,
+            0.5
+          ],
+          [
+            1.3339447678677012,
+            67.0,
+            0.5
+          ],
+          [
+            1.3339447678677012,
+            67.0,
+            0.5
+          ],
+          [
+            1.5041339316922038,
+            67.0,
+            0.5
+          ],
+          [
+            1.6754572310119826,
+            67.0,
+            0.5
+          ],
+          [
+            1.8473997683841086,
+            67.0,
+            0.5
+          ],
+          [
+            2.019680409772088,
+            67.0,
+            0.5
+          ],
+          [
+            2.019680409772088,
+            67.0,
+            0.5
+          ],
+          [
+            2.192145655974165,
+            67.0,
+            0.5
+          ],
+          [
+            2.364711696416448,
+            67.0,
+            0.5
+          ],
+          [
+            2.5373327705202744,
+            67.0,
+            0.5
+          ],
+          [
+            2.5373327705202744,
+            67.0,
+            0.5
+          ],
+          [
+            2.7099838930067945,
+            67.0,
+            0.5
+          ],
+          [
+            2.882651421912171,
+            67.0,
+            0.5
+          ],
+          [
+            3.0553279087232834,
+            67.0,
+            0.5
+          ],
+          [
+            3.2280092865514955,
+            67.0,
+            0.5
+          ],
+          [
+            3.4006933348753545,
+            67.0,
+            0.5
+          ],
+          [
+            3.573378841290006,
+            66.92159999847412,
+            0.5
+          ],
+          [
+            3.573378841290006,
+            66.92159999847412,
+            0.5
+          ],
+          [
+            3.6519851383124693,
+            66.76636799395752,
+            0.5
+          ],
+          [
+            3.7078368702329056,
+            66.53584062504456,
+            0.5
+          ],
+          [
+            3.742981947313735,
+            66.23152379758702,
+            0.5
+          ],
+          [
+            3.7592839679474683,
+            65.85489329934836,
+            0.5
+          ],
+          [
+            3.7592839679474683,
+            65.85489329934836,
+            0.5
+          ],
+          [
+            3.7584388067201657,
+            65.40739540236494,
+            0.5
+          ],
+          [
+            3.742758806288628,
+            64.89044745325997,
+            0.5
+          ],
+          [
+            3.712810005053167,
+            64.30543845175121,
+            0.5
+          ],
+          [
+            3.669876594711921,
+            64.0,
+            0.5
+          ],
+          [
+            3.669876594711921,
+            64.0,
+            0.5
+          ],
+          [
+            3.7092071952537293,
+            64.0,
+            0.5
+          ],
+          [
+            3.8090817107221935,
+            64.0,
+            0.5
+          ],
+          [
+            3.9420132075802665,
+            64.0,
+            0.5
+          ],
+          [
+            4.092993818373518,
+            64.0,
+            0.5
+          ],
+          [
+            4.092993818373518,
+            64.0,
+            0.5
+          ],
+          [
+            4.2538292465200405,
+            64.0,
+            0.5
+          ],
+          [
+            4.420045405566435,
+            64.0,
+            0.5
+          ],
+          [
+            4.589199444025401,
+            64.0,
+            0.5
+          ],
+          [
+            4.759957564829951,
+            64.0,
+            0.5
+          ],
+          [
+            4.759957564829951,
+            64.0,
+            0.5
+          ],
+          [
+            4.931591514696918,
+            64.0,
+            0.5
+          ],
+          [
+            5.10370366728751,
+            64.0,
+            0.5
+          ],
+          [
+            5.276076918595528,
+            64.0,
+            0.5
+          ],
+          [
+            5.44859272981982,
+            64.0,
+            0.5
+          ],
+          [
+            5.6211863787674385,
+            64.0,
+            0.5
+          ],
+          [
+            5.6211863787674385,
+            64.0,
+            0.5
+          ],
+          [
+            5.79382252711693,
+            64.0,
+            0.5
+          ],
+          [
+            5.966481880142539,
+            64.0,
+            0.5
+          ],
+          [
+            6.13915390292278,
+            64.0,
+            0.5
+          ],
+          [
+            6.311832843389854,
+            64.0,
+            0.5
+          ],
+          [
+            6.311832843389854,
+            64.0,
+            0.5
+          ],
+          [
+            6.484515560914376,
+            64.0,
+            0.5
+          ],
+          [
+            6.657200340712506,
+            64.0,
+            0.5
+          ],
+          [
+            6.673086236355524,
+            64.0,
+            0.5
+          ],
+          [
+            6.673086236355524,
+            64.0,
+            0.5
+          ],
+          [
+            6.60335993130577,
+            64.0,
+            0.5
+          ],
+          [
+            6.486889359248291,
+            64.0,
+            0.5
+          ],
+          [
+            6.501696424596737,
+            64.0,
+            0.5
+          ],
+          [
+            6.431381078137727,
+            64.0,
+            0.5
+          ],
+          [
+            6.471388899590071,
+            64.0,
+            0.5
+          ],
+          [
+            6.471388899590071,
+            64.0,
+            0.5
+          ],
+          [
+            6.571633177718636,
+            64.0,
+            0.5
+          ],
+          [
+            6.547966554855942,
+            64.0,
+            0.5
+          ],
+          [
+            6.4566445721936745,
+            64.0,
+            0.5
+          ],
+          [
+            6.4566445721936745,
+            64.0,
+            0.5
+          ],
+          [
+            6.5791646312622145,
+            64.0,
+            0.5
+          ],
+          [
+            6.5791646312622145,
+            64.0,
+            0.5
+          ],
+          [
+            6.552078728968376,
+            64.0,
+            0.5
+          ],
+          [
+            6.458889819519855,
+            64.0,
+            0.5
+          ],
+          [
+            6.486408674129298,
+            64.0,
+            0.5
+          ],
+          [
+            6.579833975569598,
+            64.0,
+            0.5
+          ],
+          [
+            6.579833975569598,
+            64.0,
+            0.5
+          ],
+          [
+            6.552444191002658,
+            64.0,
+            0.5
+          ],
+          [
+            6.45908936181375,
+            64.0,
+            0.5
+          ],
+          [
+            6.486517624234421,
+            64.0,
+            0.5
+          ],
+          [
+            6.579893462333905,
+            64.0,
+            0.5
+          ],
+          [
+            6.579893462333905,
+            64.0,
+            0.5
+          ],
+          [
+            6.5524766707797415,
+            64.0,
+            0.5
+          ],
+          [
+            6.4591070957740975,
+            64.0,
+            0.5
+          ],
+          [
+            6.486527306977894,
+            64.0,
+            0.5
+          ],
+          [
+            6.579898749112456,
+            64.0,
+            0.5
+          ],
+          [
+            6.579898749112456,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479557361165,
+            64.0,
+            0.5
+          ],
+          [
+            6.459108671847738,
+            64.0,
+            0.5
+          ],
+          [
+            6.486528167514202,
+            64.0,
+            0.5
+          ],
+          [
+            6.579899218965334,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479813900867,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479813900867,
+            64.0,
+            0.5
+          ],
+          [
+            6.459108811918431,
+            64.0,
+            0.5
+          ],
+          [
+            6.486528243992809,
+            64.0,
+            0.5
+          ],
+          [
+            6.579899260722658,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479836700368,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479836700368,
+            64.0,
+            0.5
+          ],
+          [
+            6.45910882436696,
+            64.0,
+            0.5
+          ],
+          [
+            6.486528250789707,
+            64.0,
+            0.5
+          ],
+          [
+            6.579899264433765,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479838726633,
+            64.0,
+            0.5
+          ],
+          [
+            6.459108825473301,
+            64.0,
+            0.5
+          ],
+          [
+            6.459108825473301,
+            64.0,
+            0.5
+          ],
+          [
+            6.48652825139377,
+            64.0,
+            0.5
+          ],
+          [
+            6.579899264763583,
+            64.0,
+            0.5
+          ],
+          [
+            6.552479838906713,
+            64.0,
+            0.5
+          ],
+          [
+            6.459108825571625,
+            64.0,
+            0.5
+          ],
+          [
+            6.459108825571625,
+            64.0,
+            0.5
+          ],
+          [
+            6.486528251447454,
+            64.0,
+            0.5
+          ],
+          [
+            6.579899264792894,
+            64.0,
+            0.5
+          ],
+          [
+            6.630879844001033,
+            64.0,
+            0.5
+          ]
+        ]
+      },
+      "seconds": 5.147
+    },
+    {
+      "name": "navigation_rejects_four_block_drop",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "drop_blocks": 4,
+        "rejected": "unreachable",
+        "body_remained_on_platform": true
+      },
+      "seconds": 0.687
+    },
+    {
+      "name": "navigation_unloaded_target_does_not_force_load",
+      "checklist_ids": [
+        "VERIFY-01",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "initially_unloaded": true,
+        "still_unloaded_after_request": true,
+        "terminal": "invalid_endpoint",
+        "setup_only_console_loaded_checks": true
+      },
+      "seconds": 0.491
+    },
+    {
+      "name": "native_public_chat_excludes_private_system_message",
+      "checklist_ids": [
+        "ACT-12",
+        "OBS-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "public_message_id_present": true,
+        "sender_and_timestamp_present": true,
+        "private_native_tellraw_excluded": true,
+        "native_ticks_checked": 20,
+        "snapshots_checked": 24,
+        "real_enrollment_code_generated": false
+      },
+      "seconds": 1.061
+    },
+    {
+      "name": "native_public_chat_subscription_reconnect_deduplication",
+      "checklist_ids": [
+        "OBS-04",
+        "SDK-02",
+        "SDK-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "same_subscription_resumed": true,
+        "old_messages_not_reemitted": true,
+        "distinct_message_ids": true,
+        "client_sequence_monotonic": true
+      },
+      "seconds": 9.322
+    },
+    {
+      "name": "long_action_terminal_survives_eighty_newer_actions",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-02",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "instant_actions_while_running": 80,
+        "terminal": "done",
+        "reason": "arrived",
+        "native_tick": 9991,
+        "reconciliation_matches": true
+      },
+      "seconds": 10.997
+    },
+    {
+      "name": "native_retry_ignores_reduced_delivery_budget_without_reexecution",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "timeout_before": 600,
+        "timeout_retry": 580,
+        "native_result_resurfaced": "done",
+        "selected_slot_unchanged": 2,
+        "semantic_change_rejected": true,
+        "fault_injection": "fixture bridge delivery metadata only"
+      },
+      "seconds": 4.789
+    },
+    {
+      "name": "unacknowledged_full_payload_survives_eighty_newer_results",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "newer_actions": 80,
+        "full_payload_blocks": 27,
+        "offered_after_recent_window": true,
+        "fault_injection": "fixture delays full payload after partial metadata"
+      },
+      "seconds": 4.446
+    },
+    {
+      "name": "navigation_preserves_two_tick_remaining_delivery_deadline",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-03",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "remaining_delivery_ticks": 2,
+        "native_ticks_until_timeout": 1,
+        "fault_injection": "fixture simulates queue delay leaving a two-tick budget"
+      },
+      "seconds": 0.441
+    },
+    {
+      "name": "optional_area_unrestricted_native_journey",
+      "checklist_ids": [
+        "EXEC-06",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "area": null,
+        "outside_previous_bounds": true,
+        "planks_placed": 1,
+        "planks_in_chest": 3,
+        "fixture_policy_change_only": true
+      },
+      "seconds": 6.767
+    },
+    {
+      "name": "native_death_respawn_and_sdk_resync",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-04",
+        "SDK-02",
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "TimeoutError: native AgentPlayer respawn and new epoch",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "lifecycle_gameplay_cases.py",
+          "line": 38,
+          "function": "death_and_respawn"
+        },
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 37,
+          "function": "wait_for"
+        }
+      ],
+      "failure_cleanup": {
+        "recovered": true,
+        "explicit_fixture_reconnect": true,
+        "mutation_replayed": false,
+        "human_stop_resumed": false
+      },
+      "seconds": 41.293
+    },
+    {
+      "name": "packaged_sdk_documented_sync_async_observe_and_stop_examples",
+      "checklist_ids": [
+        "SDK-01",
+        "SDK-04",
+        "SDK-05",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "installed": {
+          "sdk": "0.3.0.dev2",
+          "websockets": "15.0.1",
+          "clean_virtual_environment": true,
+          "module_hashes_match": true
+        },
+        "source_sha256": {
+          "scru_minecraft/realtime.py": "d3e07f133493e0ead34b5f45f2f391d486c02003a77800782352ff124f9931e8",
+          "scru_minecraft/__init__.py": "b4646a86b99335257acd13383dcfdbc2a4d6a418a0d3fad7214faf216dbae430",
+          "scru_minecraft/__main__.py": "81473bcee36277ea8f74bdd597bd516d3857eddf5b5e354d727317d22be03620",
+          "syn_minecraft/__init__.py": "238fb406a9b6f6c51e4a551c45e25542c7c11f9d647e825ec5a4e7469b46037b"
+        },
+        "wheelhouse_sha256": {
+          "setuptools-75.8.0-py3-none-any.whl": "e3982f444617239225d675215d51f6ba05f845d4eec313da4418fdbb56fb27e3",
+          "websockets-15.0.1-py3-none-any.whl": "f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f",
+          "wheel-0.45.1-py3-none-any.whl": "708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248"
+        },
+        "python_reference_sha256": "8ee2358eaf7266379703f187ded04261acbbf28c8607a32e99926a08c6c83c36",
+        "readme_install": "exact local candidate installed offline with stream extra; public download not substituted",
+        "login_command": "help only; no real in-game enrollment claimed",
+        "python_reference_sync_and_async": "unmodified snippets; async entry wrapper only",
+        "read_only_example_frames": 2,
+        "native_stop_example": "done",
+        "tls_certificate_verified": true,
+        "plaintext_fallback": false,
+        "identity": "synthetic fixture owner, not participating-player login",
+        "credentials_in_command_arguments": false,
+        "credential_output_check": "passed"
+      },
+      "seconds": 15.526
+    },
+    {
+      "name": "ten_body_five_minute_instant_action_load",
+      "checklist_ids": [
+        "VERIFY-05"
+      ],
+      "status": "failed",
+      "error": "AssertionError: [998, 1000, 1004, 1011, 1028, 1011, 1021, 1005, 1002, 1006]",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 246,
+          "function": "case"
+        },
+        {
+          "file": "performance_gameplay_cases.py",
+          "line": 111,
+          "function": "measure"
+        },
+        {
+          "file": "performance_gameplay_cases.py",
+          "line": 17,
+          "function": "verify_targets"
+        }
+      ],
+      "seconds": 359.057
+    }
+  ],
+  "started_at": 1793745862.5283396,
+  "python_source_sha256": {
+    "agent-gateway/gateway.py": "7a3a3130ab8b3fb1c08001db001dad80c1d12b3290dfc9f65b5a0282ee833f74",
+    "agent-gateway/provisioner.py": "835b290bb6a34a522e1a1c95d630035a47a62b8c792e9109432d2e3f8184c37f",
+    "agent-gateway/streaming.py": "066f4a7edb36139e818c7d39e79e7346762f36851fbe96f39ee482b7110b707a",
+    "sdk/scru_minecraft/__init__.py": "b4646a86b99335257acd13383dcfdbc2a4d6a418a0d3fad7214faf216dbae430",
+    "sdk/scru_minecraft/__main__.py": "81473bcee36277ea8f74bdd597bd516d3857eddf5b5e354d727317d22be03620",
+    "sdk/scru_minecraft/realtime.py": "d3e07f133493e0ead34b5f45f2f391d486c02003a77800782352ff124f9931e8",
+    "tests/authorization_gameplay_cases.py": "7d2177900bd5c94a54b8fd0e65c4b517f36c143643df89c8e41cd0837a7b09c7",
+    "tests/body_gameplay_cases.py": "f2bec15e5ad2d7766584bf0714ad8b7d3e8cb2560a49774200b9d57f2e7ffa33",
+    "tests/chat_privacy_gameplay_cases.py": "91afc9b5342c8954ab4951b725de5c71e652fd4c3456691d36606f6eaeb2620f",
+    "tests/container_gameplay_cases.py": "0465202aa9def2381853105fa25225e80ecdc7ae76c11122bb0807a065febdc5",
+    "tests/create_controls_gameplay_cases.py": "fd9487a3d32d9cd59388679e23c7874bc3ba77306d43ea24be93a3c0f9b23340",
+    "tests/fluid_processing_gameplay_cases.py": "127879b533c2fa316a402f35f8fb96134971a165b899230a5b17215930f22a73",
+    "tests/gameplay_cases.py": "7e556f18a053a9706dcbaaee1faf04857fc91097ba5fd4951564ab4a967756a9",
+    "tests/isolated_game_fixture.py": "c5f5202873f0e251f4802a389459f10ff0da5cc53e5021987aa8bbb1f3fc86de",
+    "tests/lifecycle_gameplay_cases.py": "48e95823dbb87ca5ca715482126b77b6603edfc5d557cb471b4b6d839a20d28c",
+    "tests/mod_workstations_gameplay_cases.py": "c89835fb526c2947b104dddbfec0ec6e967d3b32bab995ddf7ba44a2bbe788e9",
+    "tests/navigation_gameplay_cases.py": "029d88d4229551e00b18ac935bf2adac5df98887f3d987e0160bbc70f5400ee4",
+    "tests/performance_driver.py": "fa45f6e2d9905f86502ed3ec0eb1530eec8a3c5e7274ce0348a3e0bc95b7771c",
+    "tests/performance_gameplay_cases.py": "417f1f1b2a3af543fd94326349d537ad67bce7893275e0670208c01e997fd319",
+    "tests/result_receipt_gameplay_cases.py": "c444a231f4abc16ba7e1ad8eaacc48b6c78f61f018025e0684fd0b65e99edfe0",
+    "tests/run_java_stream_probe.py": "1b24e8066a4659c668dffab0a4346653e02b979942ae0fdc454bbd826e695e01",
+    "tests/sdk_examples_gameplay_cases.py": "9d7224ca7be519b33a8a6de1ebd9b51c5d33ef32484e3e8997fc19a8cd004f97",
+    "tests/survival_gameplay_cases.py": "bddad1252a0604fdf91a36ad287020ce903e4ae2ac194664994aadfe8c5a3700",
+    "tests/test_action_wire_parity.py": "67aad3b4404b5e142ac0c2fda6323410ccd29a319ce4c670fce268215946b0f4",
+    "tests/test_controller.py": "71a0796030dd1e2de0c2f6b77fd932de5999093c3c1d0042588c8e7ddef349ae",
+    "tests/test_controller_food.py": "4b20328ac7d76cf39657ac2fc74f47f5e44ef0fadb527e942ab86db21dc5dff5",
+    "tests/test_controller_gateway.py": "e0f7f8537067a5ef1437cdef5392ba088dd064a8b8a69f2d0268606b39c6ae55",
+    "tests/test_controller_progression.py": "7a92886f505331686620715b1c9c1daa43eb1f468eab0c4475d8e298e4b65e26",
+    "tests/test_controller_usage.py": "b124ce94b4dffea08daf32e76095919e9ba17d358d12e3831d590b4101a6ae86",
+    "tests/test_inventory_query.py": "e4f373d5e3bc116357146555fe604d826a8c191f5e20544c40c024b76b661ecf",
+    "tests/test_login_cli.py": "dffc13ec8f3343e908226c1d6518ecf1c4b228661d4b792d1a29ff75c6dbf78f",
+    "tests/test_optional_areas.py": "e1658fe96436dbbf7c59a1ffe0c55ec9855342a3432c36784741cc1cde61819e",
+    "tests/test_performance_driver.py": "fc3cec251766b9918134320b0964f8fdcd297ca825642bdfa7ca85d649a83469",
+    "tests/test_primitive_contract.py": "ae02408d45affd5befcf608434c1d98351fa5571c4fcb77350c20e04b38b5e2e",
+    "tests/test_realtime_diagnostics.py": "a3da1286e157810b7508ddd3b55916797e15827c92c433874ddca55a42e581bf",
+    "tests/test_result_backpressure.py": "ff052fb5c8fbe215fd99b41d2e844f1ab991ee378e53624534c108ca3e87e5d6",
+    "tests/test_runtime.py": "98b932644ef162c18dbcd751e4f7a53255662f5c86133f12cfb9ce507590e935",
+    "tests/test_streaming.py": "07a62b205c9b8cf64db53f73f30fcfb1a8665140aff56d7c222e14a840e635e7"
+  },
+  "pack_lock_sha256": "a13ca88375a47b693c9ec3a6b070795bf4e4119a1dabd7700c800b51ddd70374",
+  "pack_mods": {
+    "create-1.21.1-6.0.10.jar": "ef87fe5709f1ba1f5b8bb20a2925b5afb4669e178fd6d8bf10c167759eefe37a",
+    "railways-0.2.1+neoforge-mc1.21.1.jar": "b7636c8b1b0352ed1a130dfe67f8bb574e2fc08803ed1cda4d3ea00505193914",
+    "FarmersDelight-1.21.1-1.3.4.jar": "139ad7696462c89c03eea463f805abffa552526c5dadaadae221dd9624cb197c",
+    "supplementaries-1.21.1-4.0.2-neoforge.jar": "2c2e0c98e0cc21874d8b2130bc773a2a5a6cadd854b9c8163d0e1f32e2ddffb0",
+    "moonlight-1.21.1-3.7.2-neoforge.jar": "4a9f15108607cc70273f8a0b6eb24e1e99af8eef44bc3ae8681767ca7ce21b0f",
+    "Terralith_1.21.1_v2.6.2_Neoforge.jar": "d38bd304897731b42f6c013cdc07e082e74411e80c74aabcee385251beb3b546",
+    "lithostitched-1.8.1-neoforge-21.1.jar": "e0da669fa5facc61a09b9b7bae21b322993de1fcd1eb05787adffb7309598cca",
+    "SereneSeasons-neoforge-1.21.1-10.1.0.9.jar": "ce8cf6bd31f70b794fe97d88b4cd2beb45f83387fe20c8dcf39c92121ccaa723",
+    "GlitchCore-neoforge-1.21.1-2.1.0.2.jar": "59d2a3fb3d6877e43018fd6a2b199d526074a864276a5f49091409a1cdc62fae",
+    "betterdifficulty-1.1.1.jar": "e82426df3376638bd36247824a6d8f71593196a6a793354e3e1fc7777d25180a",
+    "lootr-neoforge-1.21.1-1.11.38.127.jar": "5c74de4709d1c13b25880fdd241a89d5d9f331346d20edc76f80ccd4d99dc66c",
+    "voicechat-neoforge-1.21.1-2.6.22.jar": "63116a4d21bd57221482d971dd85822f7c723c210b60411670cdb0aa26873cac",
+    "jei-1.21.1-neoforge-19.64.0.455.jar": "f7a9de3d7ee07eed8d293a1a1a0f6afaac556eb43c103523457bd07ebb551e7b",
+    "mezz_config-1.21.1-neoforge-0.6.10-standalone.jar": "6f596cec9b531dd386ad6342c3deb5b27de4b4a4754ce30835f8ecc2e75f8703",
+    "Jade-1.21.1-NeoForge-15.10.6.jar": "276f1f65a20d04f536989c4f311949d770b52c440c23c2b904a08860f3c93810",
+    "sophisticatedbackpacks-1.21.1-3.26.18.2235.jar": "1992897b0b8a2e93ea4887bc56571a0dfb7298b4d41d164c1fd2bf7b8c8817a5",
+    "sophisticatedcore-1.21.1-1.5.21.2439.jar": "ab80131de21ee1e18d29849136b05b5509d0cadff8c8303514d6d3dbd8c9e476",
+    "sophisticatedstorage-1.21.1-1.6.11.2211.jar": "512e78f6588378d8438237984fa714ad3049b8aea55a2dec1934d4b8fb9a49ca",
+    "lithium-neoforge-0.15.4+mc1.21.1.jar": "488f33216030c1cb0baa33e59de3d657d08d5795a6c2080c8c8bbbc133fc8757",
+    "ferritecore-7.0.3-neoforge.jar": "d87ea28262715ebff45b8a82d493e6b468e7a4521bc021df5d88302196d030a8",
+    "modernfix-neoforge-5.27.27+mc1.21.1.jar": "7010aae2e837122fe8dabd5932358e2ba334fcbc62ca6530cb1cb00402d2c63b",
+    "Chunky-NeoForge-1.4.23.jar": "d72f235cf1f56f2c374f52c00bdda5034524b28142305a84cfc123a3f92ad274",
+    "spark-1.10.124-neoforge.jar": "647e8a81afbe414dba1df4ba15fd06c5d32d4cb544e68828405e8e074c2e16db",
+    "LuckPerms-NeoForge-5.4.150.jar": "f161a939c7320e8a30569c37aae2c0f5bbb3cfbd77bebb233bd0f0787a2d0ef9",
+    "corpse-neoforge-1.21.1-1.1.22.jar": "3733d86452b9ac572e924c2946e15e6b7052cc8fc990911f1c79b36ac3651b9f"
+  },
+  "pack_configuration": "fresh defaults; fixture voice service binds loopback on game port + 1",
+  "adapter_sha256": "039f446f74cbfb16c4332c3f141a1a6c422c22918c58563c2c71aa64f7840fbf",
+  "http_wss_same_origin": true,
+  "jvm_pid": 2488681,
+  "sdk_onboarding": [
+    {
+      "body": "VerifyBuilder",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "Vieweraa9da174",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad1",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad2",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad3",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad4",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad5",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad6",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad7",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad8",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad9",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    }
+  ],
+  "finished_at": 1793746858.3403077,
+  "jvm_stopped": true
+}

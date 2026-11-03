@@ -274,7 +274,7 @@ class Gateway:
             fields.add(key); number=value.get(key)
             require(type(number) is int and lo <= number <= hi)
             control[key]=number
-        if op=='place' or op=='use_on' and 'target' in control:
+        if op=='place' or op=='use_on' and 'target' in control or op=='open_container' and 'face' in value:
             fields.add('face'); face=value.get('face')
             require(face in {'up','down','north','south','east','west'} if isinstance(face,str) else False)
             control['face']=face
@@ -326,7 +326,7 @@ class Gateway:
                 require(isinstance(slot['inventory'],str) and slot['inventory'] in {'player','container'} and type(slot['slot']) is int and 0<=slot['slot']< (36 if slot['inventory']=='player' else 256))
                 control[key]=dict(slot)
         if op=='craft':
-            fields.add('recipe_id');require(isinstance(value.get('recipe_id'),str) and re.fullmatch(r'[a-z0-9_.-]+:[a-z0-9_./-]+',value['recipe_id']))
+            fields.add('recipe_id');require(isinstance(value.get('recipe_id'),str) and len(value['recipe_id'])<=256 and re.fullmatch(r'[a-z0-9_.-]+:[a-z0-9_./-]+',value['recipe_id']))
             control['recipe_id']=value['recipe_id'];integer('count',1,64)
         if op=='chat':
             fields.add('text');text=value.get('text')
@@ -482,7 +482,7 @@ class Gateway:
             if path == '/v1/action-results' and method == 'GET':
                 self.update_results(name)
                 rows=self.result_rows(name)
-                if value.get('action_id'):
+                if 'action_id' in value:
                     rid=value['action_id']
                     require(isinstance(rid,str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',rid))
                     rows=[r for r in rows if r['id']==rid] or [{'id':rid,'state':'unknown','reason':'result_not_retained'}]
@@ -697,7 +697,7 @@ class Gateway:
             self.save(body)
         # Deliberate whitelist: no humans, shared inventories, private/admin state or chat.
         fields = ('agent', 'tick', 'dimension', 'position', 'health', 'food', 'inventory',
-                  'night', 'raining', 'sheltered', 'blocks', 'walkable', 'entities', 'last_action',
+                  'night', 'raining', 'sheltered', 'blocks', 'walkable', 'entities', 'entity_range', 'entities_truncated', 'last_action',
                   'adapter_version', 'survival_profile', 'advancements', 'deaths')
         fields += ('body_epoch','world_tick','average_tick_ms','raw_capabilities','action_results','control_transport','selected_slot','observation_ms',
                    'control_protocol','inventory_revision','container','recipes','queried_blocks','public_chat',

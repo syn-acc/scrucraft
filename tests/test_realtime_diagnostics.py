@@ -16,6 +16,61 @@ from scru_minecraft.realtime import RealtimeClient
 
 class RealtimeDiagnosticsTests(unittest.TestCase):
     def stream(self):return RealtimeClient(AgentClient('https://example.invalid','synthetic-private-token-123456','Body',timeout=2))
+    def test_failed_reconnect_preserves_original_ids_for_later_reconciliation(self):
+        stream=self.stream();rid='uncertain_mutation_01';attempts=[];reads=[]
+        original={rid:{'body_epoch':'original_epoch','deadline':time.monotonic()+30}}
+        stream.submitted=dict(original);stream.close=lambda:None
+        def fail():attempts.append('attempt');raise ConnectionError('fixture network unavailable')
+        stream.connect=fail
+        with self.assertRaises(ConnectionError):stream.reconnect(attempts=2,initial_delay=0)
+        self.assertEqual(2,len(attempts));self.assertEqual(original,stream.submitted)
+        stream.connect=lambda:stream
+        stream.action_results=lambda action_id:reads.append(action_id) or [{'id':action_id,'state':'unknown','reason':'result_not_retained'}]
+        self.assertIs(stream,stream.reconnect(initial_delay=0));self.assertEqual([rid],reads)
+        self.assertEqual('unknown',stream.reconciled[rid]['state']);self.assertEqual(original,stream.submitted)
+
+    def test_paused_observation_and_chat_iterators_resume_after_high_cursor_reconnect(self):
+        stream=self.stream();stream.close=lambda:None
+        def message(rid):return {'id':rid,'speaker':'Fixture','text':rid,'at':1}
+        stream.sequence=100000
+        stream.observation={'body_epoch':'same','dimension':'minecraft:overworld','public_chat':[message('old')]}
+        stream.snapshots=[(stream.sequence,dict(stream.observation),False)]
+        observations=stream.observations();chat=stream.chat_events()
+        self.assertEqual(100000,next(observations).sequence);self.assertEqual('old',next(chat).id)
+        # Exercise the actual reader without a network or sleep. A completed
+        # fixture iterator closes it; clear that synthetic close to model an open socket.
+        attempts=[]
+        def connect():
+            attempts.append(1)
+            row={'body_epoch':'same','dimension':'minecraft:overworld','public_chat':[message('old'),message('new')]}
+            stream.connection=iter([json.dumps({'type':'snapshot','observation':row})])
+            stream._read();stream.error=None;stream.stopped.clear()
+            if len(attempts)==1:raise ConnectionError('fixture first attempt failed after receiving snapshot')
+            return stream
+        stream.connect=connect;stream.reconnect(attempts=2,initial_delay=0)
+        def ready(predicate,timeout=None):
+            self.assertTrue(predicate(),'Paused iterator waited for the old cursor after reconnect')
+            return True
+        with patch.object(stream.changed,'wait_for',side_effect=ready):
+            event=next(observations);self.assertEqual(100002,event.sequence);self.assertTrue(event.resync)
+            self.assertTrue(event.gap);self.assertEqual('new',next(chat).id)
+        self.assertEqual(2,len(attempts));self.assertEqual({},stream.pending)
+
+    def test_policy_closed_reconnect_does_not_retry_or_resume(self):
+        stream=self.stream();calls=[];stream.close=lambda:None
+        def rejected():
+            calls.append('connect');stream.last_disconnect={'close_code':1008,'close_reason':'stream_error_APIError_not_whitelisted'}
+            raise ConnectionError('fixture policy rejection')
+        stream.connect=rejected
+        with self.assertRaises(ConnectionError):stream.reconnect(attempts=5,initial_delay=0)
+        self.assertEqual(['connect'],calls)
+
+    def test_invalid_reconnect_arguments_leave_existing_control_untouched(self):
+        stream=self.stream();stream.close=lambda:self.fail('Invalid reconnect options closed current control')
+        for options in ({'attempts':True},{'attempts':0},{'attempts':6},{'initial_delay':None},
+                        {'initial_delay':True},{'initial_delay':float('nan')},{'initial_delay':float('inf')}):
+            with self.subTest(options=options),self.assertRaises(ValueError):stream.reconnect(**options)
+
     def test_repeated_concurrent_failure_reads_have_bounded_tracebacks_and_original_cause(self):
         stream=self.stream();rid='pending_action_000001'
         stream.observation={'action_results':[{'id':rid,'state':'accepted','body_epoch':'epoch'}]}

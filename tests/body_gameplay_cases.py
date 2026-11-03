@@ -112,11 +112,15 @@ def run_cases(fixture, stream):
                 stream.close()
                 reconnect_needed = True
             elif mode == 'grant_expiry':
+                # With processed-frame ACKs, withholding the whole envelope also
+                # withholds observation ACKs. The native watchdog will close this
+                # socket and release its lease; recovery must explicitly reacquire.
+                reconnect_needed = True
                 with fixture.gateway.changed:
                     bridge = fixture.gateway.body_connections['VerifyBuilder']
                     original_send = bridge.send
-                    # Drop only grant delivery on this disposable bridge; observations
-                    # continue, so 200ms expiry must actually cancel the native action.
+                    # This fault intentionally exercises grant expiry followed by
+                    # ACK-stall reconnect, while preserving the 90-world-tick check.
                     bridge.send = lambda *args, **kwargs: None
             elif mode == 'human_stop':
                 from scru_minecraft import AgentClient
@@ -152,7 +156,8 @@ def run_cases(fixture, stream):
         assert not any(e.get('stack', {}).get('item') == 'minecraft:oak_log' for e in stream.observe()['entities'])
         assert not stream.observe()['execution']['active_actions']
         return {'interruption': mode, 'outcome': result['reason'], 'waited_native_ticks': 90,
-                'target_intact': True, 'log_drops': 0, 'explicit_owner_resume': mode == 'human_stop'}
+                'target_intact': True, 'log_drops': 0, 'explicit_owner_resume': mode == 'human_stop',
+                'explicit_reconnect_after_fault': reconnect_needed}
 
     for interruption in ('stop', 'lease_release', 'grant_expiry', 'human_stop'):
         fixture.case('dig_' + interruption + '_cannot_destroy_later',
@@ -415,6 +420,10 @@ def run_cases(fixture, stream):
         fixture.console('tp VerifyBuilder 0.5 64 0.5')
         fixture.console('setblock 2 63 0 farmland[moisture=7]')
         fixture.console('setblock 2 64 0 wheat[age=0]')
+        # Pinned Serene Seasons can consume out-of-season bonemeal without
+        # growth. Its actual greenhouse-glass rule makes this positive case
+        # deterministic without disabling seasonal behavior or editing the crop.
+        fixture.console('setblock 2 67 0 glass')
         fixture.console('item replace entity VerifyBuilder hotbar.0 with bone_meal 4')
         wait_for(lambda: quantity(stream, 'minecraft:bone_meal') == 4)
         done(stream, stream.use_on([2, 64, 0], face='up'))
@@ -422,7 +431,8 @@ def run_cases(fixture, stream):
         assert int(crop['properties']['age']) > 0, crop
         assert quantity(stream, 'minecraft:bone_meal') == 3
         return {'area': None, 'water_source_collected_and_replaced': True,
-                'empty_bucket_returned': 1, 'bone_meal_consumed': 1, 'wheat_age': crop['properties']['age']}
+                'empty_bucket_returned': 1, 'bone_meal_consumed': 1, 'wheat_age': crop['properties']['age'],
+                'native_seasonal_greenhouse_glass_supplied': True}
 
     fixture.case('unrestricted_native_bucket_and_bonemeal_use', ['ACT-09', 'ACT-10', 'EXEC-06'],
                  lambda: unrestricted_policy(unrestricted_bucket_and_bonemeal))
@@ -678,9 +688,14 @@ def run_cases(fixture, stream):
         fixture.console('tp VerifyBuilder 0.5 64 0.5')
         time.sleep(.8)
         fixture.console('effect clear VerifyBuilder')
-        fixture.console('effect give VerifyBuilder hunger 5 255 true')
-        wait_for(lambda: stream.observe()['food'] <= 6)
-        fixture.console('effect clear VerifyBuilder')
+        # Drain both full saturation and hunger. Five seconds can expire before
+        # food reaches six; this is a finite native challenge, cleared at threshold.
+        fixture.console('effect give VerifyBuilder hunger 10 255 true')
+        try:
+            wait_for(lambda: stream.observe()['food'] <= 6, timeout=12,
+                     description='native hunger drains saturation and reaches sprint threshold')
+        finally:
+            fixture.console('effect clear VerifyBuilder')
         done(stream, stream.sprint(True))
         low_food_move = stream.move_to(20.5, 64, .5)
         started(low_food_move)
@@ -737,16 +752,28 @@ def run_cases(fixture, stream):
         wait_for(lambda: not any(e['id'] == cow['id'] and e.get('health', 0) > 0 for e in stream.observe()['entities']))
         disappeared = failed(stream.use_on(entity_id=cow['id']), {'entity_missing'})
         fixture.console('fill 1 64 0 1 65 0 air')
-        fixture.console('summon minecraft:cow 2.5 64 0.5 {NoAI:1b,Silent:1b,Invulnerable:1b,Tags:["body_collision"]}')
+        # NoAI suppresses native travel, so it can accumulate push velocity while
+        # remaining motionless. Keep native physics active and set only voluntary
+        # movement speed to zero. Walls rule out a route around the test entity.
+        fixture.console('fill -1 64 -1 9 67 -1 stone')
+        fixture.console('fill -1 64 1 9 67 1 stone')
+        fixture.console('fill -1 64 -1 -1 67 1 stone')
+        fixture.console('fill 9 64 -1 9 67 1 stone')
+        fixture.console('summon minecraft:cow 2.5 64 0.5 {Silent:1b,Invulnerable:1b,Tags:["body_collision"]}')
+        fixture.console('attribute @e[tag=body_collision,limit=1] minecraft:generic.movement_speed base set 0')
         moving_cow = wait_for(lambda: next((e for e in stream.observe()['entities'] if e['type'] == 'minecraft:cow' and e['id'] != cow['id'] and e.get('health', 0) > 0), None))
         move = stream.move_to(7.5, 64, .5)
         done(stream, move)
-        final_cow = next(e for e in stream.observe()['entities'] if e['id'] == moving_cow['id'])
+        final_cow = wait_for(lambda: next((e for e in stream.observe()['entities']
+            if e['id'] == moving_cow['id'] and math.dist(e['position'], moving_cow['position']) > .05), None),
+            description='native push moves active-physics cow')
         displacement = math.dist(final_cow['position'], moving_cow['position'])
         assert displacement > .05, (moving_cow, final_cow)
         assert math.dist(stream.observe()['position'], [7.5, 64, .5]) < .6
         return {'occluded_attack': obstructed['reason'], 'removed_use_target': disappeared['reason'],
-                'native_entity_collision_displacement': displacement, 'navigation_reaches_goal': True}
+                'native_entity_collision_displacement': displacement, 'navigation_reaches_goal': True,
+                'native_entity_physics_active': True, 'voluntary_movement_speed': 0,
+                'alternate_route_excluded': True}
 
     fixture.case('entity_obstruction_disappearance_and_navigation_collision', ['ACT-10', 'ACT-11', 'OBS-02', 'VERIFY-01'], entity_obstruction_disappearance_and_collision)
 

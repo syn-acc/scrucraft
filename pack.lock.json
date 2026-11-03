@@ -756,9 +756,9 @@
   "custom_server_mods": [
     {
       "id": "synagents",
-      "version": "0.3.2",
-      "filename": "syn-agents-0.3.2.jar",
-      "sha512": "73c0524fc7349a39686e7079906266dadd17f1b7197ed0513f14e1d28a0fab2bb875be0b75a99a7f0a5b970a28597f7860b4712ed56485362763d1941c1c282e",
+      "version": "0.5.0-dev2",
+      "filename": "syn-agents-0.5.0-dev2.jar",
+      "sha512": "7d8d45856f0e46fa636d67431dc9a8751ac25f37eaa499fbd7ce597fd157dd75b100ab01b2c4486a27a0b48e7edb7e93067ed1b8c7bf90ea6723962c59b83eb7",
       "source": "agent-mod/",
       "client_required": false
     }

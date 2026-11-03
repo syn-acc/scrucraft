@@ -57,10 +57,12 @@ final class ReviewedModMenus {
             if(actual.isEmpty()||!position.equals(actual.get()))throw new NativeActionException("container_binding_changed");
         }
     }
-    static void validateItem(AbstractContainerMenu menu,JsonObject area) {
+    static void validateItem(AbstractContainerMenu menu,AgentPlayer owner,JsonObject area) {
         if(!backpack(menu))throw new NativeActionException("unsupported_item_container");
         validatePolicy(menu,area);
-        if(((Optional<?>)call(menu,"getBlockPosition")).isPresent()||((Optional<?>)call(menu,"getEntity")).isPresent())
+        // Portable contexts return the owning player from getEntity(); that is not a world-container binding.
+        Optional<?> actualOwner=(Optional<?>)call(menu,"getEntity");
+        if(((Optional<?>)call(menu,"getBlockPosition")).isPresent()||actualOwner.isPresent()&&actualOwner.get()!=owner)
             throw new NativeActionException("container_binding_changed");
     }
     static void validateEntity(AbstractContainerMenu menu,Entity target,JsonObject area) {

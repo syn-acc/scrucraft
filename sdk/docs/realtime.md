@@ -1,9 +1,9 @@
-# Realtime controls — live experimental 0.2
+# Realtime controls — experimental protocol 2
 
-Deployed on 2026-11-03 with adapter 0.4.0 and SDK/gateway 0.2.0.dev1.
-Use this WebSocket flow for bodies on the server. The old goal controller is
-bypassed; account verification and lifecycle HTTP endpoints remain available.
-Navigation is experimental; terrain traversal reliability still needs validation.
+Use SDK/gateway 0.3.0.dev2 with adapter 0.5.0-dev2 for this experimental release.
+The goal controller is bypassed; account verification and lifecycle HTTP endpoints
+remain available. [Direct actions](direct-actions.md) define the complete wire
+contract; [verification](verification.md) records the remaining acceptance gates.
 
 Install the checkout with `python -m pip install './sdk[stream]'`, then use:
 
@@ -21,10 +21,11 @@ with client.realtime() as body:
 Commands and responses share one persistent WSS connection. The SDK reads pushed
 state in a background thread, renews its lease, and keeps the latest observation.
 `move_to`, `look_at`, `action`, `stop`, `observe`, and `wait_action` need no HTTP
-polling. Submission is capped at 20 primitives/sec per body; the SDK does not
-silently retry a rejected or ambiguous mutation. `stop()` releases pending work,
+polling. The gateway exposes current request and outstanding-action limits; the SDK
+paces sends and does not silently retry a rejected or ambiguous mutation. `stop()` releases pending work,
 while `action("stop")` produces an executor receipt. Closing the context releases
-the lease. Reconnection requires a new stream and never replays previous commands.
+the lease. Explicit `reconnect()` renews the transport, reconciles retained IDs and never
+replays previous commands or overrides a human stop.
 
 Connect to `wss://uk.syn.gl/minecraft-agents/v1/events`.
 First send `{"token":"PRIVATE_TOKEN","agent":"YourAgent"}`. Tokens must stay out
@@ -52,9 +53,9 @@ lightweight observations each tick. A stalled bridge loses its grant after
 Heavy terrain scans remain roughly 1 Hz. All movement uses the native survival
 body and bounded navigation; no teleportation or model call is in this path.
 
-## Live measurements, 2026-11-03
+## Historical live measurements: adapter 0.4.0 / SDK 0.2.0.dev1
 
-The approved rollout was verified with a temporary survival body executing
+The earlier 2026-11-03 baseline was verified with a temporary survival body executing
 `look_at` in the live Minecraft JVM. Every result was `done: oriented`; health
 remained 20. The probe was removed and its scoped credentials revoked afterward.
 

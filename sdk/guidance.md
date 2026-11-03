@@ -1,20 +1,17 @@
 # SCRU Industrial Survival SMP — connect your agent
 
-Give your agent your Minecraft username and join `uk.syn.gl:25565`. The agent
-runs the SDK login and asks for the code delivered privately in Minecraft.
-It completes verification and saves access without displaying the token.
-Players do not need to run commands or choose work-area coordinates.
+Join `uk.syn.gl:25565` with the server pack. Every whitelisted player can create
+available agent names and control their own survival bodies.
 
-For the connecting agent:
+For your agent:
 
 ```sh
-python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev1.zip"
+python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev2.zip"
+python -m scru_minecraft login YourUsername
 ```
 
-Use the SDK's `start_login` and `finish_login` calls for a short two-step exchange,
-or run `python -m scru_minecraft login YourUsername` yourself. Keep the resulting
-`.scru-player.env` and scoped body tokens private. A username alone is not proof
-of account ownership.
+Ask the player for the code delivered privately in Minecraft. Keep
+`.scru-player.env` and scoped body tokens out of prompts, chat and Git.
 
 ```python
 from scru_minecraft import AgentClient
@@ -26,29 +23,20 @@ with client.realtime() as body:
     body.look_at(x + 2, y + 1, z).result()
 ```
 
-Creation is deliberate and asynchronous; reuse an existing owned body when
-appropriate. Omitted/null `area` permits unrestricted survival play. The agent
-chooses where to work and may adopt sensible working boundaries, explaining
-them to the player. Explicit API bounds are optional restrictions and cannot
-currently be edited through the player API. Account ownership and human stops
-still apply; never automatically resume a human stop.
+Reuse an existing owned body when appropriate. No work-area selection is required;
+omitted/null `area` allows unrestricted survival. Explicit bounds are optional
+restrictions. Respect builds and human stops; never automatically resume a stop.
 
-The live experimental release is SDK/gateway **0.3.0.dev1**, adapter **0.5.0-dev1**.
-Inspect each body's `raw_capabilities`. The release exposes direct movement,
-digging, vanilla placement, item/entity interactions, inventory, supported
-containers, recipe crafting and queries. Await authoritative action outcomes;
-an accepted command is not proof of success. Use persistent WebSockets.
+**Experimental release: SDK/gateway 0.3.0.dev2, adapter 0.5.0-dev2.** Read each
+body's `raw_capabilities`, inventory and recipe metadata. Build tasks from direct
+primitives over persistent WebSockets. Await terminal outcomes; acceptance alone
+is not success. Reconnect reconciles uncertain actions without replaying them.
 
-Known limits include modded block placement (including Create machines), several
-special item-use footprints, and unsupported workstation/machine recipes. The
-full API acceptance checklist remains open where evidence is incomplete. This
-checkpoint passed 44 native gameplay cases and 194 Python checks. The ten-body
-load test failed; multi-body latency and sustained industrial production are
-not established. Start with one controlled body.
+Start with one controlled body. Full API acceptance, ten-body latency and sustained
+industrial production are not established. Reviewed mod containers and machine
+ports have specific support limits; train control and arbitrary mod interfaces are
+not promised. Check [mod compatibility](docs/mod-compatibility.md) before use.
 
-[API contract](docs/direct-actions.md) · [Verification](docs/verification.md) ·
-[Release status](docs/release-status.md) · [Source](https://github.com/syn-acc/scrucraft)
-
-Known live digging defect: a block can finish breaking after a failed/cancelled
-receipt. Query the target and inventory before retrying; do not rely on abort
-to preserve a block until the native fix is deployed.
+[API](docs/direct-actions.md) · [Python](docs/python-reference.md) ·
+[Verification](docs/verification.md) · [Release status](docs/release-status.md) ·
+[Source](https://github.com/syn-acc/scrucraft)

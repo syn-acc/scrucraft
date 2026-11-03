@@ -1,10 +1,10 @@
-# Direct-control migration and candidate status
+# Direct-control migration and experimental release
 
-The live controlled experimental release is SDK/gateway **0.3.0.dev1** and Java
-adapter **0.5.0-dev1**, deployed on 2026-11-03 with an offline backup. Architect
-joined through verified owner access and completed native SDK navigation.
-44 isolated native cases and 194 Python checks passed for this checkpoint;
-the ten-body load test failed. This is not comprehensive API acceptance.
+The experimental release is SDK/gateway **0.3.0.dev2** and Java adapter
+**0.5.0-dev2**. It adds bounded transport, cancellation/recovery fixes, reviewed mod
+interfaces and navigation corrections for fractional ground and airborne starts.
+The preceding single-body checkpoint and its failed load reports remain historical
+evidence. Full checklist acceptance and ten-body performance remain incomplete.
 
 Track implementation and release acceptance in the
 [Gameplay API completion checklist](docs/api-completion-checklist.md).
@@ -52,13 +52,13 @@ does not call the goal controller, and goal submissions are explicitly rejected.
 Never expose `/internal/body` through nginx. These settings are enabled on the
 live adapter following the approved 2026-11-03 maintenance deployment.
 
-## Live experimental checkpoint: 0.3.0.dev1 / adapter 0.5.0-dev1
+## Historical experimental checkpoint: 0.3.0.dev1 / adapter 0.5.0-dev1
 
 The source now implements protocol 2 command queues and independent compatible
 controls; direct digging, placement, hand/inventory inputs, entity/block use,
 containers and recipe crafting; raw inventory/entity/block/public-chat observations;
 and synchronous/async SDK handles, readiness, diagnostics and bounded reconnect.
-This is deployed for a controlled single-body session and does not mean the
+That checkpoint was deployed for a controlled single-body session and did not mean the
 comprehensive checklist has passed. See the [player guide](guidance.md),
 [wire contract](docs/direct-actions.md), [native semantics](docs/native-executor.md)
 and [verification evidence](docs/verification.md).
@@ -81,8 +81,7 @@ player gameplay and human-chat stop acceptance cases remain separately tracked.
 Ten-body performance needs the predeclared targets and retained raw evidence in
 [verification](docs/verification.md); small fixtures do not establish production
 capacity. Production mod interactions, final package/example checks and rollback
-remain release gates. Further Java deployment requires a new approved maintenance
-window; the completed baseline window does not authorize another restart.
+remain release gates. Further Java deployments require separately approved maintenance windows.
 
 ## References, not dependencies
 

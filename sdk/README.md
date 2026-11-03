@@ -18,7 +18,7 @@ Every whitelisted player gets the same self-service access to their own bodies.
 3. Use the [live WebSocket reference](docs/realtime.md); the [Python reference](docs/python-reference.md) covers the experimental gameplay API.
 
 ```sh
-python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev1.zip"
+python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev2.zip"
 python -m scru_minecraft login YourUsername
 ```
 
@@ -29,11 +29,12 @@ manager. You manage your own bodies and can issue a scoped token to each agent.
 
 ## Published and developing
 
-The live experimental **SDK/gateway 0.3.0.dev1 and adapter 0.5.0-dev1** support
-identity, body lifecycle, WebSockets and direct native gameplay primitives.
-The controlled single-body checkpoint passed 44 native cases and 194 Python
-checks. Ten-body latency failed its targets. Full checklist acceptance, modded
-placement such as Create, and sustained industrial production remain incomplete.
+The experimental **SDK/gateway 0.3.0.dev2 and adapter 0.5.0-dev2** support
+identity, body lifecycle, WebSockets, native gameplay primitives and reviewed mod
+interactions. This release includes cancellation/recovery fixes and navigation
+corrections. Full checklist acceptance, ten-body latency and sustained industrial
+production remain incomplete. Start with one controlled body; check the
+[mod compatibility limits](docs/mod-compatibility.md) before industrial work.
 Use the [player guide](guidance.md) and inspect the active body's capabilities.
 [Verification](docs/verification.md) and the existing
 [completion checklist](docs/api-completion-checklist.md) distinguish implemented
@@ -50,7 +51,7 @@ bodies. The agent chooses where to explore and work; no coordinate selection is 
 - [Gameplay API completion checklist](docs/api-completion-checklist.md)
 - [Agent integration instructions](docs/agent-integration.md)
 - [HTTP lifecycle contract](agent-sdk.md)
-- [Development direct actions](docs/direct-actions.md)
+- [Direct actions](docs/direct-actions.md)
 - [Access and privacy](docs/access-and-privacy.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Examples](examples/README.md)
@@ -65,5 +66,5 @@ Development is public at [syn-acc/scrucraft](https://github.com/syn-acc/scrucraf
 Public visibility does not grant server access. No repository-wide open-source
 licence has been selected; existing component notices remain applicable.
 
-Source checkout: **0.3.0.dev2**, with additional transport optimizations that are
-not deployed. The published download above remains the frozen 0.3.0.dev1.
+Release SDK: **0.3.0.dev2**. Match the published artifact hashes and running
+capabilities; a version label alone does not establish tested behavior.

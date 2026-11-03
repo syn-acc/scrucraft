@@ -18,6 +18,17 @@ class PrimitiveContractTests(unittest.TestCase):
     def grant(self):
         with self.g.changed:return self.g.realtime_control('Forge')
     def results(self):return {r['id']:r for r in self.f.call('GET','/v1/action-results')['results']}
+    def test_entity_query_limits_survive_full_and_partial_snapshots(self):
+        self.sample.update(tick=102,entity_range=16,entities_truncated=True)
+        self.g.frame(self.sample)
+        observed=self.f.call('GET','/v1/observation')
+        self.assertEqual(16,observed['entity_range']);self.assertIs(True,observed['entities_truncated'])
+        self.g.frame(dict(agent='Forge',tick=103,body_epoch='epoch2',dimension=self.sample['dimension'],partial=True,
+                          entities=[],entity_range=16,entities_truncated=False))
+        self.f.now+=1
+        observed=self.f.call('GET','/v1/observation')
+        self.assertEqual([],observed['entities']);self.assertIs(False,observed['entities_truncated'])
+        self.assertNotIn('humans',observed)
     def test_original_wall_deadline_survives_retry_and_grant_retransmission(self):
         rid='fixed_deadline_00001'
         with patch.object(fixtures.gateway.time,'time_ns',return_value=1_000_000_000_000):

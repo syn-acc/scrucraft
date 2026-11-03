@@ -16,7 +16,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.portal.DimensionTransition;
 
 /** A full survival ServerPlayer. Only client networking is replaced. */
 public final class AgentPlayer extends ServerPlayer {
@@ -34,6 +36,14 @@ public final class AgentPlayer extends ServerPlayer {
     }
     public void attachListener(LocalConnection c) { connection=new LocalListener(this,c); }
     @Override public boolean isFakePlayer() { return true; }
+    @Override public Entity changeDimension(DimensionTransition transition) {
+        Entity result=super.changeDimension(transition);
+        // A real client acknowledges the teleport after the native transition.
+        // This local body has no client packet; leaving that flag set makes
+        // ServerPlayer immune to all damage, including genericKill, indefinitely.
+        if(result==this&&!isRemoved()&&serverLevel()==transition.newLevel())hasChangedDimension();
+        return result;
+    }
     @Override public void tick() {
         // Disarm old-world native breaking before ServerPlayer advances its game mode.
         if(controls!=null)controls.beforeNativeTick();

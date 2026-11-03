@@ -63,7 +63,7 @@ final class BodyInventory {
 
     JsonObject execute(JsonObject action,JsonObject area) {
         return switch(action.get("op").getAsString()) {
-            case "open_container" -> open(at(action.getAsJsonArray("target")),area);
+            case "open_container" -> open(at(action.getAsJsonArray("target")),area,action.has("face")?action.get("face").getAsString():null);
             case "move_item" -> move(action,area);
             case "close_container" -> {requireHandle(action);close("explicit_close");yield observe();}
             case "craft" -> craft(action,area);
@@ -130,7 +130,7 @@ final class BodyInventory {
     JsonObject adoptItemOpened(JsonObject area) {
         AbstractContainerMenu opened=body.containerMenu;
         if(opened==body.inventoryMenu)throw failure("container_not_opened");
-        try{BodyAccess.require(body,body.blockPosition(),area);ReviewedModMenus.validateItem(opened,area);}
+        try{BodyAccess.require(body,body.blockPosition(),area);ReviewedModMenus.validateItem(opened,body,area);}
         catch(IllegalArgumentException ex){body.closeContainer();close(ex.getMessage());throw ex;}
         return adoptUnanchored(opened,null,true,area);
     }
@@ -139,14 +139,17 @@ final class BodyInventory {
         lastArea=area==null?null:area.deepCopy();session=UUID.randomUUID().toString();revision=0;snapshot=List.of();
         queriedStack=null;queriedComponents=null;queriedRevision=null;refresh();return observe();
     }
-    private JsonObject open(BlockPos pos,JsonObject area) {
+    private JsonObject open(BlockPos pos,JsonObject area,String requestedFace) {
         access(pos,area);
         BlockState state=body.level().getBlockState(pos);
+        Direction face=requestedFace==null?null:Direction.byName(requestedFace);
+        if(requestedFace!=null&&face==null)throw failure("invalid_face");
         if(MachineItemPort.supports(state)) {
-            close("replaced");machine=new MachineItemPort(body,pos,area);
+            close("replaced");machine=new MachineItemPort(body,pos,area,face);
             lastArea=area==null?null:area.deepCopy();session=machine.session;revision=machine.revision;
             return observe();
         }
+        if(face!=null)throw failure("container_face_not_supported");
         // Only menus with native storage/furnace/brewing slots; no machine/recipe-output shortcuts.
         Block block=state.getBlock();
         if(!(block instanceof ChestBlock||block instanceof BarrelBlock||block instanceof ShulkerBoxBlock
@@ -189,7 +192,7 @@ final class BodyInventory {
             if(menuEntity!=null||itemMenu) {
                 if(body.containerMenu!=menu||!menu.stillValid(body))throw failure("container_changed");
                 if(menuEntity!=null){entityAccess(menuEntity,area);ReviewedModMenus.validateEntity(menu,menuEntity,area);}
-                else{BodyAccess.require(body,body.blockPosition(),area);ReviewedModMenus.validateItem(menu,area);}
+                else{BodyAccess.require(body,body.blockPosition(),area);ReviewedModMenus.validateItem(menu,body,area);}
                 lastArea=area==null?null:area.deepCopy();refresh();return;
             }
             access(position,area);

@@ -5,7 +5,7 @@ required. Omitted/null `area` means unrestricted survival play. Area checks belo
 apply only to optional owner-selected bounds. Normal survival, account ownership
 and human-stop controls remain. This policy is live in the controlled experimental release.
 
-**Live experimental:** gateway/SDK 0.3.0.dev1 with [WebSocket body control](docs/realtime.md).
+**Experimental release:** gateway/SDK 0.3.0.dev2 with [WebSocket body control](docs/realtime.md).
 The identity/lifecycle contract below remains valid. Goal and chat execution
 describe the historical 0.1.2 flow; realtime bodies reject goals and do not execute
 queued goal-controller chat. **Direct actions:**

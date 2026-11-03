@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "fixture": "isolated_neoforge",
+  "synthetic_identity": true,
+  "production_world_used": false,
+  "suite": "survival",
+  "cases": [
+    {
+      "name": "survival_native_harvest_food_recovery_shelter_and_threat_response",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-09",
+        "ACT-15",
+        "OBS-02",
+        "OBS-03",
+        "VERIFY-02",
+        "VERIFY-03",
+        "SURV-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "supplied": {
+          "mature_wheat_plants": 12,
+          "raw_oak_logs": 4,
+          "crafting_table": 1,
+          "stone_platform_and_work_scaffold": true
+        },
+        "gathered": {
+          "wheat": 12,
+          "native_seed_drop_total": 36,
+          "final_seeds_inventory": 33,
+          "final_seeds_world": 3
+        },
+        "food": {
+          "bread_crafted": 4,
+          "bread_consumed": 2,
+          "bread_remaining": 2,
+          "food_before": 10,
+          "food_after": 20
+        },
+        "native_health": {
+          "before_damage": 20.0,
+          "challenge_damage": 6,
+          "after_damage": 14.0,
+          "after_food_recovery": 20.0,
+          "healing_effects_injected": false
+        },
+        "shelter": {
+          "logs_consumed": 4,
+          "planks_crafted": 16,
+          "planks_placed": 13,
+          "planks_remaining": 3,
+          "roof_blocks_sky": true,
+          "placed_block_count_verified": 13
+        },
+        "threat": {
+          "type": "minecraft:zombie",
+          "hostile": true,
+          "native_ai_enabled": true,
+          "shared_spawn_during_threat": [
+            128,
+            64,
+            128
+          ],
+          "betterdifficulty_spawn_blocker_preserved": true,
+          "response": "finite SDK retreat behind built wall and beneath built roof",
+          "final_line_of_sight": false,
+          "response_health_preserved": true
+        },
+        "prepared_food_or_heal_outputs_seeded": false,
+        "sustained_autonomy_or_founders_mill_claimed": false
+      },
+      "seconds": 30.107
+    }
+  ],
+  "started_at": 1793748489.1353173,
+  "python_source_sha256": {
+    "agent-gateway/gateway.py": "7a3a3130ab8b3fb1c08001db001dad80c1d12b3290dfc9f65b5a0282ee833f74",
+    "agent-gateway/provisioner.py": "835b290bb6a34a522e1a1c95d630035a47a62b8c792e9109432d2e3f8184c37f",
+    "agent-gateway/streaming.py": "066f4a7edb36139e818c7d39e79e7346762f36851fbe96f39ee482b7110b707a",
+    "sdk/scru_minecraft/__init__.py": "b4646a86b99335257acd13383dcfdbc2a4d6a418a0d3fad7214faf216dbae430",
+    "sdk/scru_minecraft/__main__.py": "81473bcee36277ea8f74bdd597bd516d3857eddf5b5e354d727317d22be03620",
+    "sdk/scru_minecraft/realtime.py": "d3e07f133493e0ead34b5f45f2f391d486c02003a77800782352ff124f9931e8",
+    "tests/authorization_gameplay_cases.py": "7d2177900bd5c94a54b8fd0e65c4b517f36c143643df89c8e41cd0837a7b09c7",
+    "tests/body_gameplay_cases.py": "9262d6c2112b7e4eecf975409c90db283bafcc4440cdd281013554430b60287f",
+    "tests/chat_privacy_gameplay_cases.py": "91afc9b5342c8954ab4951b725de5c71e652fd4c3456691d36606f6eaeb2620f",
+    "tests/container_gameplay_cases.py": "0465202aa9def2381853105fa25225e80ecdc7ae76c11122bb0807a065febdc5",
+    "tests/create_controls_gameplay_cases.py": "412a05661982ed7ab78dc26b09101ec1d0d656a31f9437557dbccbebbadee87e",
+    "tests/fluid_processing_gameplay_cases.py": "127879b533c2fa316a402f35f8fb96134971a165b899230a5b17215930f22a73",
+    "tests/fractional_navigation_gameplay_cases.py": "4be96f713ae20b36a40f90c99c078afdc7e084619e3b3102bc98f35f62654d06",
+    "tests/gameplay_cases.py": "83748e754c7a9ec924c30e817bb5d7e5fb1cdb299cf246d752de17269bd2ff93",
+    "tests/isolated_game_fixture.py": "8f0c305bddd88b51382125690502cb9af3a3607efb609f22ac883b4acf51c28d",
+    "tests/lifecycle_gameplay_cases.py": "9b8ee0a90daaeb1e09acf2a7aa43046c9fe97fa7c2710dcdb7f290f3e3892846",
+    "tests/mod_workstations_gameplay_cases.py": "c89835fb526c2947b104dddbfec0ec6e967d3b32bab995ddf7ba44a2bbe788e9",
+    "tests/navigation_gameplay_cases.py": "029d88d4229551e00b18ac935bf2adac5df98887f3d987e0160bbc70f5400ee4",
+    "tests/performance_driver.py": "fa45f6e2d9905f86502ed3ec0eb1530eec8a3c5e7274ce0348a3e0bc95b7771c",
+    "tests/performance_gameplay_cases.py": "417f1f1b2a3af543fd94326349d537ad67bce7893275e0670208c01e997fd319",
+    "tests/result_receipt_gameplay_cases.py": "c444a231f4abc16ba7e1ad8eaacc48b6c78f61f018025e0684fd0b65e99edfe0",
+    "tests/run_java_stream_probe.py": "1b24e8066a4659c668dffab0a4346653e02b979942ae0fdc454bbd826e695e01",
+    "tests/sdk_examples_gameplay_cases.py": "9d7224ca7be519b33a8a6de1ebd9b51c5d33ef32484e3e8997fc19a8cd004f97",
+    "tests/survival_gameplay_cases.py": "8cefeddf2bc54292937813f087f7652695915115f223b511809d1f32fbdc9dba",
+    "tests/test_action_wire_parity.py": "67aad3b4404b5e142ac0c2fda6323410ccd29a319ce4c670fce268215946b0f4",
+    "tests/test_controller.py": "71a0796030dd1e2de0c2f6b77fd932de5999093c3c1d0042588c8e7ddef349ae",
+    "tests/test_controller_food.py": "4b20328ac7d76cf39657ac2fc74f47f5e44ef0fadb527e942ab86db21dc5dff5",
+    "tests/test_controller_gateway.py": "e0f7f8537067a5ef1437cdef5392ba088dd064a8b8a69f2d0268606b39c6ae55",
+    "tests/test_controller_progression.py": "7a92886f505331686620715b1c9c1daa43eb1f468eab0c4475d8e298e4b65e26",
+    "tests/test_controller_usage.py": "b124ce94b4dffea08daf32e76095919e9ba17d358d12e3831d590b4101a6ae86",
+    "tests/test_inventory_query.py": "e4f373d5e3bc116357146555fe604d826a8c191f5e20544c40c024b76b661ecf",
+    "tests/test_login_cli.py": "dffc13ec8f3343e908226c1d6518ecf1c4b228661d4b792d1a29ff75c6dbf78f",
+    "tests/test_optional_areas.py": "e1658fe96436dbbf7c59a1ffe0c55ec9855342a3432c36784741cc1cde61819e",
+    "tests/test_performance_driver.py": "fc3cec251766b9918134320b0964f8fdcd297ca825642bdfa7ca85d649a83469",
+    "tests/test_primitive_contract.py": "ae02408d45affd5befcf608434c1d98351fa5571c4fcb77350c20e04b38b5e2e",
+    "tests/test_realtime_diagnostics.py": "a3da1286e157810b7508ddd3b55916797e15827c92c433874ddca55a42e581bf",
+    "tests/test_result_backpressure.py": "ff052fb5c8fbe215fd99b41d2e844f1ab991ee378e53624534c108ca3e87e5d6",
+    "tests/test_runtime.py": "98b932644ef162c18dbcd751e4f7a53255662f5c86133f12cfb9ce507590e935",
+    "tests/test_streaming.py": "07a62b205c9b8cf64db53f73f30fcfb1a8665140aff56d7c222e14a840e635e7"
+  },
+  "pack_lock_sha256": "51be3e3b62afeae834a7da4d3e718a6b91276923f367759cd9713d97e1789ce6",
+  "pack_mods": {
+    "create-1.21.1-6.0.10.jar": "ef87fe5709f1ba1f5b8bb20a2925b5afb4669e178fd6d8bf10c167759eefe37a",
+    "railways-0.2.1+neoforge-mc1.21.1.jar": "b7636c8b1b0352ed1a130dfe67f8bb574e2fc08803ed1cda4d3ea00505193914",
+    "FarmersDelight-1.21.1-1.3.4.jar": "139ad7696462c89c03eea463f805abffa552526c5dadaadae221dd9624cb197c",
+    "supplementaries-1.21.1-4.0.2-neoforge.jar": "2c2e0c98e0cc21874d8b2130bc773a2a5a6cadd854b9c8163d0e1f32e2ddffb0",
+    "moonlight-1.21.1-3.7.2-neoforge.jar": "4a9f15108607cc70273f8a0b6eb24e1e99af8eef44bc3ae8681767ca7ce21b0f",
+    "Terralith_1.21.1_v2.6.2_Neoforge.jar": "d38bd304897731b42f6c013cdc07e082e74411e80c74aabcee385251beb3b546",
+    "lithostitched-1.8.1-neoforge-21.1.jar": "e0da669fa5facc61a09b9b7bae21b322993de1fcd1eb05787adffb7309598cca",
+    "SereneSeasons-neoforge-1.21.1-10.1.0.9.jar": "ce8cf6bd31f70b794fe97d88b4cd2beb45f83387fe20c8dcf39c92121ccaa723",
+    "GlitchCore-neoforge-1.21.1-2.1.0.2.jar": "59d2a3fb3d6877e43018fd6a2b199d526074a864276a5f49091409a1cdc62fae",
+    "betterdifficulty-1.1.1.jar": "e82426df3376638bd36247824a6d8f71593196a6a793354e3e1fc7777d25180a",
+    "lootr-neoforge-1.21.1-1.11.38.127.jar": "5c74de4709d1c13b25880fdd241a89d5d9f331346d20edc76f80ccd4d99dc66c",
+    "voicechat-neoforge-1.21.1-2.6.22.jar": "63116a4d21bd57221482d971dd85822f7c723c210b60411670cdb0aa26873cac",
+    "jei-1.21.1-neoforge-19.64.0.455.jar": "f7a9de3d7ee07eed8d293a1a1a0f6afaac556eb43c103523457bd07ebb551e7b",
+    "mezz_config-1.21.1-neoforge-0.6.10-standalone.jar": "6f596cec9b531dd386ad6342c3deb5b27de4b4a4754ce30835f8ecc2e75f8703",
+    "Jade-1.21.1-NeoForge-15.10.6.jar": "276f1f65a20d04f536989c4f311949d770b52c440c23c2b904a08860f3c93810",
+    "sophisticatedbackpacks-1.21.1-3.26.18.2235.jar": "1992897b0b8a2e93ea4887bc56571a0dfb7298b4d41d164c1fd2bf7b8c8817a5",
+    "sophisticatedcore-1.21.1-1.5.21.2439.jar": "ab80131de21ee1e18d29849136b05b5509d0cadff8c8303514d6d3dbd8c9e476",
+    "sophisticatedstorage-1.21.1-1.6.11.2211.jar": "512e78f6588378d8438237984fa714ad3049b8aea55a2dec1934d4b8fb9a49ca",
+    "lithium-neoforge-0.15.4+mc1.21.1.jar": "488f33216030c1cb0baa33e59de3d657d08d5795a6c2080c8c8bbbc133fc8757",
+    "ferritecore-7.0.3-neoforge.jar": "d87ea28262715ebff45b8a82d493e6b468e7a4521bc021df5d88302196d030a8",
+    "modernfix-neoforge-5.27.27+mc1.21.1.jar": "7010aae2e837122fe8dabd5932358e2ba334fcbc62ca6530cb1cb00402d2c63b",
+    "Chunky-NeoForge-1.4.23.jar": "d72f235cf1f56f2c374f52c00bdda5034524b28142305a84cfc123a3f92ad274",
+    "spark-1.10.124-neoforge.jar": "647e8a81afbe414dba1df4ba15fd06c5d32d4cb544e68828405e8e074c2e16db",
+    "LuckPerms-NeoForge-5.4.150.jar": "f161a939c7320e8a30569c37aae2c0f5bbb3cfbd77bebb233bd0f0787a2d0ef9",
+    "corpse-neoforge-1.21.1-1.1.22.jar": "3733d86452b9ac572e924c2946e15e6b7052cc8fc990911f1c79b36ac3651b9f"
+  },
+  "pack_configuration": "fresh defaults; fixture voice service binds loopback on game port + 1",
+  "adapter_sha256": "6b6f676f6c0f7aa74090b5adf0e82406ec5434d68ca2905156a429891eba05d8",
+  "http_wss_same_origin": true,
+  "jvm_pid": 2656470,
+  "sdk_onboarding": [
+    {
+      "body": "VerifyBuilder",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    }
+  ],
+  "selected_modules": [
+    "survival_gameplay_cases"
+  ],
+  "selected_case_names": [
+    "survival_native_harvest_food_recovery_shelter_and_threat_response"
+  ],
+  "finished_at": 1793748593.6765203,
+  "jvm_stopped": true
+}

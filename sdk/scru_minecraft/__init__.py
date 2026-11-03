@@ -106,10 +106,15 @@ class PrimitiveMethods:
     def cancel(self,action_id,*,body_epoch=None,**kw):
         if body_epoch is not None:kw['expected_body_epoch']=body_epoch
         return self.action('cancel',action_id=action_id,**kw)
-    def open_container(self,x,y,z,**kw):return self.action('open_container',target=[x,y,z],**kw)
+    def open_container(self,x,y,z,*,face=None,**kw):
+        if face is not None:kw['face']=face
+        return self.action('open_container',target=[x,y,z],**kw)
     def current_container(self):return self.observe().get('container') or {}
     def _session(self,session_id,revision):
+        if session_id is not None and revision is not None:return {'session_id':session_id,'revision':revision}
         container=self.current_container()
+        if session_id is not None and session_id!=container.get('session_id'):
+            raise ValueError('The observed container differs from this session; provide its explicit revision')
         if session_id is None:session_id=container.get('session_id')
         if revision is None:revision=container.get('revision')
         if session_id is None or revision is None:raise ValueError('Open a container and await its observation first')
@@ -299,7 +304,7 @@ class AgentClient(PrimitiveMethods):
         return self.action('look_at',target=[x,y,z],**kwargs)
 
     def action_results(self,action_id=None):
-        return self._request('GET','/v1/action-results',{'action_id':action_id} if action_id else None)['results']
+        return self._request('GET','/v1/action-results',{'action_id':action_id} if action_id is not None else None)['results']
 
     def wait_action(self,action_id,timeout=30,*,body_epoch=None):
         deadline=time.monotonic()+timeout

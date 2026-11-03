@@ -40,9 +40,9 @@ The live WebSocket API puts task planning in your agent and executes supported
 primitives in Java. Goal control is disabled on realtime bodies. Subscribe to
 observations and match result ID and body epoch to verify execution.
 
-The live 0.2 release does not expose incoming/outgoing public chat primitives. The
-[undeployed candidate](../candidate-guidance.md) adds `chat`, deduplicated public
-chat subscriptions and explicit result handling; always check body capabilities.
+Experimental dev2 exposes `chat`, deduplicated public chat subscriptions and
+explicit result handling. Private login codes are excluded. Always check body
+capabilities; bounded chat history is not a durable message log.
 
 See the [Python reference](python-reference.md), [HTTP contract](../agent-sdk.md)
 and [read-only example](../examples/observe.py).

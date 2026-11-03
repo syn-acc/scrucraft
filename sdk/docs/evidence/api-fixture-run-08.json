@@ -1,0 +1,3347 @@
+{
+  "schema": 1,
+  "fixture": "isolated_neoforge",
+  "synthetic_identity": true,
+  "production_world_used": false,
+  "cases": [
+    {
+      "name": "inventory_and_held_controls",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-02",
+        "ACT-04",
+        "ACT-05",
+        "ACT-06",
+        "OBS-01",
+        "OBS-07",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slots": 42,
+        "hotbar_slots_selected": 9,
+        "components_preserved": true,
+        "stop_released_toggles": true
+      },
+      "seconds": 1.279
+    },
+    {
+      "name": "flat_navigation_while_looking",
+      "checklist_ids": [
+        "EXEC-01",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": {
+          "id": "7edf12a6d8334c659602a39ce850e07e",
+          "state": "done",
+          "reason": "arrived",
+          "body_epoch": "3d6709af-bc9a-46b2-b393-ea289ded94a1",
+          "tick": 177
+        },
+        "position": [
+          8.351674703141503,
+          64.0,
+          0.45021569976327397
+        ],
+        "look_did_not_cancel_or_redirect_navigation": true
+      },
+      "seconds": 5.242
+    },
+    {
+      "name": "dig_craft_place_container_chat",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-12",
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "ACT-16",
+        "OBS-03",
+        "OBS-04",
+        "OBS-05",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "log_consumed": 1,
+        "planks": {
+          "placed": 1,
+          "player": 1,
+          "chest": 2
+        },
+        "fixture_supplied": [
+          "one oak log block",
+          "crafting table",
+          "empty chest"
+        ],
+        "synthetic_identity_only": true
+      },
+      "seconds": 7.203
+    },
+    {
+      "name": "craft_recipe_remainders",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:cake",
+        "output": 1,
+        "bucket_remainders": 3
+      },
+      "seconds": 0.552
+    },
+    {
+      "name": "mutation_retry_conservation",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_retry_executions": 1,
+        "changed_payload_rejected": true
+      },
+      "seconds": 0.518
+    },
+    {
+      "name": "craft_full_inventory_atomic_failure",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "inventory_full",
+        "slots_unchanged": true,
+        "log_count": 2,
+        "occupied_storage_slots": 36
+      },
+      "seconds": 0.763
+    },
+    {
+      "name": "craft_mixed_tag_ingredients",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:chest",
+        "oak_planks_consumed": 4,
+        "birch_planks_consumed": 4,
+        "chests": 1
+      },
+      "seconds": 0.559
+    },
+    {
+      "name": "container_competing_mutation_stale_revision",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "old_revision": 1,
+        "new_revision": 2,
+        "failure": "stale_container_revision",
+        "external_mutation": "fixture console simulates another viewer",
+        "chest_stones": 2,
+        "player_stones": 0
+      },
+      "seconds": 0.736
+    },
+    {
+      "name": "container_two_native_viewers_contested_transfer_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_viewers": 2,
+        "human_or_gui_viewers": false,
+        "contested_requests": 2,
+        "successes": 1,
+        "stale_revision_failures": 1,
+        "fresh_revision_recovery": true,
+        "primary_diamonds": 3,
+        "second_diamonds": 1,
+        "chest_diamonds": 0,
+        "total_diamonds_before_fixture_cleanup": 4,
+        "fixture_second_body_removed": true
+      },
+      "seconds": 1.75
+    },
+    {
+      "name": "container_disconnect_reconcile_without_mutation_replay",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-16",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_action_id_reconciled": true,
+        "native_executions": 1,
+        "moved": 2,
+        "prior_lease_replay_rejected": true,
+        "old_session_invalidated": true,
+        "player_diamonds": 3,
+        "chest_diamonds": 2,
+        "total_diamonds": 5,
+        "disconnect_timing": "after native completion, before application handle wait; no simulated lost network frame"
+      },
+      "seconds": 1.05
+    },
+    {
+      "name": "container_named_damaged_stack_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "components_preserved": true,
+        "damage": 7,
+        "total_pickaxes": 1,
+        "round_trip": "player:0 -> container:0 -> player:1"
+      },
+      "seconds": 0.603
+    },
+    {
+      "name": "double_chest_second_half_work_area",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "inside_half": [
+          23,
+          64,
+          0
+        ],
+        "outside_half": [
+          24,
+          64,
+          0
+        ],
+        "area_max_x_exclusive": 24,
+        "failure": "outside_work_area"
+      },
+      "seconds": 0.693
+    },
+    {
+      "name": "double_chest_complete_layout_second_half_conservation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "storage_slots": 54,
+        "player_slots": 36,
+        "second_menu_half_slot": 53,
+        "deposited": 3,
+        "withdrawn": 1,
+        "persisted_after_reopen": 2,
+        "player_diamonds": 1,
+        "total_diamonds": 3
+      },
+      "seconds": 0.751
+    },
+    {
+      "name": "recipe_discovery_paging_and_machine_rejection",
+      "checklist_ids": [
+        "OBS-06",
+        "ACT-15"
+      ],
+      "status": "passed",
+      "evidence": {
+        "discovered_recipes": 3704,
+        "page_limit_obeyed": true,
+        "distinct_pages": true,
+        "machine_recipe_failure": "machine_processing_required",
+        "full_recipe_metadata": true,
+        "cake_bucket_remainders_described": 3,
+        "recipe_pages_revision_pinned": true,
+        "wrong_revision_rejected": true
+      },
+      "seconds": 0.748
+    },
+    {
+      "name": "craft_missing_batch_ingredient_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "requested_executions": 2,
+        "available_logs": 1,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.65
+    },
+    {
+      "name": "craft_remainder_capacity_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_space_available": true,
+        "four_bottle_remainders_would_not_fit": true,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.699
+    },
+    {
+      "name": "container_blocked_and_removed",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "blocked_open_rejected": true,
+        "removed_session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 0.947
+    },
+    {
+      "name": "container_range_invalidation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "actual_navigation_out_of_range": true,
+        "session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 5.256
+    },
+    {
+      "name": "container_explicit_close_and_stop",
+      "checklist_ids": [
+        "ACT-16",
+        "OBS-05",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "explicit_close_invalidates": true,
+        "reopen_has_new_id": true,
+        "old_handle_rejected": true,
+        "stop_closed_session": true,
+        "stop_reason": "stopped",
+        "cursor_fixture": "empty"
+      },
+      "seconds": 0.891
+    },
+    {
+      "name": "administrator_order_container_stop_persistence_owner_resume",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-16",
+        "EXEC-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "source": "administrator console synagent order through shared native recordOrder",
+        "actual_human_chat_event_verified": false,
+        "persistent_stop_closed_session": true,
+        "reconnect_denied_423_until_owner_resume": true,
+        "deliberate_owner_resume_verified": true,
+        "cursor_fixture": "empty",
+        "chest_diamonds": 1,
+        "player_diamonds": 1,
+        "total_diamonds": 2
+      },
+      "seconds": 0.806
+    },
+    {
+      "name": "container_furnace_native_slot_rules",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_partial_extraction": 1,
+        "output_remaining": 2,
+        "fuel_rule_enforced": true,
+        "output_insert_rejected": true,
+        "fixture_supplied_furnace_output": true,
+        "actual_smelting_or_xp_verified": false
+      },
+      "seconds": 0.698
+    },
+    {
+      "name": "large_components_bounded_observation_exact_transfer",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-01",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_component_bytes": 21349,
+        "ambient_json_omitted": true,
+        "full_metadata_hash_preserved": true,
+        "attributes_available": [
+          "count",
+          "damage",
+          "max_damage"
+        ],
+        "full_metadata_query_implemented": true,
+        "player_and_container_multichunk_unicode_reconstruction": true,
+        "empty_cursor_query": true,
+        "changed_slot_chunk_rejected": true
+      },
+      "seconds": 1.096
+    },
+    {
+      "name": "create_depot_native_port_exact_transfer",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_port": "create:depot",
+        "native_slots": 9,
+        "input_output_rules": true,
+        "full_metadata": true,
+        "stale_revision_rejected": true,
+        "removed_port_closed": true,
+        "iron_ingots_conserved": 3
+      },
+      "seconds": 0.852
+    },
+    {
+      "name": "create_powered_press_depot_real_processing",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "VERIFY-03",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:pressing/iron_ingot",
+        "input_ingots": 1,
+        "output_sheets": 1,
+        "unpowered_no_processing": true,
+        "processing_revision_changed": true,
+        "power": "fixture-seeded native creative motor 64 rpm",
+        "machine_output_seeded": false,
+        "survival_power_construction_verified": false
+      },
+      "seconds": 2.65
+    },
+    {
+      "name": "create_powered_mixer_basin_real_processing",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "VERIFY-03",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "create:mixing/andesite_alloy",
+        "native_slots": 18,
+        "input_andesite": 1,
+        "input_iron_nugget": 1,
+        "output_alloy": 1,
+        "unpowered_no_processing": true,
+        "output_insertion_rejected": true,
+        "power": "fixture-seeded native creative motor and cogwheel 64 rpm",
+        "machine_output_seeded": false,
+        "survival_power_construction_verified": false
+      },
+      "seconds": 5.37
+    },
+    {
+      "name": "create_millstone_two_batches_dough_furnace_native_chain",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "VERIFY-03",
+        "VERIFY-06"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'open': True, 'kind': 'machine_item_port', 'session_id': 'b5390981-76fa-43ba-8f55-2b33ff580ea7', 'revision': 37, 'block': 'create:millstone', 'position': [2, 64, 0], 'dimension': 'minecraft:overworld', 'slots': [{'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 0, 'capacity': 64, 'can_take': False, 'role': 'input'}, {'item': 'create:wheat_flour', 'count': 25, 'empty': False, 'max_stack_size': 64, 'damage': 0, 'max_damage': 0, 'component_bytes': 193, 'components': {'minecraft:max_stack_size': 64, 'minecraft:lore': [], 'minecraft:enchantments': {'levels': {}}, 'minecraft:repair_cost': 0, 'minecraft:attribute_modifiers': {'modifiers': []}, 'minecraft:rarity': 'common'}, 'inventory': 'container', 'slot': 1, 'capacity': 64, 'can_take': True, 'role': 'output'}, {'item': 'minecraft:wheat_seeds', 'count': 4, 'empty': False, 'max_stack_size': 64, 'damage': 0, 'max_damage': 0, 'component_bytes': 193, 'components': {'minecraft:max_stack_size': 64, 'minecraft:lore': [], 'minecraft:enchantments': {'levels': {}}, 'minecraft:repair_cost': 0, 'minecraft:attribute_modifiers': {'modifiers': []}, 'minecraft:rarity': 'common'}, 'inventory': 'container', 'slot': 2, 'capacity': 64, 'can_take': True, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 3, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 4, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 5, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 6, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 7, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 8, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'container', 'slot': 9, 'capacity': 64, 'can_take': False, 'role': 'output'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 0, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 1, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'create:wheat_flour', 'count': 20, 'empty': False, 'max_stack_size': 64, 'damage': 0, 'max_damage': 0, 'component_bytes': 193, 'components': {'minecraft:max_stack_size': 64, 'minecraft:lore': [], 'minecraft:enchantments': {'levels': {}}, 'minecraft:repair_cost': 0, 'minecraft:attribute_modifiers': {'modifiers': []}, 'minecraft:rarity': 'common'}, 'inventory': 'player', 'slot': 2, 'capacity': 64, 'can_take': True, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 3, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 4, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 5, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 6, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 7, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 8, 'capacity': 64, 'can_take': False, 'role': 'hotbar'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 9, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 10, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 11, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 12, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 13, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 14, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 15, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 16, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 17, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 18, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 19, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 20, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 21, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 22, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 23, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 24, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 25, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 26, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 27, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 28, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 29, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 30, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 31, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 32, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 33, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 34, 'capacity': 64, 'can_take': False, 'role': 'main'}, {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}, 'inventory': 'player', 'slot': 35, 'capacity': 64, 'can_take': False, 'role': 'main'}], 'cursor': {'item': 'minecraft:air', 'count': 0, 'empty': True, 'max_stack_size': 1, 'damage': 0, 'max_damage': 0, 'component_bytes': 2, 'components': {}}, 'processing_executor': 'native_world_ticks'}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "container_gameplay_cases.py",
+          "line": 660,
+          "function": "powered_millstone"
+        }
+      ],
+      "seconds": 19.478
+    },
+    {
+      "name": "native_sophisticatedstorage_chest_menu_roundtrip",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03",
+        "MOD-05"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'id': '228fcc8cddb747b785038387c43b90a3', 'state': 'failed', 'reason': 'stale_container_revision', 'body_epoch': '3d6709af-bc9a-46b2-b393-ea289ded94a1', 'tick': 1297}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "mod_workstations_gameplay_cases.py",
+          "line": 56,
+          "function": "<lambda>"
+        },
+        {
+          "file": "mod_workstations_gameplay_cases.py",
+          "line": 42,
+          "function": "storage"
+        },
+        {
+          "file": "mod_workstations_gameplay_cases.py",
+          "line": 30,
+          "function": "transfer"
+        },
+        {
+          "file": "mod_workstations_gameplay_cases.py",
+          "line": 24,
+          "function": "opened"
+        },
+        {
+          "file": "gameplay_cases.py",
+          "line": 16,
+          "function": "done"
+        }
+      ],
+      "seconds": 0.647
+    },
+    {
+      "name": "native_sophisticatedstorage_barrel_menu_roundtrip",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03",
+        "MOD-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "block": "sophisticatedstorage:barrel",
+        "native_storage_slots": 27,
+        "last_storage_slot": 26,
+        "named_damaged_components_preserved": true,
+        "close_reopen_persistence": true,
+        "upgrade_configuration_verified": false
+      },
+      "seconds": 0.856
+    },
+    {
+      "name": "native_sophisticatedstorage_shulker_box_menu_roundtrip",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03",
+        "MOD-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "block": "sophisticatedstorage:shulker_box",
+        "native_storage_slots": 27,
+        "last_storage_slot": 26,
+        "named_damaged_components_preserved": true,
+        "close_reopen_persistence": true,
+        "upgrade_configuration_verified": false
+      },
+      "seconds": 0.838
+    },
+    {
+      "name": "native_portable_backpack_context_and_components",
+      "checklist_ids": [
+        "ACT-09",
+        "ACT-14",
+        "ACT-16",
+        "OBS-05",
+        "MOD-05"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'id': 'e8bf9c4b4aa94dcd8e5456202f6fac7b', 'state': 'failed', 'reason': 'container_binding_changed', 'body_epoch': '3d6709af-bc9a-46b2-b393-ea289ded94a1', 'tick': 1342}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "mod_workstations_gameplay_cases.py",
+          "line": 65,
+          "function": "portable_backpack"
+        },
+        {
+          "file": "mod_workstations_gameplay_cases.py",
+          "line": 24,
+          "function": "opened"
+        },
+        {
+          "file": "gameplay_cases.py",
+          "line": 16,
+          "function": "done"
+        }
+      ],
+      "seconds": 0.564
+    },
+    {
+      "name": "native_farmers_delight_pot_heat_and_serving",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "OBS-05",
+        "OBS-06",
+        "MOD-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "farmersdelight:cooking/cooked_rice",
+        "native_heat": "lit campfire",
+        "unheated_input_unchanged": true,
+        "rice_consumed": 1,
+        "served_meals": 1,
+        "bowls_initial": 2,
+        "empty_bowls_remaining": 1,
+        "serving_bowl_in_meal": 1,
+        "output_injected": false
+      },
+      "seconds": 6.834
+    },
+    {
+      "name": "native_farmers_delight_cutting_tool_and_output",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-06",
+        "VERIFY-03",
+        "MOD-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_cutting_recipe": "farmersdelight:cutting/beef",
+        "beef_consumed": 1,
+        "minced_beef_output": 2,
+        "knife_durability_consumed": 1,
+        "optional_area": null,
+        "bounded_callback_footprint_verified": false
+      },
+      "seconds": 1.208
+    },
+    {
+      "name": "dig_hand_channel_and_explicit_cancel",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-03",
+        "ACT-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "selection_failure": "hand_busy",
+        "cancelled_dig_block_intact": true
+      },
+      "seconds": 5.263
+    },
+    {
+      "name": "dig_pickup_empty_hand_failure_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "held_item_changed",
+        "waited_native_ticks": 90,
+        "target_still_oak_log": true,
+        "injected_dirt_picked_up": 1,
+        "unearned_log_drops": 0,
+        "reconciled_result_unchanged": true
+      },
+      "seconds": 5.109
+    },
+    {
+      "name": "dig_preserves_native_redstone_start_transition",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_start_changed_lit_property": true,
+        "result": "broken",
+        "redstone_drop_count": 4,
+        "pickaxe_damage": 1
+      },
+      "seconds": 4.382
+    },
+    {
+      "name": "dig_stop_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "stop",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false
+      },
+      "seconds": 5.175
+    },
+    {
+      "name": "dig_lease_release_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "lease_release",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false
+      },
+      "seconds": 6.025
+    },
+    {
+      "name": "dig_grant_expiry_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 160,
+          "function": "<lambda>"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 150,
+          "function": "interrupted_dig"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 29,
+          "function": "block"
+        },
+        {
+          "file": "__init__.py",
+          "line": 190,
+          "function": "query_blocks"
+        },
+        {
+          "file": "realtime.py",
+          "line": 145,
+          "function": "action"
+        },
+        {
+          "file": "realtime.py",
+          "line": 93,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 5.166
+    },
+    {
+      "name": "dig_human_stop_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 160,
+          "function": "<lambda>"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 99,
+          "function": "interrupted_dig"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "entity_hostility_uses_native_enemy_marker",
+      "checklist_ids": [
+        "OBS-02"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 163,
+          "function": "native_enemy_classification"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "drop_partial_full_and_idempotent_retry",
+      "checklist_ids": [
+        "ACT-03",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 179,
+          "function": "exact_drop_and_retry"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.006
+    },
+    {
+      "name": "inventory_invalid_arguments_and_drop_shortage",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-03",
+        "EXEC-05"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 202,
+          "function": "invalid_drop_and_selection"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.007
+    },
+    {
+      "name": "drop_obeys_vanilla_binding_armor_slot_rule",
+      "checklist_ids": [
+        "ACT-03",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 223,
+          "function": "binding_armor_drop"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "swap_two_populated_hands_preserves_components",
+      "checklist_ids": [
+        "ACT-02",
+        "OBS-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 236,
+          "function": "populated_hands"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "dig_unbreakable_and_obstructed",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-05",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 255,
+          "function": "dig_negative"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "dig_tool_durability_and_natural_drop",
+      "checklist_ids": [
+        "ACT-07",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 269,
+          "function": "tool_break"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "dig_unsuitable_tool_uses_native_slow_break_without_drops",
+      "checklist_ids": [
+        "ACT-07",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 283,
+          "function": "unsuitable_tool_native_speed_and_no_drop"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.004
+    },
+    {
+      "name": "dig_revalidates_changed_target",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-06",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 300,
+          "function": "changed_target"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "placement_area_and_two_cell_door",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 313,
+          "function": "area_and_multiblock"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "placement_multiblock_secondary_cell_bounds",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 339,
+          "function": "multiblock_boundary"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "use_on_thin_door_shape_open_close",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 354,
+          "function": "door_interaction"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "unrestricted_native_bucket_and_bonemeal_use",
+      "checklist_ids": [
+        "ACT-09",
+        "ACT-10",
+        "EXEC-06"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 428,
+          "function": "<lambda>"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 387,
+          "function": "unrestricted_policy"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.513
+    },
+    {
+      "name": "native_place_merges_slab_and_replaces_plant",
+      "checklist_ids": [
+        "ACT-08",
+        "OBS-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 431,
+          "function": "native_placement_contexts"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.001
+    },
+    {
+      "name": "unrestricted_use_on_places_and_adopts_native_chest_menu",
+      "checklist_ids": [
+        "ACT-08",
+        "ACT-10",
+        "ACT-13",
+        "OBS-05"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 468,
+          "function": "<lambda>"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 387,
+          "function": "unrestricted_policy"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.517
+    },
+    {
+      "name": "explicit_bounds_keep_unknown_air_and_growth_footprints_rejected",
+      "checklist_ids": [
+        "EXEC-06",
+        "ACT-09",
+        "ACT-10",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 471,
+          "function": "bounded_unknown_item_footprint"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "unrestricted_dimension_change_cancels_old_world_actions",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-06",
+        "OBS-03",
+        "OBS-07",
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 540,
+          "function": "<lambda>"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 387,
+          "function": "unrestricted_policy"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.515
+    },
+    {
+      "name": "held_bow_stop_without_release_side_effect",
+      "checklist_ids": [
+        "ACT-09",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 543,
+          "function": "held_use_stop"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.001
+    },
+    {
+      "name": "native_food_duration_and_consumption",
+      "checklist_ids": [
+        "ACT-09",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 562,
+          "function": "eat_duration"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "attack_target_lifetime_and_cooldown",
+      "checklist_ids": [
+        "ACT-11",
+        "OBS-02"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 579,
+          "function": "attack_cases"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.009
+    },
+    {
+      "name": "held_jump_repeats_and_airborne_release_stops_repetition",
+      "checklist_ids": [
+        "ACT-04",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 590,
+          "function": "jump_cycles_and_airborne_release"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "sneak_native_collision_height_and_platform_edge",
+      "checklist_ids": [
+        "ACT-05",
+        "EXEC-03",
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 635,
+          "function": "crouch_collision_and_edge_route"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.004
+    },
+    {
+      "name": "sprint_native_hunger_gate_and_lease_release",
+      "checklist_ids": [
+        "ACT-06",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 672,
+          "function": "sprint_hunger_and_lease_release"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "offhand_bow_explicit_release_and_unusable_item",
+      "checklist_ids": [
+        "ACT-09",
+        "OBS-01",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 706,
+          "function": "bow_release_and_offhand_use"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.004
+    },
+    {
+      "name": "entity_obstruction_disappearance_and_navigation_collision",
+      "checklist_ids": [
+        "ACT-10",
+        "ACT-11",
+        "OBS-02",
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 730,
+          "function": "entity_obstruction_disappearance_and_collision"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.004
+    },
+    {
+      "name": "native_public_chat_rate_limit_identity_and_validation",
+      "checklist_ids": [
+        "ACT-12",
+        "OBS-04",
+        "EXEC-05"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 754,
+          "function": "public_chat_rate_limit_and_identity"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "navigation_half_slab_and_raised_stair_destinations",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 781,
+          "function": "navigation_slab_stair"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.012
+    },
+    {
+      "name": "navigation_solid_target_and_timeout",
+      "checklist_ids": [
+        "VERIFY-01",
+        "EXEC-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 803,
+          "function": "unreachable_and_timeout"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "navigation_low_ceiling_collision",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 820,
+          "function": "low_ceiling"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.004
+    },
+    {
+      "name": "navigation_obstacle_inserted_during_route",
+      "checklist_ids": [
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 838,
+          "function": "route_change"
+        },
+        {
+          "file": "body_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "authority_whitelist_removed_during_dig",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "authority_whitelist_removed_during_navigation",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "authority_whitelist_removed_during_use",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "authority_owner_uuid_changed_during_dig",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "authority_owner_uuid_changed_during_navigation",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.004
+    },
+    {
+      "name": "authority_owner_uuid_changed_during_use",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.006
+    },
+    {
+      "name": "authority_token_revoked_during_dig",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "authority_token_revoked_during_navigation",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "authority_token_revoked_during_use",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "SDK-02",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 151,
+          "function": "<lambda>"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 58,
+          "function": "revoke_during_work"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "authority_wrong_owner_rejected_before_native_execution",
+      "checklist_ids": [
+        "EXEC-06",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 155,
+          "function": "wrong_owner"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.005
+    },
+    {
+      "name": "authority_bounds_change_aborts_active_dig_and_container",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-06",
+        "VERIFY-03",
+        "VERIFY-04"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 198,
+          "function": "bounds_change"
+        },
+        {
+          "file": "authorization_gameplay_cases.py",
+          "line": 34,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.001
+    },
+    {
+      "name": "navigation_confined_slab_stair_ascent",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 39,
+          "function": "constrained_slab_stair_ascent"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 11,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "navigation_three_block_drop",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 54,
+          "function": "three_block_drop"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 11,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "navigation_rejects_four_block_drop",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "GatewayError: 409: lease_lost",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 67,
+          "function": "excessive_drop"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 11,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 123,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "navigation_unloaded_target_does_not_force_load",
+      "checklist_ids": [
+        "VERIFY-01",
+        "OBS-03"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream closed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 82,
+          "function": "unloaded_target"
+        },
+        {
+          "file": "navigation_gameplay_cases.py",
+          "line": 11,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 109,
+          "function": "_request"
+        }
+      ],
+      "seconds": 0.011
+    },
+    {
+      "name": "long_action_terminal_survives_eighty_newer_actions",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-02",
+        "EXEC-04"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream disconnected {\"close_code\": 1000, \"close_reason\": \"\", \"exception_type\": null, \"renewal_failure\": {\"code\": \"lease_lost\", \"exception_type\": \"GatewayError\", \"status\": 409}}; commands are never automatically replayed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 23,
+          "function": "long_action_terminal_recency"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 98,
+          "function": "_request"
+        },
+        {
+          "file": "__init__.py",
+          "line": 48,
+          "function": "_raise_stored_error"
+        }
+      ],
+      "seconds": 0.001
+    },
+    {
+      "name": "native_retry_ignores_reduced_delivery_budget_without_reexecution",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream disconnected {\"close_code\": 1000, \"close_reason\": \"\", \"exception_type\": null, \"renewal_failure\": {\"code\": \"lease_lost\", \"exception_type\": \"GatewayError\", \"status\": 409}}; commands are never automatically replayed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 45,
+          "function": "reduced_timeout_retransmission"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 98,
+          "function": "_request"
+        },
+        {
+          "file": "__init__.py",
+          "line": 48,
+          "function": "_raise_stored_error"
+        }
+      ],
+      "seconds": 0.001
+    },
+    {
+      "name": "unacknowledged_full_payload_survives_eighty_newer_results",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "OBS-07"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream disconnected {\"close_code\": 1000, \"close_reason\": \"\", \"exception_type\": null, \"renewal_failure\": {\"code\": \"lease_lost\", \"exception_type\": \"GatewayError\", \"status\": 409}}; commands are never automatically replayed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 105,
+          "function": "deferred_payload_outlives_recent_window"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 98,
+          "function": "_request"
+        },
+        {
+          "file": "__init__.py",
+          "line": 48,
+          "function": "_raise_stored_error"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "navigation_preserves_two_tick_remaining_delivery_deadline",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-03",
+        "VERIFY-01"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream disconnected {\"close_code\": 1000, \"close_reason\": \"\", \"exception_type\": null, \"renewal_failure\": {\"code\": \"lease_lost\", \"exception_type\": \"GatewayError\", \"status\": 409}}; commands are never automatically replayed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 154,
+          "function": "queued_delivery_budget_is_not_extended"
+        },
+        {
+          "file": "result_receipt_gameplay_cases.py",
+          "line": 12,
+          "function": "reset"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 98,
+          "function": "_request"
+        },
+        {
+          "file": "__init__.py",
+          "line": 48,
+          "function": "_raise_stored_error"
+        }
+      ],
+      "seconds": 0.0
+    },
+    {
+      "name": "optional_area_unrestricted_native_journey",
+      "checklist_ids": [
+        "EXEC-06",
+        "VERIFY-02"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream disconnected {\"close_code\": 1000, \"close_reason\": \"\", \"exception_type\": null, \"renewal_failure\": {\"code\": \"lease_lost\", \"exception_type\": \"GatewayError\", \"status\": 409}}; commands are never automatically replayed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "gameplay_cases.py",
+          "line": 195,
+          "function": "optional_area"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 98,
+          "function": "_request"
+        },
+        {
+          "file": "__init__.py",
+          "line": 48,
+          "function": "_raise_stored_error"
+        }
+      ],
+      "seconds": 0.002
+    },
+    {
+      "name": "native_death_respawn_and_sdk_resync",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-04",
+        "SDK-02",
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "ConnectionError: Stream disconnected {\"close_code\": 1000, \"close_reason\": \"\", \"exception_type\": null, \"renewal_failure\": {\"code\": \"lease_lost\", \"exception_type\": \"GatewayError\", \"status\": 409}}; commands are never automatically replayed",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "lifecycle_gameplay_cases.py",
+          "line": 9,
+          "function": "death_and_respawn"
+        },
+        {
+          "file": "realtime.py",
+          "line": 149,
+          "function": "stop"
+        },
+        {
+          "file": "realtime.py",
+          "line": 91,
+          "function": "request"
+        },
+        {
+          "file": "realtime.py",
+          "line": 98,
+          "function": "_request"
+        },
+        {
+          "file": "__init__.py",
+          "line": 48,
+          "function": "_raise_stored_error"
+        }
+      ],
+      "seconds": 0.003
+    },
+    {
+      "name": "packaged_sdk_documented_sync_async_observe_and_stop_examples",
+      "checklist_ids": [
+        "SDK-01",
+        "SDK-04",
+        "SDK-05",
+        "VERIFY-06"
+      ],
+      "status": "passed",
+      "evidence": {
+        "installed": {
+          "sdk": "0.3.0.dev2",
+          "websockets": "15.0.1",
+          "clean_virtual_environment": true,
+          "module_hashes_match": true
+        },
+        "source_sha256": {
+          "scru_minecraft/realtime.py": "28b7c6b931b6a266a5671c1b06872a9593f23606371f44e1922ce56f1ea0ecf9",
+          "scru_minecraft/__init__.py": "fd91ace7696635fdc6ba235802763a3ca2ad53c4ef5dfa99460696e3b9a4f7bd",
+          "scru_minecraft/__main__.py": "81473bcee36277ea8f74bdd597bd516d3857eddf5b5e354d727317d22be03620",
+          "syn_minecraft/__init__.py": "238fb406a9b6f6c51e4a551c45e25542c7c11f9d647e825ec5a4e7469b46037b"
+        },
+        "wheelhouse_sha256": {
+          "setuptools-75.8.0-py3-none-any.whl": "e3982f444617239225d675215d51f6ba05f845d4eec313da4418fdbb56fb27e3",
+          "websockets-15.0.1-py3-none-any.whl": "f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f",
+          "wheel-0.45.1-py3-none-any.whl": "708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248"
+        },
+        "python_reference_sha256": "74121fc9fb0454bf1ec9a43e8aaf4b4e0629cbf7da1a9c87e3b5d518aa4301a0",
+        "readme_install": "exact local candidate installed offline with stream extra; public download not substituted",
+        "login_command": "help only; no real in-game enrollment claimed",
+        "python_reference_sync_and_async": "unmodified snippets; async entry wrapper only",
+        "read_only_example_frames": 2,
+        "native_stop_example": "done",
+        "tls_certificate_verified": true,
+        "plaintext_fallback": false,
+        "identity": "synthetic fixture owner, not participating-player login",
+        "credentials_in_command_arguments": false,
+        "credential_output_check": "passed"
+      },
+      "seconds": 17.385
+    },
+    {
+      "name": "ten_body_five_minute_instant_action_load",
+      "checklist_ids": [
+        "VERIFY-05"
+      ],
+      "status": "failed",
+      "error": "AssertionError: [758, 769, 750, 753, 764, 774, 751, 755, 758, 748]",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "performance_gameplay_cases.py",
+          "line": 385,
+          "function": "measure"
+        }
+      ],
+      "seconds": 359.646
+    }
+  ],
+  "started_at": 1793744605.1133044,
+  "python_source_sha256": {
+    "agent-gateway/gateway.py": "2cb52667e9c00e872216de42a4e9bb0e377719ffdc3dbaf8a8376136e142dfc6",
+    "agent-gateway/provisioner.py": "835b290bb6a34a522e1a1c95d630035a47a62b8c792e9109432d2e3f8184c37f",
+    "agent-gateway/streaming.py": "066f4a7edb36139e818c7d39e79e7346762f36851fbe96f39ee482b7110b707a",
+    "sdk/scru_minecraft/__init__.py": "fd91ace7696635fdc6ba235802763a3ca2ad53c4ef5dfa99460696e3b9a4f7bd",
+    "sdk/scru_minecraft/__main__.py": "81473bcee36277ea8f74bdd597bd516d3857eddf5b5e354d727317d22be03620",
+    "sdk/scru_minecraft/realtime.py": "28b7c6b931b6a266a5671c1b06872a9593f23606371f44e1922ce56f1ea0ecf9",
+    "tests/authorization_gameplay_cases.py": "7d2177900bd5c94a54b8fd0e65c4b517f36c143643df89c8e41cd0837a7b09c7",
+    "tests/body_gameplay_cases.py": "f60d723da50c54183b1dd35fdf9634f969405c65d291c5fd1059cf3d9136ef13",
+    "tests/container_gameplay_cases.py": "6a6694df380f380ed1e6bd33a57cb00170eb3c4e9dff4b02b54c5e849a4e9adf",
+    "tests/gameplay_cases.py": "eebded0a7e2712aaed221a61465b48e13136a85f2744ce09ca33e785369a24bb",
+    "tests/isolated_game_fixture.py": "651dad3dcf9961adeade33c336285e7a3822b2ddd874c6c5e2e460e7129d579c",
+    "tests/lifecycle_gameplay_cases.py": "48e95823dbb87ca5ca715482126b77b6603edfc5d557cb471b4b6d839a20d28c",
+    "tests/mod_workstations_gameplay_cases.py": "1c4dd588dea8c598e7bd8a0abc84eb43f02876b83710747a282b7c46a7f13242",
+    "tests/navigation_gameplay_cases.py": "029d88d4229551e00b18ac935bf2adac5df98887f3d987e0160bbc70f5400ee4",
+    "tests/performance_gameplay_cases.py": "10c3f0296b19f093c45983945cd62ba30c0c711d9ca098b2aa5a2fb7599ab9a7",
+    "tests/result_receipt_gameplay_cases.py": "c444a231f4abc16ba7e1ad8eaacc48b6c78f61f018025e0684fd0b65e99edfe0",
+    "tests/run_java_stream_probe.py": "1b24e8066a4659c668dffab0a4346653e02b979942ae0fdc454bbd826e695e01",
+    "tests/sdk_examples_gameplay_cases.py": "9d7224ca7be519b33a8a6de1ebd9b51c5d33ef32484e3e8997fc19a8cd004f97",
+    "tests/test_controller.py": "71a0796030dd1e2de0c2f6b77fd932de5999093c3c1d0042588c8e7ddef349ae",
+    "tests/test_controller_food.py": "4b20328ac7d76cf39657ac2fc74f47f5e44ef0fadb527e942ab86db21dc5dff5",
+    "tests/test_controller_gateway.py": "e0f7f8537067a5ef1437cdef5392ba088dd064a8b8a69f2d0268606b39c6ae55",
+    "tests/test_controller_progression.py": "7a92886f505331686620715b1c9c1daa43eb1f468eab0c4475d8e298e4b65e26",
+    "tests/test_controller_usage.py": "b124ce94b4dffea08daf32e76095919e9ba17d358d12e3831d590b4101a6ae86",
+    "tests/test_inventory_query.py": "e4f373d5e3bc116357146555fe604d826a8c191f5e20544c40c024b76b661ecf",
+    "tests/test_login_cli.py": "dffc13ec8f3343e908226c1d6518ecf1c4b228661d4b792d1a29ff75c6dbf78f",
+    "tests/test_optional_areas.py": "e1658fe96436dbbf7c59a1ffe0c55ec9855342a3432c36784741cc1cde61819e",
+    "tests/test_primitive_contract.py": "f54107a5aef81b5dd9efe5f3403b8a25446c2662937ae50801f4340778bc41d8",
+    "tests/test_realtime_diagnostics.py": "e1f2f4a1abdbfa1b8d11ad34dca499d09d26044a9b4719d756a839f4273cf004",
+    "tests/test_result_backpressure.py": "ff052fb5c8fbe215fd99b41d2e844f1ab991ee378e53624534c108ca3e87e5d6",
+    "tests/test_runtime.py": "98b932644ef162c18dbcd751e4f7a53255662f5c86133f12cfb9ce507590e935",
+    "tests/test_streaming.py": "07a62b205c9b8cf64db53f73f30fcfb1a8665140aff56d7c222e14a840e635e7"
+  },
+  "pack_lock_sha256": "a13ca88375a47b693c9ec3a6b070795bf4e4119a1dabd7700c800b51ddd70374",
+  "pack_mods": {
+    "create-1.21.1-6.0.10.jar": "ef87fe5709f1ba1f5b8bb20a2925b5afb4669e178fd6d8bf10c167759eefe37a",
+    "railways-0.2.1+neoforge-mc1.21.1.jar": "b7636c8b1b0352ed1a130dfe67f8bb574e2fc08803ed1cda4d3ea00505193914",
+    "FarmersDelight-1.21.1-1.3.4.jar": "139ad7696462c89c03eea463f805abffa552526c5dadaadae221dd9624cb197c",
+    "supplementaries-1.21.1-4.0.2-neoforge.jar": "2c2e0c98e0cc21874d8b2130bc773a2a5a6cadd854b9c8163d0e1f32e2ddffb0",
+    "moonlight-1.21.1-3.7.2-neoforge.jar": "4a9f15108607cc70273f8a0b6eb24e1e99af8eef44bc3ae8681767ca7ce21b0f",
+    "Terralith_1.21.1_v2.6.2_Neoforge.jar": "d38bd304897731b42f6c013cdc07e082e74411e80c74aabcee385251beb3b546",
+    "lithostitched-1.8.1-neoforge-21.1.jar": "e0da669fa5facc61a09b9b7bae21b322993de1fcd1eb05787adffb7309598cca",
+    "SereneSeasons-neoforge-1.21.1-10.1.0.9.jar": "ce8cf6bd31f70b794fe97d88b4cd2beb45f83387fe20c8dcf39c92121ccaa723",
+    "GlitchCore-neoforge-1.21.1-2.1.0.2.jar": "59d2a3fb3d6877e43018fd6a2b199d526074a864276a5f49091409a1cdc62fae",
+    "betterdifficulty-1.1.1.jar": "e82426df3376638bd36247824a6d8f71593196a6a793354e3e1fc7777d25180a",
+    "lootr-neoforge-1.21.1-1.11.38.127.jar": "5c74de4709d1c13b25880fdd241a89d5d9f331346d20edc76f80ccd4d99dc66c",
+    "voicechat-neoforge-1.21.1-2.6.22.jar": "63116a4d21bd57221482d971dd85822f7c723c210b60411670cdb0aa26873cac",
+    "jei-1.21.1-neoforge-19.64.0.455.jar": "f7a9de3d7ee07eed8d293a1a1a0f6afaac556eb43c103523457bd07ebb551e7b",
+    "mezz_config-1.21.1-neoforge-0.6.10-standalone.jar": "6f596cec9b531dd386ad6342c3deb5b27de4b4a4754ce30835f8ecc2e75f8703",
+    "Jade-1.21.1-NeoForge-15.10.6.jar": "276f1f65a20d04f536989c4f311949d770b52c440c23c2b904a08860f3c93810",
+    "sophisticatedbackpacks-1.21.1-3.26.18.2235.jar": "1992897b0b8a2e93ea4887bc56571a0dfb7298b4d41d164c1fd2bf7b8c8817a5",
+    "sophisticatedcore-1.21.1-1.5.21.2439.jar": "ab80131de21ee1e18d29849136b05b5509d0cadff8c8303514d6d3dbd8c9e476",
+    "sophisticatedstorage-1.21.1-1.6.11.2211.jar": "512e78f6588378d8438237984fa714ad3049b8aea55a2dec1934d4b8fb9a49ca",
+    "lithium-neoforge-0.15.4+mc1.21.1.jar": "488f33216030c1cb0baa33e59de3d657d08d5795a6c2080c8c8bbbc133fc8757",
+    "ferritecore-7.0.3-neoforge.jar": "d87ea28262715ebff45b8a82d493e6b468e7a4521bc021df5d88302196d030a8",
+    "modernfix-neoforge-5.27.27+mc1.21.1.jar": "7010aae2e837122fe8dabd5932358e2ba334fcbc62ca6530cb1cb00402d2c63b",
+    "Chunky-NeoForge-1.4.23.jar": "d72f235cf1f56f2c374f52c00bdda5034524b28142305a84cfc123a3f92ad274",
+    "spark-1.10.124-neoforge.jar": "647e8a81afbe414dba1df4ba15fd06c5d32d4cb544e68828405e8e074c2e16db",
+    "LuckPerms-NeoForge-5.4.150.jar": "f161a939c7320e8a30569c37aae2c0f5bbb3cfbd77bebb233bd0f0787a2d0ef9",
+    "corpse-neoforge-1.21.1-1.1.22.jar": "3733d86452b9ac572e924c2946e15e6b7052cc8fc990911f1c79b36ac3651b9f"
+  },
+  "pack_configuration": "fresh defaults; fixture voice service binds loopback on game port + 1",
+  "adapter_sha256": "251236ef7f3afb26dbb0a830f68e188ef207f187886bf94e1276a8f982fbcba4",
+  "http_wss_same_origin": true,
+  "jvm_pid": 2406097,
+  "sdk_onboarding": [
+    {
+      "body": "VerifyBuilder",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "Viewera35b9c43",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad1",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad2",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad3",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad4",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad5",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad6",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad7",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad8",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad9",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    }
+  ],
+  "finished_at": 1793745150.4330285,
+  "jvm_stopped": true
+}

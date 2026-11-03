@@ -4,6 +4,7 @@ import threading
 import time
 import uuid
 import re
+import math
 from . import GatewayError, PrimitiveMethods, ActionHandle, _match_action_epoch, _raise_stored_error
 
 
@@ -60,12 +61,14 @@ class RealtimeClient(PrimitiveMethods):
                     if event.get('type')=='snapshot':
                         value=event['observation']
                         previous=self.observation or {}
-                        if event.get('resync') or previous.get('body_epoch')!=value.get('body_epoch') or previous.get('dimension')!=value.get('dimension'):
+                        resync=(self.observation is None or bool(event.get('resync'))
+                                or previous.get('body_epoch')!=value.get('body_epoch') or previous.get('dimension')!=value.get('dimension'))
+                        if resync:
                             previous={}
                         self.observation={**previous,**value}
                         self.received_at=time.monotonic()
                         self.sequence+=1
-                        self.snapshots.append((self.sequence,dict(self.observation),bool(event.get('resync'))))
+                        self.snapshots.append((self.sequence,dict(self.observation),resync))
                         self.snapshots=self.snapshots[-64:]
                     elif event.get('type')=='response' and event.get('request_id') in self.pending:
                         self.pending[event['request_id']]=event
@@ -178,21 +181,26 @@ class RealtimeClient(PrimitiveMethods):
         raise TimeoutError('Action is still pending according to the gateway')
 
     def action_results(self,action_id=None):
-        return self.request('GET','/v1/action-results',{'action_id':action_id} if action_id else None)['results']
+        return self.request('GET','/v1/action-results',{'action_id':action_id} if action_id is not None else None)['results']
 
     def reconnect(self,attempts=3,initial_delay=.1):
         """Explicit bounded reconnect. Reconcile IDs, never replay actions or resume a human stop."""
         if type(attempts) is not int or not 1<=attempts<=5:raise ValueError('attempts must be 1..5')
-        if not 0<=initial_delay<=5:raise ValueError('initial_delay must be 0..5 seconds')
+        if type(initial_delay) not in (int,float) or not math.isfinite(initial_delay) or not 0<=initial_delay<=5:
+            raise ValueError('initial_delay must be a finite 0..5 seconds')
         from websockets.exceptions import WebSocketException
         outstanding=dict(self.submitted)
         try:self.close()
         except (OSError,GatewayError,TimeoutError):pass
         for attempt in range(attempts):
+            sequence=self.sequence
             self.__init__(self.client)
+            # Paused subscription generators retain their cursor across explicit
+            # reconnect. Keep client-local ordering while discarding old state.
+            self.sequence=sequence
+            self.submitted=dict(outstanding)
             try:
                 self.connect()
-                self.submitted=dict(outstanding)
                 for rid in outstanding:
                     self.reconciled[rid]=self.action_results(rid)[0]
                 return self
@@ -202,6 +210,7 @@ class RealtimeClient(PrimitiveMethods):
                 if attempt==attempts-1:raise
             except (OSError,TimeoutError,WebSocketException):
                 self.close()
+                if (self.last_disconnect or {}).get('close_code')==1008:raise
                 if attempt==attempts-1:raise
             time.sleep(min(2,initial_delay*2**attempt))
 
