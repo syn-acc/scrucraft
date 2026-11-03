@@ -1,5 +1,10 @@
 # Gameplay API completion checklist
 
+**Area policy (development candidate):** No location or coordinate selection is
+required. Omitted/null `area` means unrestricted survival play. Area checks below
+apply only to optional owner-selected bounds. Normal survival, account ownership
+and human-stop controls remain. This policy change is not yet deployed.
+
 Working backlog, reviewed **2026-11-03**. This is the release checklist for a
 player-ready SDK, not an advertisement of currently supported operations.
 
@@ -23,6 +28,11 @@ does not mean deployed: record deployment separately in [release status](release
 Suggested order: **execution contract → observations and basic controls → world
 interactions → containers/crafting → recovery and complete gameplay validation**.
 Navigation validation can proceed alongside these stages.
+
+The current implementation effort uses these existing 40 items as its scope.
+There is no separate, narrower milestone replacing them. Candidate code and
+partial test coverage are tracked in [verification evidence](verification.md);
+passing one gameplay fixture does not complete a whole checklist section.
 
 ## 1. Execution contract — fix before adding more actions
 

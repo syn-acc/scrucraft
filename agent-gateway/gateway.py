@@ -16,7 +16,24 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = '0.2.0.dev1'
+VERSION = '0.3.0.dev1'
+TERMINAL = {'done', 'failed', 'cancelled'}
+RESULT_CORE = {'id','state','reason','body_epoch','tick','expires_at'}
+
+
+def unfinished(record):
+    return record['result']['state'] not in TERMINAL or bool(record['result'].get('details_pending'))
+
+
+def settle(record, state, reason):
+    record['result'].update(state=state, reason=reason)
+    record['result'].pop('details_pending', None)
+    record['result'].pop('details_retained_by_gateway', None)
+
+
+PRIMITIVES = {'move_to','look_at','stop','cancel','dig','place','use_item','release_use','use_on',
+              'attack','select_slot','swap_hands','drop','jump','sneak','sprint',
+              'open_container','move_item','close_container','craft','chat','query_blocks','query_recipes','query_inventory','query_recipe'}
 GOALS = {'rest', 'eat', 'gather_food', 'gather_wood', 'gather_ore',
          'collect_items', 'shelter', 'guard', 'explore'}
 JOBS = {'farmer', 'miner', 'builder', 'guard', 'medic', 'engineer'}
@@ -56,10 +73,10 @@ def area(value):
 
 
 def inside(position, bounds, dimension):
-    return (bounds is not None and bounds['dimension'] == dimension
-            and isinstance(position, list) and len(position) == 3
-            and all(type(n) in (int, float) and math.isfinite(n)
-                    and lo <= n < hi for n, lo, hi in zip(position, bounds['min'], bounds['max'])))
+    valid = (isinstance(position, list) and len(position) == 3
+             and all(type(n) in (int, float) and math.isfinite(n) for n in position))
+    return valid and (bounds is None or bounds['dimension'] == dimension
+                     and all(lo <= n < hi for n, lo, hi in zip(position, bounds['min'], bounds['max'])))
 
 
 def broker_request(value, socket_path):
@@ -106,6 +123,177 @@ class Gateway:
         self.enrollments = {}
         self.body_connections = {}
         self.stream_revision = 0
+        self.actions = {}  # Bounded, epoch-scoped receipts, including commands not seen by Java yet.
+        self.native_acks = {}
+
+    def update_results(self, name, observation=None):
+        records = self.actions.setdefault(name, {})
+        now = self.clock()
+        if observation:
+            epoch = observation.get('body_epoch')
+            acknowledgements=self.native_acks.setdefault(name,{'epoch':epoch,'ids':{}})
+            if acknowledgements['epoch']!=epoch:
+                acknowledgements={'epoch':epoch,'ids':{}};self.native_acks[name]=acknowledgements
+            for record in records.values():
+                if unfinished(record) and record['control']['body_epoch'] != epoch:
+                    settle(record, 'cancelled', 'body_changed')
+            for result in observation.get('action_results', []):
+                rid=result.get('id')
+                full_native=(result.get('state') in TERMINAL and not result.get('details_pending')
+                             and not result.get('details_retained_by_gateway')
+                             and result.get('body_epoch',epoch)==epoch)
+                if full_native and isinstance(rid,str):
+                    acknowledgements['ids'][rid]=None
+                    while len(acknowledgements['ids'])>512:acknowledgements['ids'].pop(next(iter(acknowledgements['ids'])))
+                record = records.get(rid)
+                if record is None and full_native and isinstance(epoch,str) and isinstance(rid,str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',rid):
+                    # A gateway restart may lose acceptance history while Java still has a full result.
+                    # Recover evidence without inventing a retryable request payload or original lease.
+                    record={'control':{'id':rid,'body_epoch':epoch},'payload':None,'receipt':dict(result),
+                            'result':dict(result,recovered=True),'lease_id':None,'created_at':now,
+                            'expires_at':now,'acknowledged':True,'full_result':True,'last_native':dict(result)}
+                    record['size']=len(json.dumps(record['result']));records[rid]=record
+                if record and record['control']['body_epoch'] == epoch and result.get('body_epoch', epoch) == epoch:
+                    if result.get('state') in TERMINAL | {'started'}:
+                        # Native terminal receipts supersede a conservative disconnect/timeout result.
+                        if (record['result']['state'] not in TERMINAL or result['state'] in TERMINAL) and result != record.get('last_native'):
+                            if result.get('details_pending') or result.get('details_retained_by_gateway'):
+                                if not record.get('full_result'):
+                                    record['result']=dict(result,body_epoch=epoch)
+                            else:
+                                record['result']=dict(result,body_epoch=epoch)
+                                record['full_result']=result['state'] in TERMINAL
+                            record['size']=len(json.dumps(record['result']))
+                            record['last_native']=dict(result)
+                        record['acknowledged'] = True
+        for record in records.values():
+            if unfinished(record) and now >= record['expires_at']:
+                reason='result_details_timeout' if record['result'].get('details_pending') else 'outcome_unknown_timeout'
+                settle(record, 'failed', reason)
+        while len(records)>512:
+            oldest=next((rid for rid,record in records.items() if not unfinished(record)),None)
+            if oldest is None:break
+            del records[oldest]
+        # Terminal results remain available for ten minutes, and at most 512 per body.
+        for rid in list(records):
+            if not unfinished(records[rid]) and now-records[rid]['created_at'] > 600:
+                del records[rid]
+                if name in self.frames:
+                    self.frames[name]['action_results']=[r for r in self.frames[name].get('action_results',[]) if r.get('id')!=rid]
+        # An additional memory bound protects against retained recipe/component payloads.
+        size=sum(r.get('size',512) for r in records.values())
+        for rid in list(records):
+            if size<=8*1024*1024:break
+            if not unfinished(records[rid]):
+                size-=records[rid].get('size',512)
+                del records[rid]
+                if name in self.frames:
+                    self.frames[name]['action_results']=[r for r in self.frames[name].get('action_results',[]) if r.get('id')!=rid]
+        return [dict(record['result']) for record in records.values()]
+
+    def cancel_actions(self, name, reason, lease_id=None):
+        for record in self.actions.get(name, {}).values():
+            if (lease_id is None or record['lease_id'] == lease_id) and unfinished(record):
+                settle(record, 'cancelled', reason)
+        frame = self.frames.get(name)
+        if frame:
+            frame['action_results'] = self.update_results(name)
+            frame['id'] = secrets.token_urlsafe(18)
+        with self.changed:
+            self.stream_revision += 1
+            self.changed.notify_all()
+
+    def release(self, name, reason):
+        lease = self.leases.pop(name, None)
+        if lease:
+            self.cancel_actions(name, reason, lease['id'])
+
+    def primitive(self, value, frame, body):
+        op = value.get('op')
+        require(isinstance(op,str) and op in PRIMITIVES, 'unsupported_operation', 422)
+        require(op in frame.get('raw_capabilities',[]), 'adapter_upgrade_required', 409)
+        require(isinstance(frame.get('body_epoch'),str) and value.get('body_epoch') == frame['body_epoch'], 'body_changed', 409)
+        fields = {'id','op','body_epoch','ttl_seconds'}
+        control = {'id':value.get('id'),'op':op,'body_epoch':frame['body_epoch']}
+        require(isinstance(control['id'],str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',control['id']))
+        ttl = value.get('ttl_seconds',30)
+        require(type(ttl) is int and 1 <= ttl <= 30)
+        control['timeout_ticks'] = ttl*20
+        target_ops = {'move_to','look_at','dig','place','use_on','open_container','query_blocks'}
+        if (op in target_ops and not (op=='use_on' and 'entity_id' in value)
+                and not (op=='query_blocks' and 'positions' in value)) or op == 'craft' and 'target' in value:
+            fields.add('target'); target=value.get('target')
+            require(isinstance(target,list) and len(target)==3 and all(type(n) in (int,float) and math.isfinite(n) and abs(n)<=30000000 for n in target))
+            if op not in {'move_to','look_at'}:require(all(type(n) is int for n in target), 'block_coordinates_required')
+            control['target']=target
+            if op in {'dig','place','use_on','open_container','craft'}:
+                require(inside(target,body['data'].get('area'),frame.get('dimension')), 'outside_work_area',403)
+        def integer(key,lo,hi):
+            fields.add(key); number=value.get(key)
+            require(type(number) is int and lo <= number <= hi)
+            control[key]=number
+        if op=='place' or op=='use_on' and 'target' in control:
+            fields.add('face'); face=value.get('face')
+            require(face in {'up','down','north','south','east','west'} if isinstance(face,str) else False)
+            control['face']=face
+        if op=='select_slot':integer('slot',0,8)
+        if op=='drop':integer('slot',0,40);integer('count',1,99)
+        if op=='attack' or op=='use_on' and 'entity_id' in value:integer('entity_id',0,2147483647)
+        if op in {'place','use_item','use_on'} and 'hand' in value:
+            fields.add('hand');require(value['hand'] in {'main','off'});control['hand']=value['hand']
+        if op in {'jump','sneak','sprint'}:
+            fields.add('enabled');require(type(value.get('enabled')) is bool);control['enabled']=value['enabled']
+        if op=='query_blocks':
+            if 'positions' in value:
+                fields.add('positions');positions=value['positions']
+                require(isinstance(positions,list) and 1<=len(positions)<=64)
+                require(all(isinstance(p,list) and len(p)==3 and all(type(n) is int and abs(n)<=30000000 for n in p) for p in positions))
+                control['positions']=positions
+            else:integer('radius',0,4)
+        if op=='query_recipes':
+            if 'offset' in value:integer('offset',0,2147483647)
+            if 'limit' in value:integer('limit',1,64)
+        if op=='query_inventory':
+            fields.add('inventory');inventory=value.get('inventory','player')
+            require(inventory in {'player','container'});control['inventory']=inventory
+            integer('slot',-1 if inventory=='player' else 0,40 if inventory=='player' else 255)
+            if 'offset' in value:integer('offset',0,16777216)
+            if 'limit' in value:integer('limit',1,16384)
+            if 'stack_revision' in value or value.get('offset',0)>0:
+                fields.add('stack_revision');revision=value.get('stack_revision')
+                require(isinstance(revision,str) and re.fullmatch(r'[0-9a-f]{64}',revision))
+                control['stack_revision']=revision
+        if op=='query_recipe':
+            fields.add('recipe_id');recipe=value.get('recipe_id')
+            require(isinstance(recipe,str) and len(recipe)<=256 and re.fullmatch(r'[a-z0-9_.-]+:[a-z0-9_./-]+',recipe));control['recipe_id']=recipe
+            if 'offset' in value:integer('offset',0,16777216)
+            if 'limit' in value:integer('limit',1,16384)
+            if 'recipe_revision' in value or value.get('offset',0)>0:
+                fields.add('recipe_revision');revision=value.get('recipe_revision')
+                require(isinstance(revision,str) and re.fullmatch(r'[0-9a-f]{64}',revision));control['recipe_revision']=revision
+        if op=='cancel':
+            fields.add('action_id');require(isinstance(value.get('action_id'),str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',value['action_id']));control['action_id']=value['action_id']
+        if op in {'move_item','close_container'} or op=='query_inventory' and control['inventory']=='container':
+            fields.add('session_id');require(isinstance(value.get('session_id'),str) and 1<=len(value['session_id'])<=80)
+            control['session_id']=value['session_id'];integer('revision',0,2147483647)
+        if op=='move_item':
+            integer('count',1,64)
+            for key in ('from','to'):
+                fields.add(key); slot=value.get(key)
+                require(isinstance(slot,dict) and set(slot)=={'inventory','slot'})
+                require(slot['inventory'] in {'player','container'} and type(slot['slot']) is int and 0<=slot['slot']< (36 if slot['inventory']=='player' else 256))
+                control[key]=dict(slot)
+        if op=='craft':
+            fields.add('recipe_id');require(isinstance(value.get('recipe_id'),str) and re.fullmatch(r'[a-z0-9_.-]+:[a-z0-9_./-]+',value['recipe_id']))
+            control['recipe_id']=value['recipe_id'];integer('count',1,64)
+        if op=='chat':
+            fields.add('text');text=value.get('text')
+            require(isinstance(text,str) and bool(text.strip()) and all(ord(c)>=32 and ord(c)!=127 and c!='§'
+                    and not 0xD800<=ord(c)<=0xDFFF for c in text))
+            require(sum(2 if ord(c)>0xFFFF else 1 for c in text)<=220,'chat_too_long')
+            require(not text.startswith('/'),'commands_not_supported');control['text']=text
+        require(set(value)<=fields,'unknown_action_fields')
+        return control,ttl
 
     def settings(self):
         return json.loads(self.config.read_text())
@@ -196,7 +384,7 @@ class Gateway:
     def active(self, name):
         lease = self.leases.get(name)
         if lease and lease['expires_at'] <= self.clock():
-            self.leases.pop(name, None)
+            self.release(name, 'lease_expired')
             lease = None
         return lease
 
@@ -227,12 +415,15 @@ class Gateway:
                         'max_agents': 10, 'agent_ownership': 'creating_player'}
             p = self.authenticate(headers.get('Authorization', ''))
             # Bound all authenticated work, including failed mutations.
-            self.limit(('request', p['hash']), .005)
+            # Safety release must never sit behind ordinary traffic's rate limit.
+            if (method,path) not in {('DELETE','/v1/goal'),('DELETE','/v1/lease')}:
+                self.limit(('request', p['hash']), .005)
             if path == '/v1/me' and method == 'GET':
                 return {'version': VERSION, 'owner': p['owner'], 'role': p['role'], 'agent': p['agent'],
                         'goals': sorted(GOALS), 'lease_seconds': 30, 'observation_max_age_seconds': 5,
                         'name_prefix_required': self.settings().get('name_prefix_required', True),
-                        'max_agents': 10, 'chat': 'outgoing_only', 'model_billing': 'bring_your_own'}
+                        'max_agents': 10, 'chat': 'capability_gated_public_stream', 'model_billing': 'bring_your_own',
+                        'limits': {'request_interval_ms':5,'outstanding_actions':32,'result_retention_seconds':600,'retained_results':512}}
             if path == '/v1/agents' and method == 'GET':
                 rows = self.db.execute('SELECT * FROM bodies WHERE owner=? ORDER BY name', (p['owner'],)).fetchall()
                 return {'agents': [self.describe(dict(row) | {'data': json.loads(row['data'])}) for row in rows
@@ -246,10 +437,17 @@ class Gateway:
             if path == '/v1/agent' and method == 'GET':
                 return self.describe(body)
             if path == '/v1/action-results' and method == 'GET':
-                return {'results': self.snapshot(body).get('action_results', [])}
+                self.update_results(name)
+                rows=self.result_rows(name)
+                if value.get('action_id'):
+                    rid=value['action_id']
+                    require(isinstance(rid,str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',rid))
+                    rows=[r for r in rows if r['id']==rid] or [{'id':rid,'state':'unknown','reason':'result_not_retained'}]
+                else:rows=self.compact_results(rows)
+                return {'results': rows, 'retention_seconds':600, 'maximum_results':512}
             if path == '/v1/agent' and method == 'DELETE':
                 self.manager(p)
-                self.leases.pop(name, None)
+                self.release(name, 'control_revoked')
                 body['data']['suspended'] = True
                 self.save(body)
                 self.provision('remove', name, body['data']['job'], self.settings()['provision_socket'])
@@ -263,7 +461,7 @@ class Gateway:
                 self.manager(p)
                 require(not body['data'].get('removed'), 'agent_removed', 409)
                 self.db.execute('UPDATE tokens SET enabled=0 WHERE agent=?', (name,))
-                self.leases.pop(name, None)
+                self.release(name, 'control_revoked')
                 token = self.issue(p['owner'], 'agent', name, player_uuid=p['player_uuid'])
                 return {'agent': name, 'token': token}
             if path == '/v1/resume' and method == 'POST':
@@ -276,6 +474,7 @@ class Gateway:
             if path == '/v1/observation' and method == 'GET':
                 self.limit(('observation', p['hash'], name), .9)
                 frame = dict(self.snapshot(body))
+                frame['action_results']=self.compact_results(self.result_rows(name))
                 lease = self.active(name)
                 frame['control'] = {'suspended': body['data'].get('suspended', False),
                                     'goal': self.goal(lease), 'lease_active': bool(lease)}
@@ -291,31 +490,35 @@ class Gateway:
             lease = self.lease(body, p, client_header(headers, 'Lease'))
             if path == '/v1/actions' and method == 'POST':
                 frame = self.snapshot(body)
-                op = value.get('op')
-                require(isinstance(op,str) and op in {'move_to','look_at','stop'}, 'unsupported_operation', 422)
-                require(op in frame.get('raw_capabilities',[]), 'adapter_upgrade_required', 409)
-                require(value.get('body_epoch') == frame.get('body_epoch'), 'body_changed', 409)
-                rid = value.get('id')
-                require(isinstance(rid,str) and re.fullmatch(r'[A-Za-z0-9_-]{16,80}',rid))
-                key=(lease['id'],path,rid)
+                control,ttl = self.primitive(value,frame,body)
+                rid=control['id'];op=control['op']
                 payload=json.dumps(value,sort_keys=True,allow_nan=False)
-                if key in self.receipts:
-                    previous,receipt=self.receipts[key]
-                    require(previous==payload,'request_id_reused',409)
-                    return receipt
-                self.limit(('primitive',name),.05)
-                ttl=value.get('ttl_seconds',30)
-                require(type(ttl) is int and 1<=ttl<=30)
-                control={'id':rid,'op':op,'body_epoch':frame['body_epoch'],'timeout_ticks':ttl*20}
-                if op!='stop':
-                    target=value.get('target')
-                    require(isinstance(target,list) and len(target)==3 and all(type(n) in (int,float) and math.isfinite(n) and abs(n)<=30000000 for n in target))
-                    control['target']=target
+                records=self.actions.setdefault(name,{})
+                self.update_results(name)
+                if rid in records:
+                    previous=records[rid]
+                    require(previous['payload']==payload,'request_id_reused',409)
+                    require(previous['lease_id']==lease['id'],'action_belongs_to_previous_lease',409)
+                    return dict(previous['receipt'])
+                require(sum(unfinished(r) for r in records.values())<32,'action_queue_full',429)
+                while len(records)>=512:
+                    oldest=next((key for key,r in records.items() if not unfinished(r)),None)
+                    require(oldest is not None,'result_capacity',503)
+                    del records[oldest]
+                # Protocol 2 carries a deduplicated queue; legacy bodies have only one mailbox.
+                protocol=frame.get('control_protocol',1)
+                if protocol<2:
+                    require(op in {'move_to','look_at','stop'},'adapter_upgrade_required',409)
+                    self.cancel_actions(name,'replaced_before_completion',lease['id'])
+                if op=='chat':
+                    self.limit(('chat',name),2)
+                    self.limit(('chat','global'),.2)
                 receipt={'id':rid,'state':'accepted','body_epoch':frame['body_epoch'],'expires_at':self.clock()+ttl}
-                # Bound receipts even when clients renew the same lease for days.
-                require(len(self.receipts)<4096,'receipt_capacity',503)
-                lease.update(control=control,control_until=self.clock()+ttl,goal=None)
-                self.receipts[key]=(payload,receipt)
+                records[rid]={'control':control,'payload':payload,'receipt':dict(receipt),'result':dict(receipt),
+                              'lease_id':lease['id'],'created_at':self.clock(),'expires_at':self.clock()+ttl,'acknowledged':False}
+                if protocol<2:lease.update(control=control,control_until=self.clock()+ttl)
+                lease['goal']=None
+                frame['action_results']=self.result_rows(name);frame['id']=secrets.token_urlsafe(18)
                 self.stream_revision += 1
                 self.changed.notify_all()
                 return receipt
@@ -325,10 +528,12 @@ class Gateway:
             if (path, method) in {('/v1/lease', 'DELETE'), ('/v1/goal', 'DELETE')}:
                 lease['goal'], lease['chat'] = None, None
                 lease.pop('control',None)
+                lease['generation']=lease.get('generation',0)+1
+                self.cancel_actions(name,'owner_stop',lease['id'])
                 self.stream_revision += 1
                 self.changed.notify_all()
                 if path == '/v1/lease':
-                    self.leases.pop(name, None)
+                    self.release(name, 'control_revoked')
                 return {'status': 'stopped', 'agent': name}
             if (path, method) not in {('/v1/goal', 'PUT'), ('/v1/chat', 'POST')}:
                 raise APIError(404, 'not_found')
@@ -348,14 +553,13 @@ class Gateway:
                 require(observed is not None and self.clock()-observed <= 5, 'observation_stale', 409)
                 goal = value.get('goal')
                 require(isinstance(goal, str) and goal in GOALS, 'goal_not_supported')
-                require(goal not in {'gather_food', 'gather_wood', 'gather_ore', 'collect_items'}
-                        or body['data'].get('area'), 'work_area_required', 403)
                 ttl = value.get('ttl_seconds', 30)
                 require(type(ttl) is int and 1 <= ttl <= 30)
                 lease['goal'] = {'goal': goal, 'request_id': request_id, 'expires_at': self.clock()+ttl}
                 lease.pop('control',None)
                 receipt = {'status': 'accepted', **lease['goal']}
             else:
+                require(self.snapshot(body).get('control_transport') != 'websocket', 'use_chat_primitive',409)
                 text = value.get('text')
                 require(isinstance(text, str) and 1 <= len(text) <= 256
                         and all(ord(c) >= 32 and c != '§' for c in text))
@@ -439,7 +643,7 @@ class Gateway:
             if (not row.get('agent') and addressed and re.search(r'\b(stop|wait|pause|stay)\b', text)
                     and row.get('at', 0) >= data['created_at']-2):
                 data['suspended'] = True
-                self.leases.pop(name, None)
+                self.release(name, 'control_revoked')
         if changed:
             data['seen_chat'] = seen[-128:]
             self.save(body)
@@ -447,7 +651,9 @@ class Gateway:
         fields = ('agent', 'tick', 'dimension', 'position', 'health', 'food', 'inventory',
                   'night', 'raining', 'sheltered', 'blocks', 'walkable', 'entities', 'last_action',
                   'adapter_version', 'survival_profile', 'advancements', 'deaths')
-        fields += ('body_epoch','raw_capabilities','action_results','control_transport','selected_slot','observation_ms')
+        fields += ('body_epoch','world_tick','average_tick_ms','raw_capabilities','action_results','control_transport','selected_slot','observation_ms',
+                   'control_protocol','inventory_revision','container','recipes','queried_blocks','public_chat',
+                   'active_actions','movement','hands','cursor','execution','sneaking','sprinting','jumping')
         snapshot = {k: observation[k] for k in fields if k in observation}
         old = self.frames.get(name)
         if observation.get('partial') and old and old.get('body_epoch') == observation.get('body_epoch') and old.get('dimension') == observation.get('dimension'):
@@ -460,6 +666,8 @@ class Gateway:
         old = self.frames.get(name)
         snapshot['id'] = old['id'] if old and old.get('tick') == observation['tick'] and old.get('body_epoch') == observation.get('body_epoch') else secrets.token_urlsafe(18)
         snapshot['captured_at'] = old['captured_at'] if old and old['id'] == snapshot['id'] else self.clock()
+        self.update_results(name, observation)
+        snapshot['action_results'] = self.result_rows(name, observation.get('action_results',[]))
         self.frames[name] = snapshot
         with self.changed:
             self.stream_revision += 1
@@ -472,12 +680,12 @@ class Gateway:
             self.member(body['owner'], data.get('owner_uuid'))
             require(data.get('owner_uuid') is not None, 'identity_required', 403)
         except (APIError, OSError, KeyError):
-            self.leases.pop(name, None)
+            self.release(name, 'control_revoked')
             lease = None
         if data.get('suspended') or data.get('removed'):
             lease = None
         if lease and not self.db.execute('SELECT 1 FROM tokens WHERE hash=? AND enabled=1', (lease['token_hash'],)).fetchone():
-            self.leases.pop(name, None)
+            self.release(name, 'control_revoked')
             lease = None
         goal = self.goal(lease)
         result = {'goal': goal['goal'] if goal else 'rest', 'area': data.get('area'),
@@ -493,21 +701,47 @@ class Gateway:
             result.update({k: lease['chat'][k] for k in ('say', 'announcement_id')})
         return result
 
+    def result_rows(self, name, native=None):
+        rows={r.get('id'):dict(r) for r in (native if native is not None else self.frames.get(name,{}).get('action_results',[]))
+              if not r.get('details_retained_by_gateway') or r.get('id') in self.actions.get(name,{})}
+        rows.update({r['result']['id']:dict(r['result']) for r in self.actions.get(name,{}).values()})
+        return list(rows.values())[-512:]
+
+    @staticmethod
+    def compact_results(rows):
+        return [{**{key:value for key,value in row.items() if key in RESULT_CORE},
+                 **({'details_available':True} if set(row)-RESULT_CORE else {}),
+                 **({'details_pending':True} if row.get('details_pending') else {})}
+                for row in rows]
+
     def realtime_control(self, name):
-        """Short renewable grants: a stalled bridge cannot leave movement latched on."""
-        body=self.body(name)
-        frame=self.snapshot(body)
-        reply={'kind':'idle','body_epoch':frame.get('body_epoch'),'valid_for_ticks':4}
+        """Short renewable grants; commands persist until acknowledged by the body."""
+        body=self.body(name);frame=self.snapshot(body)
+        modern=frame.get('control_protocol',1)>=2
+        reply={'kind':'controls' if modern else 'idle','body_epoch':frame.get('body_epoch'),'valid_for_ticks':4}
+        if modern:
+            self.update_results(name)
+            acknowledgements=self.native_acks.get(name,{})
+            reply.update(commands=[],lease_id=None,area=body['data'].get('area'),
+                         acknowledged_results=list(acknowledgements.get('ids',{})) if acknowledgements.get('epoch')==frame.get('body_epoch') else [])
         lease=self.active(name)
-        if not lease or body['data'].get('suspended') or body['data'].get('removed'):
-            return reply
+        if not lease or body['data'].get('suspended') or body['data'].get('removed'):return reply
         token=self.db.execute('SELECT * FROM tokens WHERE hash=? AND enabled=1',(lease['token_hash'],)).fetchone()
-        if not token:return reply
-        self.member(token['owner'],token['player_uuid'])
-        control=lease.get('control')
-        if control and lease.get('control_until',0)>self.clock() and control['body_epoch']==frame.get('body_epoch'):
-            done=any(row.get('id')==control['id'] and row.get('state') in {'done','failed','cancelled'} for row in frame.get('action_results',[]))
-            if not done:reply.update(control,kind='control')
+        if not token:
+            self.release(name,'credential_revoked');return reply
+        try:self.member(token['owner'],token['player_uuid'])
+        except (APIError,OSError,KeyError):
+            self.release(name,'membership_revoked');return reply
+        if modern:
+            reply['lease_id']=lease['id']+':'+str(lease.get('generation',0))
+            reply['commands']=[dict(r['control'],timeout_ticks=max(1,min(r['control']['timeout_ticks'],int((r['expires_at']-self.clock())*20)))) for r in self.actions.get(name,{}).values()
+                if r['lease_id']==lease['id'] and not r['acknowledged'] and r['result']['state']=='accepted'
+                and r['control']['body_epoch']==frame.get('body_epoch')][:16]
+        else:
+            control=lease.get('control')
+            if control and lease.get('control_until',0)>self.clock() and control['body_epoch']==frame.get('body_epoch'):
+                done=any(row.get('id')==control['id'] and row.get('state') in TERMINAL for row in self.result_rows(name))
+                if not done:reply.update(control,kind='control')
         return reply
 
 

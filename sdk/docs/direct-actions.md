@@ -1,113 +1,310 @@
-# Direct-action contract — 0.2 development
+# Direct action contract â€” protocol 2 candidate
 
-**Live experimental release, 2026-11-03.** Adapter 0.4.0 and gateway 0.2.0.dev1
-expose the primitives below. Lifecycle and identity use the
-[HTTP contract](../agent-sdk.md). [WebSockets](realtime.md) are live. Raw inventory transactions, digging,
-placement, crafting and containers are later work; no endpoint for them is promised.
 
-The player's agent plans the task. Java executes supported body operations and
-reports results. A new command can replace current work. Survival interruption,
-human stop and lease expiry must be handled as interruptions, not completion.
+**Area policy (development candidate):** No location or coordinate selection is
+required. Omitted/null `area` means unrestricted survival play. Area checks below
+apply only to optional owner-selected bounds. Normal survival, account ownership
+and human-stop controls remain. This policy change is not yet deployed.
 
-## Discover support
 
-A fresh observation may include:
+The candidate SDK/gateway **0.3.0.dev1** and adapter **0.5.0-dev1** implement this
+
+contract. **Not deployed.** Live adapter 0.4.0 advertises only move/look/stop;
+
+capability checks keep new calls from appearing successful against that release.
+
+See the [completion checklist](api-completion-checklist.md) for acceptance evidence
+
+and unresolved release gates. The gateway forwards single operations; task planning
+
+belongs in the player's agent.
+
+
+
+## Submission and authority
+
+
+
+HTTP `POST /v1/actions` and WSS `POST /v1/actions` use the identical JSON body:
+
+
 
 ```json
-{"body_epoch":"opaque-incarnation-id","raw_capabilities":["move_to","look_at","stop"],"action_results":[]}
+
+{"id":"movement_request_0001","op":"move_to","target":[1.5,64,2.5],"body_epoch":"observed-epoch","ttl_seconds":30}
+
 ```
 
-Absence of an operation from `raw_capabilities` means it is unavailable. Read this
-from the selected body, not from the SDK package version. `body_epoch` identifies
-the current body executor; after an epoch change, discard commands based on the
-old body and inspect its replacement. Body descriptions may also advertise
-`raw_capabilities`, but command submission needs a fresh observation.
 
-## Submit an action
 
-`POST /v1/actions` uses bearer, body and lease headers from the baseline contract.
+IDs are 16â€“80 ASCII letters/digits/underscore/hyphen. TTL is an integer 1â€“30
 
-```json
-{"id":"movement_request_0001","op":"move_to","target":[110.5,64,104.5],"body_epoch":"opaque-incarnation-id","ttl_seconds":30}
-```
+seconds, independent of the renewable 30-second lease. Every request checks the
 
-| Field | Requirement |
+current whitelist UUID, body ownership, lease, human-stop state, observed epoch
+
+and advertised capability. Coordinates must be finite and within Â±30000000;
+
+block coordinates are integers. Unknown fields are rejected. Work areas use an
+
+inclusive minimum and exclusive maximum, in the registered dimension. Native
+
+execution rechecks reach, line of sight, loaded chunks and work-area permissions;
+
+long-running work revalidates while executing. Container transfers revalidate
+
+the opened container even when the body has moved.
+
+
+
+`accepted` proves gateway acceptance only. A bounded queue retains commands until
+
+the native body acknowledges their IDs. Protocol 2 grants carry at most 16 queued
+
+commands, an epoch, work area, renewable 4-tick grant and lease generation. At most
+
+32 commands may be outstanding per body. Looking and navigation are independent;
+
+hand/inventory conflicts return explicit native `hand_busy` failures instead of
+
+silently replacing unrelated actions. New navigation cancels previous navigation.
+
+
+
+## Operations and wire fields
+
+
+
+All operations below also carry the common fields above. Optional `hand` is
+
+`main` (default) or `off` where listed. Every operation requires its own entry in
+
+`raw_capabilities`; SDK installation is not capability evidence.
+
+
+
+| Operation | Additional fields and semantics |
+
 | --- | --- |
-| `id` | 16–80 ASCII letters, digits, `_` or `-`; preserve for exact retries |
-| `op` | `move_to`, `look_at`, or `stop`, advertised by the selected body |
-| `body_epoch` | Exact epoch from a fresh observation |
-| `target` | Required for movement/look: three finite numbers, each within ±30000000 |
-| `ttl_seconds` | Integer 1–30, default 30; distinct from lease renewal |
 
-Receipt:
+| `move_to`, `look_at` | `target:[x,y,z]`; navigation does not implicitly mine or place |
 
-```json
-{"id":"movement_request_0001","state":"accepted","body_epoch":"opaque-incarnation-id","expires_at":1793700030}
-```
+| `select_slot` | `slot:0..8`, hotbar index |
 
-This means the gateway accepted the command. It is not a body result. Direct
-commands are limited to one per body per 0.05 seconds and require a fresh frame.
-The gateway checks support and epoch, with `422 unsupported_operation`,
-`409 adapter_upgrade_required`, or `409 body_changed` on rejection.
+| `swap_hands` | Exchange selected main hand and offhand stacks |
 
-## Read results
+| `drop` | `slot:0..40`, `count:1..99`; exact amount, explicit inventory slot |
 
-`GET /v1/action-results` needs the bearer and body headers, but no lease, and
-returns `{"results":[...]}` from a fresh snapshot. Results also appear in
-`action_results` observations. Match **ID and epoch**, not list order.
+| `jump`, `sneak`, `sprint` | `enabled:boolean`; held request, released by stop/grant loss |
 
-```json
-{"id":"movement_request_0001","state":"done","reason":"arrived","body_epoch":"opaque-incarnation-id"}
-```
+| `dig` | Integer `target`; selected tool, real break progress/durability/drops; no implicit walk |
+
+| `place` | Integer destination `target`, `face:up/down/north/south/east/west`, optional `hand`; support is destination minus face direction |
+
+| `use_item` | Optional `hand`; duration use remains active until finish, release, timeout or cancellation |
+
+| `release_use` | Release held use; the use request can end cancelled even when release produces an effect such as firing |
+
+| `use_on` | Block `target` + `face`, or mutually exclusive `entity_id`; optional `hand` |
+
+| `attack` | Integer `entity_id`; vanilla reach/cooldown; success means attack executed, not target killed |
+
+| `chat` | `text`: nonblank, at most220 UTF-16 code units (220 ASCII or110 supplementary Unicode characters); no slash commands, control characters, DEL or formatting control; per-body 2s/global 0.2s limit |
+
+| `open_container` | Integer `target`; returns session/revision and slot layout in result details |
+
+| `move_item` | `session_id`, `revision`, `from`, `to`, `count:1..64`; slot refs are `{inventory:"player"|"container",slot:n}` |
+
+| `close_container` | `session_id`, `revision`; release handles safely, including after moving away |
+
+| `craft` | `recipe_id:"namespace:path"`, `count:1..64` recipe executions; optional integer `target` for crafting table |
+
+| `query_blocks` | Integer center `target` + `radius:0..4`, or mutually exclusive `positions` list of 1..64 integer coordinates |
+
+| `query_recipes` | Optional `offset>=0`, `limit:1..64` (default32); result details contain page, total, next offset and supported types |
+| `query_inventory` | Explicit `slot` and `inventory:player|container`; byte `offset`, `limit:1..16384`, `stack_revision` after first page; container requires session/revision |
+| `query_recipe` | `recipe_id`, byte `offset`, `limit:1..16384`, `recipe_revision` after first page; complete descriptor read |
+
+| `cancel` | `action_id`; abort the named active action without cancelling compatible work |
+
+| `stop` | Native receipt-bearing stop for every control channel |
+
+
+
+Placement checks all affected cells for supported vanilla doors/beds/tall plants.
+
+Unsupported modded/scaffolding footprints fail explicitly. `use_on` rejects
+
+ambiguous block/bucket/bone-meal footprints; use `place` for supported blocks and
+
+`open_container` for container interactions. Player attacks follow the server PvP setting; disabled PvP produces an explicit
+
+`pvp_disabled` failure. Native item behavior can have side effects; a
+
+cancelled/failed action is **not** a transaction rollback.
+
+
+
+Container player slots are 0â€“35; container slots come from the opened session,
+
+not menu-global indices. Exact revisions prevent stale transfers. Supported native
+
+menus include storage and vanilla furnace/hopper/dispenser/brewing inventories;
+
+this does not expose automated processing or arbitrary mod machines. Crafting
+
+supports discoverable vanilla shaped/shapeless crafting recipe implementations,
+
+with real ingredient alternatives, output capacity and remainder handling.
+
+`count` counts recipe executions, not output items. Query metadata before crafting.
+
+
+
+## Results, cancellation and retry
+
+
+
+`GET /v1/action-results` requires ownership but no live lease or fresh body frame.
+
+Optional JSON body `{"action_id":"..."}` returns that result, or explicit
+
+`unknown/result_not_retained`. HTTP and WSS accept the same request. Compact outcomes are also merged into snapshots; full operation payloads are fetched
+
+by ID. Native details are acknowledged once retained, so large pages do not repeat
+
+on every tick. Deferred payloads carry `details_pending` and are not acknowledged
+
+until complete; SDK completion waits for them. Each row has `id`, `body_epoch`, `state`, a native
+
+`reason`, and optional operation-specific fields/tick. Match ID **and** epoch.
+
+
 
 | State | Meaning |
+
 | --- | --- |
-| `accepted` | Gateway receipt only; execution has not been proven |
-| `started` | Executor began work; for movement, path search has started |
-| `done` | Executor reports completion (`arrived`, `oriented`, or `stopped`) |
-| `failed` | Executor could not complete the request |
-| `cancelled` | Work was interrupted or replaced |
 
-These are snapshots of the latest result per ID, **not an append-only event log**.
-Fast `look_at` and `stop` operations may go straight to `done`; polling may miss
-`started`. The candidate keeps at most 64 results per body executor in memory.
-There is no durable cursor, replay subscription or retention-time guarantee.
-If a result is absent after reconnect/epoch change, the outcome is unknown.
+| `accepted` | Queued, execution not yet proven |
 
-Possible movement failure reasons include `target_out_of_range`, `invalid_endpoint`,
-`unreachable`, `search_budget_exhausted`, `blocked`, `timeout`, and `dead`.
-Other results can include `body_changed`, `invalid_arguments` or `replaced`.
-Handle additional reasons without crashing and retain the server's explanation.
+| `started` | Native executor acknowledged beginning work |
 
-## Navigation scope
+| `done` | Native executor completed its defined operation |
 
-The candidate walks through loaded terrain using bounded incremental path search
-and collision checks. It snaps targets to standing cells, supports a restricted
-set of steps/jumps/drops and replans around changes. Current limits include a
-64-block target distance, 4096 discovered search cells, and bounded retries.
-Arrival means reaching the selected standing cell, not exact arbitrary coordinates.
-Fluids and known damaging terrain are avoided. Swimming, ladders and door opening
-are not advertised capabilities. Movement does not mine, place, teleport or force
-chunk generation. Unit fixtures do not establish live navigation reliability.
+| `failed` | Rejected or could not finish; inspect reason |
 
-## Cancellation and retry boundaries
+| `cancelled` | Interrupted; effects before cancellation may remain |
 
-Primitive submission replaces a goal; goal submission replaces primitive control.
-Bodies opting into the direct WebSocket bridge reject goals with `use_primitive_stream`.
-Submitting `look_at` while moving also replaces the current command. Primitive
-`stop` is a command with an ID/result. The SDK's existing `stop()` instead calls
-`DELETE /v1/goal`, which clears pending control without producing a primitive-stop
-receipt. Neither acknowledges a persistent human stop.
+| `unknown` | Result no longer retained; inspect world/inventory before deciding |
 
-The SDK renews leases in the background but does not renew primitive actions.
-Commands expire independently. IDs are deduplicated within the current lease at
-the gateway and within the executor's bounded result cache; this is not a durable
-exactly-once transaction. On network ambiguity, inspect results before any new
-submission. Reusing an ID with different payload/epoch is not a valid retry.
 
-The current SDK `action()` fetches an observation and supplies its epoch. For an
-exact wire retry across uncertain state, preserve the original entire request;
-do not assume repeating `action()` after a body change reconstructs that request.
 
-Release gates include real-world navigation, cancellation/epoch tests, bounded
-tick cost and a combined adapter rollout during an explicitly approved window.
+Gateway results/idempotency are memory-bound to at most 512 actions per body and
+
+10 minutes from acceptance, also bounded to 8MiB per body (oldest terminal outcomes
+
+may be evicted earlier). Restart loses this history. Exact retries within the
+
+same active lease return the original acceptance; changed payloads or reuse from
+
+another lease fail. Native deduplication prevents resending the queued batch from
+
+executing a mutation twice. Never blindly replay after retention expiry/restart.
+
+Timeout without terminal native evidence reports `failed/outcome_unknown_timeout`;
+
+a subsequent native terminal receipt takes precedence. Disconnect cancellation is
+
+conservative: it is not evidence that no partial side effect occurred.
+
+
+
+`DELETE /v1/goal` (SDK `stop()`) cancels queued/active work, rotates the native grant
+
+generation and retains the client lease. `action("stop")` instead supplies a native
+
+receipt. Disconnect, credential/membership revocation, lease expiry, human stop
+
+and body replacement cancel control; grant loss clears held controls and container
+
+state. Human stop persists; only deliberate owner `resume()` clears it. Reconnect
+
+never calls resume. The legacy goal and chat routes fail on realtime bodies with
+
+`use_primitive_stream` / `use_chat_primitive`.
+
+
+
+## Observations, bounds and pacing
+
+
+
+Fast snapshots include complete inventory slots 0â€“8 hotbar, 9â€“35 main, 36â€“39 armor,
+
+40 offhand and -1 cursor, including explicit empties, counts, durability, components
+
+and inventory revision. `hands`, `selected_slot`, `execution`, container session
+
+state and action results accompany health/position. Entities are the nearest 64
+
+within a 16-block bounding region, with runtime IDs, type, position, velocity,
+
+visibility and relevant state; IDs are short lived. No unrelated chest inventory
+
+appears before an authorized open session.
+
+
+
+Block queries are within 32 blocks and do not generate chunks. They distinguish
+
+unloaded cells from air and return properties/dimension/tick; query details are
+
+also retained as `queried_blocks`. Recipe summaries are paginated on demand. Oversized ingredient summaries are
+explicitly marked; `query_recipe` retrieves the complete descriptor. Both full
+reads return UTF-8 JSON in Base64 byte chunks, pin a SHA-256 revision, and cap a
+single full result at 16MiB. Inventory revision hashes the UTF-8 item ID, NUL,
+count, NUL and component bytes; recipe revision hashes its descriptor bytes.
+Continuation with a changed revision fails explicitly. Container reads retain
+session, revision, reach and area checks. SDK `inventory_slot()` / `recipe()`
+reassemble and verify pages with an overall timeout (default30s) and size ceiling
+(default4MiB, configurable through16MiB); they never silently retry changed data. `public_chat`
+
+contains the bounded public message history with IDs/speaker/time; private login
+
+codes and private commands are not this stream. SDK chat subscriptions deduplicate
+
+IDs but cannot recover messages lost beyond the bounded history.
+
+
+
+Snapshots use latest-state backpressure, not a durable event log. The SDK reports
+
+sequence gaps/resync and observation age, clears stale state after reconnect/epoch
+
+change, and separates fast frames from slower terrain data. Global authenticated
+
+request minimum is 5ms; SDK WSS sends are paced to 6ms, without automatically
+
+retrying rejected mutations. A stop send does not wait behind another request's
+
+acknowledgement. `429` and retry timing remain visible. In-game acceptance and
+
+performance evidence belong to the checklist, not transport-only tests.
+
+
+`world_tick` is Minecraft world game time and matches native action/query tick
+fields. Outer `tick` is the adapter snapshot sequence, not world time.
+`average_tick_ms` is the rolling native average over up to 100 server ticks;
+it measures server tick cost, not network or action-completion latency.
+Unexpected native executor exceptions report `outcome_unknown_executor_error`
+with `reconciliation_required:true` and `side_effects:"unknown"`; inspect the
+world and retained outcomes before deciding whether another action is appropriate.
+
+Deferred native result payloads count toward the 32-outstanding-action limit until
+fully received. They terminate with `result_details_timeout` if delivery exceeds
+the action deadline; stop clears the pending marker immediately. A later complete
+native receipt can supersede that conservative outcome. Native results remain
+eligible for delivery until acknowledged, even outside the latest-64 window.
+Following a gateway restart, complete native outcomes may be recovered with
+`recovered:true`; their original request payload and lease are unknown, so replay
+is not authorized. Already-compacted or expired outcomes remain explicitly unknown.

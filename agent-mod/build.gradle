@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'net.neoforged.moddev' version '2.0.148'
 }
-version = '0.4.0'
+version = '0.5.0-dev1'
 group = 'gl.syn.minecraft'
 base { archivesName = 'syn-agents' }
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -35,3 +35,19 @@ tasks.register('verifyNavigationSearch', JavaExec) {
     mainClass = 'gl.syn.minecraft.NavigationSearchTest'
 }
 tasks.named('check') { dependsOn tasks.named('verifyNavigationSearch') }
+
+tasks.register('verifyIngredientAssignment', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'gl.syn.minecraft.IngredientAssignmentTest'
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyIngredientAssignment') }
+
+tasks.register('verifyBodyStreamEndpoint', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'gl.syn.minecraft.BodyStreamEndpointTest'
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyBodyStreamEndpoint') }

@@ -22,7 +22,14 @@ final class BodyStream implements AutoCloseable {
         this(http,name,epoch,token,URI.create("ws://127.0.0.1:8769/internal/body"));
     }
     BodyStream(HttpClient http,String name,String epoch,String token,URI endpoint) {
-        this.http=http;this.name=name;this.epoch=epoch;this.token=token;this.endpoint=endpoint;
+        this.http=http;this.name=name;this.epoch=epoch;this.token=token;this.endpoint=loopbackEndpoint(endpoint.toString());
+    }
+    static URI loopbackEndpoint(String value) {
+        URI uri=URI.create(value);
+        if(!"ws".equals(uri.getScheme())||!"127.0.0.1".equals(uri.getHost())||uri.getPort()<1||uri.getPort()>65535
+            ||!"/internal/body".equals(uri.getPath())||uri.getUserInfo()!=null||uri.getQuery()!=null||uri.getFragment()!=null)
+            throw new IllegalArgumentException("Body stream endpoint must be a loopback ws://127.0.0.1:PORT/internal/body URL");
+        return uri;
     }
     void connect() {
         if(closed||socket!=null||System.nanoTime()<retryAfter||!connecting.compareAndSet(false,true))return;
@@ -41,7 +48,7 @@ final class BodyStream implements AutoCloseable {
                 }
                 @Override public CompletionStage<?> onText(WebSocket ws,CharSequence data,boolean last) {
                     if(generation.get()!=attempt||closed){ws.abort();return null;}
-                    if(fragments.length()+data.length()>16384){ws.abort();failed(attempt);return null;}
+                    if(fragments.length()+data.length()>131072){ws.abort();failed(attempt);return null;}
                     fragments.append(data);
                     if(last) {
                         try {

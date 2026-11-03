@@ -212,12 +212,12 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(result['name'], 'Forge')
         self.assertEqual(self.g.db.execute('SELECT COUNT(*) FROM bodies').fetchone()[0], 1)
 
-    def test_no_work_area_prevents_resource_goals(self):
+    def test_no_work_area_allows_resource_goals(self):
         body = self.g.body('Forge')
         body['data']['area'] = None
         self.g.save(body)
         self.lease()
-        self.error(403, self.goal)
+        self.assertEqual('accepted', self.goal()['status'])
 
     def test_removed_agent_tokens_cannot_be_reused(self):
         h = dict(self.headers, **{'X-Syn-Agent': 'Forge'})
@@ -310,6 +310,13 @@ class GatewayTests(unittest.TestCase):
 
 
 class ExternalControllerTests(unittest.TestCase):
+    def test_no_area_allows_observed_resources_in_any_dimension(self):
+        for dimension in ('minecraft:overworld', 'minecraft:the_nether'):
+            o = frame()
+            o['dimension'] = dimension
+            o['blocks'] = [{'pos': [1, 64, 0], 'block': 'minecraft:oak_log'}]
+            self.assertEqual(controller.external_action(o, {'goal': 'gather_wood', 'area': None})['kind'], 'mine')
+
     def test_storage_and_unobserved_blocks_never_mined(self):
         for block in ('minecraft:chest', 'minecraft:barrel', 'minecraft:oak_planks'):
             o = frame()

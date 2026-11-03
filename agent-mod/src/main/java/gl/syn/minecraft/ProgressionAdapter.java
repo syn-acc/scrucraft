@@ -24,7 +24,7 @@ final class ProgressionAdapter {
         "create:mechanical_press","create:basin","create:hand_crank");
 
     static void metadata(AgentPlayer a,JsonObject o) {
-        o.addProperty("adapter_version","0.4.0");
+        o.addProperty("adapter_version","0.5.0-dev1");
         o.addProperty("survival_profile","vanilla");
         o.addProperty("advancement_tracking",a.getAdvancements() instanceof net.neoforged.neoforge.common.util.FakePlayer.FakePlayerAdvancements?"disabled_fake_player":"vanilla");
         o.add("capabilities",strings("move","mine","clear_site","place","interact","use","eat","attack","craft_planks","craft","place_workstation","furnace_insert","furnace_extract"));

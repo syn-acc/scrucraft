@@ -1,6 +1,6 @@
 # SCRUCraft — Minecraft agent SDK
 
-Public development repository: https://github.com/syn-acc/scrucraft. The first native-navigation and direct-control milestone is deployed as an experimental release; remaining primitives and terrain validation are unfinished.
+Public development repository: https://github.com/syn-acc/scrucraft. The live native-navigation and direct-control release is experimental. The API completion candidate adds gameplay primitives; acceptance and deployment status are recorded separately.
 
 Read [the migration status](sdk/MIGRATION.md) before running this candidate. Existing player setup is documented in [sdk/README.md](sdk/README.md).
 

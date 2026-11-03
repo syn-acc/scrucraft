@@ -1,0 +1,543 @@
+{
+  "schema": 1,
+  "fixture": "isolated_neoforge",
+  "synthetic_identity": true,
+  "production_world_used": false,
+  "cases": [
+    {
+      "name": "inventory_and_held_controls",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-02",
+        "ACT-04",
+        "ACT-05",
+        "ACT-06",
+        "OBS-01",
+        "OBS-07",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slots": 42,
+        "hotbar_slots_selected": 9,
+        "components_preserved": true,
+        "stop_released_toggles": true
+      },
+      "seconds": 1.39
+    },
+    {
+      "name": "flat_navigation_while_looking",
+      "checklist_ids": [
+        "EXEC-01",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": {
+          "id": "97fb70cc6a8440d89ccb9d1091b59e29",
+          "state": "done",
+          "reason": "arrived",
+          "body_epoch": "213a70a2-ea1b-4af2-83c7-a7f2d11c6ddf",
+          "tick": 165
+        },
+        "position": [
+          8.351674703141503,
+          64.0,
+          0.45021569976327397
+        ],
+        "look_did_not_cancel_or_redirect_navigation": true
+      },
+      "seconds": 5.337
+    },
+    {
+      "name": "dig_craft_place_container_chat",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-12",
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "ACT-16",
+        "OBS-03",
+        "OBS-04",
+        "OBS-05",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "log_consumed": 1,
+        "planks": {
+          "placed": 1,
+          "player": 1,
+          "chest": 2
+        },
+        "fixture_supplied": [
+          "one oak log block",
+          "crafting table",
+          "empty chest"
+        ],
+        "synthetic_identity_only": true
+      },
+      "seconds": 7.251
+    },
+    {
+      "name": "craft_recipe_remainders",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:cake",
+        "output": 1,
+        "bucket_remainders": 3
+      },
+      "seconds": 0.557
+    },
+    {
+      "name": "mutation_retry_conservation",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_retry_executions": 1,
+        "changed_payload_rejected": true
+      },
+      "seconds": 0.509
+    },
+    {
+      "name": "craft_full_inventory_atomic_failure",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "inventory_full",
+        "slots_unchanged": true,
+        "log_count": 2,
+        "occupied_storage_slots": 36
+      },
+      "seconds": 0.779
+    },
+    {
+      "name": "craft_mixed_tag_ingredients",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:chest",
+        "oak_planks_consumed": 4,
+        "birch_planks_consumed": 4,
+        "chests": 1
+      },
+      "seconds": 0.51
+    },
+    {
+      "name": "container_competing_mutation_stale_revision",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "old_revision": 1,
+        "new_revision": 2,
+        "failure": "stale_container_revision",
+        "external_mutation": "fixture console simulates another viewer",
+        "chest_stones": 2,
+        "player_stones": 0
+      },
+      "seconds": 0.784
+    },
+    {
+      "name": "container_named_damaged_stack_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "components_preserved": true,
+        "damage": 7,
+        "total_pickaxes": 1,
+        "round_trip": "player:0 -> container:0 -> player:1"
+      },
+      "seconds": 0.605
+    },
+    {
+      "name": "double_chest_second_half_work_area",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "inside_half": [
+          23,
+          64,
+          0
+        ],
+        "outside_half": [
+          24,
+          64,
+          0
+        ],
+        "area_max_x_exclusive": 24,
+        "failure": "outside_work_area"
+      },
+      "seconds": 0.693
+    },
+    {
+      "name": "recipe_discovery_paging_and_machine_rejection",
+      "checklist_ids": [
+        "OBS-06",
+        "ACT-15"
+      ],
+      "status": "passed",
+      "evidence": {
+        "discovered_recipes": 887,
+        "page_limit_obeyed": true,
+        "distinct_pages": true,
+        "machine_recipe_failure": "unsupported_recipe_type"
+      },
+      "seconds": 0.551
+    },
+    {
+      "name": "craft_missing_batch_ingredient_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "requested_executions": 2,
+        "available_logs": 1,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.648
+    },
+    {
+      "name": "craft_remainder_capacity_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_space_available": true,
+        "four_bottle_remainders_would_not_fit": true,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.648
+    },
+    {
+      "name": "container_blocked_and_removed",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "blocked_open_rejected": true,
+        "removed_session_invalidated": true,
+        "close_reason": "container_changed"
+      },
+      "seconds": 0.945
+    },
+    {
+      "name": "container_range_invalidation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "actual_navigation_out_of_range": true,
+        "session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 5.348
+    },
+    {
+      "name": "container_explicit_close_and_stop",
+      "checklist_ids": [
+        "ACT-16",
+        "OBS-05",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "explicit_close_invalidates": true,
+        "reopen_has_new_id": true,
+        "old_handle_rejected": true,
+        "stop_closed_session": true,
+        "stop_reason": "stopped",
+        "cursor_fixture": "empty"
+      },
+      "seconds": 0.798
+    },
+    {
+      "name": "container_furnace_native_slot_rules",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_partial_extraction": 1,
+        "output_remaining": 2,
+        "fuel_rule_enforced": true,
+        "output_insert_rejected": true,
+        "fixture_supplied_furnace_output": true,
+        "actual_smelting_or_xp_verified": false
+      },
+      "seconds": 0.702
+    },
+    {
+      "name": "large_components_bounded_observation_exact_transfer",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-01",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_component_bytes": 4845,
+        "ambient_json_omitted": true,
+        "full_metadata_hash_preserved": true,
+        "attributes_available": [
+          "count",
+          "damage",
+          "max_damage"
+        ],
+        "full_metadata_query_implemented": false
+      },
+      "seconds": 0.655
+    },
+    {
+      "name": "dig_hand_channel_and_explicit_cancel",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-03",
+        "ACT-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "selection_failure": "hand_busy",
+        "cancelled_dig_block_intact": true
+      },
+      "seconds": 1.14
+    },
+    {
+      "name": "dig_unbreakable_and_obstructed",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "unbreakable": "unbreakable",
+        "occluded": "out_of_reach_or_obstructed"
+      },
+      "seconds": 0.803
+    },
+    {
+      "name": "dig_tool_durability_and_natural_drop",
+      "checklist_ids": [
+        "ACT-07",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": "broken",
+        "pickaxe_broken": true,
+        "real_cobblestone_drop": 1
+      },
+      "seconds": 4.094
+    },
+    {
+      "name": "dig_revalidates_changed_target",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-06",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "target_changed",
+        "replacement_preserved": true
+      },
+      "seconds": 0.699
+    },
+    {
+      "name": "placement_area_and_two_cell_door",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "outside_area": "outside_work_area_gateway_403",
+        "door_cells": 2,
+        "doors_consumed": 1
+      },
+      "seconds": 0.804
+    },
+    {
+      "name": "placement_multiblock_secondary_cell_bounds",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "target_inside_area": true,
+        "upper_half_outside_area_rejected_natively": "outside_work_area",
+        "door_preserved": 1
+      },
+      "seconds": 0.646
+    },
+    {
+      "name": "held_bow_stop_without_release_side_effect",
+      "checklist_ids": [
+        "ACT-09",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "stop_aborted_bow_without_firing": true,
+        "arrows_preserved": 1
+      },
+      "seconds": 0.953
+    },
+    {
+      "name": "native_food_duration_and_consumption",
+      "checklist_ids": [
+        "ACT-09",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": "use_finished",
+        "bread_consumed": 1,
+        "native_duration_observed": true
+      },
+      "seconds": 7.748
+    },
+    {
+      "name": "attack_target_lifetime_and_cooldown",
+      "checklist_ids": [
+        "ACT-11",
+        "OBS-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "missing_target": "entity_missing",
+        "cooldown": "attack_cooldown",
+        "neutral_mob_attack_executed": true
+      },
+      "seconds": 0.689
+    },
+    {
+      "name": "navigation_half_slab_and_raised_stair_destinations",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slab": [
+          2.4772963463756197,
+          64.5,
+          0.5
+        ],
+        "raised": [
+          3.4678944927956663,
+          65.0,
+          0.5
+        ],
+        "stair": [
+          3.5690905996529123,
+          65.0,
+          4.5
+        ],
+        "alternate_routes_not_excluded": true
+      },
+      "seconds": 9.894
+    },
+    {
+      "name": "navigation_solid_target_and_timeout",
+      "checklist_ids": [
+        "VERIFY-01",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "solid_target": "invalid_endpoint",
+        "short_timeout": "timeout"
+      },
+      "seconds": 1.897
+    },
+    {
+      "name": "navigation_low_ceiling_collision",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "two_block_corridor_traversed": true,
+        "one_and_half_clearance_rejected": "timeout"
+      },
+      "seconds": 7.848
+    },
+    {
+      "name": "navigation_obstacle_inserted_during_route",
+      "checklist_ids": [
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "changed_terrain_outcome": "arrived",
+        "position": [
+          12.529691069557787,
+          64.0,
+          0.5431890236515537
+        ],
+        "collision_respected": true
+      },
+      "seconds": 8.555
+    },
+    {
+      "name": "ten_body_five_minute_instant_action_load",
+      "checklist_ids": [
+        "VERIFY-05"
+      ],
+      "status": "failed",
+      "error": "RuntimeError: can't start new thread",
+      "seconds": 50.214
+    }
+  ],
+  "started_at": 1793739097.48222,
+  "adapter_sha256": "c94312a85a3bc62f8cfbd717ce4c290dbcdb18f6658d5b513f291abdb05057ef",
+  "jvm_pid": 2054405,
+  "finished_at": 1793739262.6278222,
+  "jvm_stopped": true
+}

@@ -58,7 +58,7 @@ public final class NativeNavigator implements NavigationSearch.Terrain {
                 ||body.position().distanceToSqr(new Vec3(x,y,z))>64*64) {
             state="failed";reason="target_out_of_range";return;
         }
-        goal=cell(new Vec3(x,y,z));remaining=Math.min(1200,Math.max(20,timeoutTicks));
+        goal=cell(new Vec3(x,y,z));remaining=Math.min(1200,Math.max(1,timeoutTicks));
         stalled=0;replans=0;checkpoint=body.position();begin();
     }
     private void begin() {

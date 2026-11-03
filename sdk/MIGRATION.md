@@ -1,4 +1,4 @@
-# Direct-control migration: development milestone 1
+# Direct-control migration and candidate status
 
 The first milestone was deployed on 2026-11-03 in an explicitly approved restart
 window: Java adapter 0.4.0 and SDK/gateway 0.2.0.dev1. The direct WebSocket path,
@@ -17,7 +17,7 @@ remain active. The original controller uses `move`, `mine`, `place`, `interact`,
 Python selected goals and generated movement waypoints. There was no native
 navigator or Baritone integration.
 
-## Implemented in this first development milestone
+## Deployed baseline: 0.2.0.dev1 / adapter 0.4.0
 
 - Incremental native A* with bounded search size, tick slicing and loaded-terrain
   checks. Terrain edges use player collision boxes, half-block height samples,
@@ -29,8 +29,8 @@ navigator or Baritone integration.
   Each request carries a body incarnation ID, preventing stale commands from
   being applied after respawn. Accepted, started and terminal results are distinct.
 - `POST /v1/actions`, `GET /v1/action-results`, and SDK movement/orientation methods.
-  Existing owner/whitelist/lease/human-stop checks apply. Goal submission replaces
-  raw control and vice versa. Direct movement bypasses goal planning.
+  Existing owner/whitelist/lease/human-stop checks apply. Realtime bodies reject
+  goal submission. Direct movement bypasses goal planning.
 - Bidirectional authenticated WebSockets on `/v1/events`. First-message auth keeps
   tokens out of URLs. Slow receivers do not hold the gateway/controller mutex.
   Reconnect creates a fresh snapshot sequence; it does not replay commands.
@@ -51,23 +51,36 @@ does not call the goal controller, and goal submissions are explicitly rejected.
 Never expose `/internal/body` through nginx. These settings are enabled on the
 live adapter following the approved 2026-11-03 maintenance deployment.
 
-## Remaining migration and validation work
+## Current candidate: 0.3.0.dev1 / adapter 0.5.0-dev1
 
-1. Isolated in-game navigation fixtures: slabs/stairs, low ceilings, jump arcs,
-   falling, moving entities, terrain changes, chunk edges, death/respawn and stop.
-   Current fixtures test the search algorithm; compilation does not prove movement.
-2. Measure aggregate tick cost and scheduling fairness with ten bodies. The current
-   shared deadline is a starting budget, not a measured latency guarantee.
-3. Add dig/place/use/attack, hotbar/hands/drop, movement toggles, containers and
-   recipe-ID crafting with authoritative completion and real conservation checks.
-   Work-area checks must cover destinations and each container transaction.
-4. Add raw block queries, complete slot snapshots, nearby entity observations and
-   incoming public chat. Private chat remains excluded. Fast telemetry is separated
-   from terrain scans, but aggregate cost still needs measurement in Minecraft.
-5. Expand receipt retention and cancellation/reconnect tests; integrate navigation
-   with an explicit primitive scheduler. Unsupported operations must stay rejected.
-6. Prefix-free names and the WebSocket adapter are deployed. Preserve the recorded
-   backup/rollback path; further Java releases require a new maintenance window.
+The source now implements protocol 2 command queues and independent compatible
+controls; direct digging, placement, hand/inventory inputs, entity/block use,
+containers and recipe crafting; raw inventory/entity/block/public-chat observations;
+and synchronous/async SDK handles, readiness, diagnostics and bounded reconnect.
+This is **not deployed** and is not a declaration that the comprehensive checklist
+has passed. See the [candidate guide](candidate-guidance.md),
+[wire contract](docs/direct-actions.md), [native semantics](docs/native-executor.md)
+and [verification evidence](docs/verification.md).
+
+Results retain full operation payloads by ID while streamed snapshots are compact.
+Native detail acknowledgements and byte/count/time bounds prevent repeated recipe
+pages and container inventories from expanding every tick. Reconnection reconciles
+uncertain IDs; it never replays a mutation or clears a persistent human stop.
+
+## Remaining release work
+
+The [existing completion checklist](docs/api-completion-checklist.md) remains the
+complete scope. Its acceptance criteria are unchanged. Isolated native cases must
+cover each specified success/failure edge, including navigation terrain, real
+inventory conservation, cancellation/revocation/death, and container contention.
+Transport tests and successful compilation do not establish those behaviors.
+
+Actual in-game login delivery still needs a participating whitelisted player.
+Ten-body performance needs the predeclared targets and retained raw evidence in
+[verification](docs/verification.md); small fixtures do not establish production
+capacity. Production mod interactions, final package/example checks and rollback
+remain release gates. Further Java deployment requires a new approved maintenance
+window; the completed baseline window does not authorize another restart.
 
 ## References, not dependencies
 

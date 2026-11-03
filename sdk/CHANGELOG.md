@@ -3,6 +3,18 @@
 Package versions are separate from Minecraft client-pack and adapter versions.
 See [release status](docs/release-status.md) before using development features.
 
+## 0.3.0.dev1 — candidate, not deployed
+
+- Protocol 2 bounded command queue, retained outcomes, native result acknowledgements
+  and compact snapshots. Compatible look/navigation controls are independent.
+- Direct inventory/hand/toggle, world/entity, container/crafting and public chat
+  operations, plus explicit block and recipe queries, gated by executor capabilities.
+- Sync and async action handles, finite readiness, typed subscriptions, diagnostics,
+  and bounded reconnect/resync that reconciles results without mutation replay.
+- Structured native failures, per-call authority/work-area checks and prompt safety
+  stop. Full gameplay and performance evidence is tracked by the existing checklist;
+  see [verification](docs/verification.md). Production remains on the release below.
+
 ## 0.2.0.dev1 â€” live experimental release, 2026-11-03
 
 - First direct-control milestone: capability-gated movement, looking and stopping,

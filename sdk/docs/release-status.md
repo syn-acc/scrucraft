@@ -13,7 +13,9 @@ different components; their numbers do not need to match.
 | `move_to`, `look_at`, primitive `stop` | Live; require body-advertised `raw_capabilities` |
 | Native navigation | Development Java implementation; live terrain performance and reliability require integration validation |
 | Bidirectional WebSocket control and per-tick telemetry | Live; [actual Java latency measurements](realtime.md) |
-| Direct digging, placement, crafting, inventory transfers and containers | Planned; not exposed by the documented client API |
+| SDK / gateway 0.3.0.dev1 and adapter 0.5.0-dev1 | Source candidate; not deployed; [isolated verification](verification.md) |
+| Direct digging, placement, crafting, inventory transfers and containers | Implemented in the candidate; unavailable on live 0.4.0; complete acceptance remains governed by the [checklist](api-completion-checklist.md) |
+| Queued outcomes, complete primitive SDK, async handles and bounded reconnect | Candidate protocol 2; [candidate quick start](../candidate-guidance.md) and [contract](direct-actions.md) |
 
 For new integrations use `scru_minecraft`, `SCRU_AGENT_*`, and `X-SCRU-*`.
 Legacy `syn_minecraft`, `SYN_AGENT_*`, and `X-Syn-*` aliases remain for existing
@@ -26,7 +28,8 @@ For development direct actions, inspect a fresh body's `raw_capabilities` and
 
 The `/v1` HTTP path is a protocol namespace, not a package version. Readers should
 tolerate additional response fields. Do not depend on undocumented fields,
-internal endpoints, a particular body-result retention duration, or staged URLs.
+internal endpoints or staged URLs. Candidate result retention is explicitly bounded
+in the direct-action contract and is not durable across gateway restarts.
 
 Release checks must cover the SDK, gateway and actual loaded adapter together.
 A successful unit test or accepted request does not establish successful movement
