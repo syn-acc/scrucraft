@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-03",
+  "temporary_probe_removed": true,
+  "runs": [
+    {
+      "label": "UK host via public TLS endpoint",
+      "endpoint": "https://uk.syn.gl/minecraft-agents/v1/events",
+      "samples": 100,
+      "operation": "look_at",
+      "adapter": "0.4.0",
+      "body_transport": "websocket",
+      "measurement": "client send to actual Java oriented result received over public WSS",
+      "ack_ms": {
+        "p50": 2.264,
+        "p95": 3.286,
+        "p99": 6.252,
+        "max": 6.252
+      },
+      "java_done_round_trip_ms": {
+        "p50": 30.322,
+        "p95": 80.7,
+        "p99": 400.865,
+        "max": 400.865
+      },
+      "gateway_processing_ms": {
+        "p50": 1.043,
+        "p95": 1.535,
+        "p99": 2.566,
+        "max": 2.566
+      },
+      "observed_tps": 20.08,
+      "health_before": 20.0,
+      "health_after": 20.0
+    },
+    {
+      "label": "Jamie Windows client via internet WSS",
+      "endpoint": "https://uk.syn.gl/minecraft-agents/v1/events",
+      "samples": 100,
+      "operation": "look_at",
+      "adapter": "0.4.0",
+      "body_transport": "websocket",
+      "measurement": "client send to actual Java oriented result received over public WSS",
+      "ack_ms": {
+        "p50": 5.834,
+        "p95": 6.795,
+        "p99": 13.545,
+        "max": 13.545
+      },
+      "java_done_round_trip_ms": {
+        "p50": 30.4,
+        "p95": 62.563,
+        "p99": 67.648,
+        "max": 67.648
+      },
+      "gateway_processing_ms": {
+        "p50": 1.059,
+        "p95": 1.767,
+        "p99": 2.19,
+        "max": 2.19
+      },
+      "observed_tps": 20.11,
+      "health_before": 20.0,
+      "health_after": 20.0
+    },
+    {
+      "label": "UK host warmed-up public TLS",
+      "endpoint": "https://uk.syn.gl/minecraft-agents/v1/events",
+      "samples": 200,
+      "operation": "look_at",
+      "adapter": "0.4.0",
+      "body_transport": "websocket",
+      "measurement": "client send to actual Java oriented result received over public WSS",
+      "ack_ms": {
+        "p50": 2.238,
+        "p95": 3.014,
+        "p99": 3.655,
+        "max": 3.775
+      },
+      "java_done_round_trip_ms": {
+        "p50": 27.503,
+        "p95": 58.389,
+        "p99": 64.977,
+        "max": 69.975
+      },
+      "gateway_processing_ms": {
+        "p50": 1.024,
+        "p95": 1.536,
+        "p99": 2.071,
+        "max": 2.287
+      },
+      "observed_tps": 20.04,
+      "health_before": 20.0,
+      "health_after": 20.0
+    }
+  ]
+}

@@ -3,14 +3,17 @@
 Package versions are separate from Minecraft client-pack and adapter versions.
 See [release status](docs/release-status.md) before using development features.
 
-## 0.2 development — unreleased
+## 0.2.0.dev1 — live experimental release, 2026-11-03
 
 - First direct-control milestone: capability-gated movement, looking and stopping,
   with body epochs and executor results. Native navigation is developed alongside
-  the Java adapter and requires integration verification and approved deployment.
+  the Java adapter. Adapter 0.4.0 was deployed in an approved restart window;
+  terrain traversal reliability still requires integration verification.
 - Reorganized client documentation; explicit live/development contracts, OpenAPI,
   access model, troubleshooting and read-only examples.
-- WebSocket streaming and inventory/container actions remain planned.
+- Bidirectional WebSockets and per-tick telemetry deployed and verified with
+  actual Java look-action results. Windows-client p95 completion: 62.563 ms.
+- Prefix-free names are live. Inventory/container actions remain planned.
 
 ## 0.1.2 — published baseline, 2026-11-02
 

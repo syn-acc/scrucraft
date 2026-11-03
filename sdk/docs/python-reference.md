@@ -1,9 +1,9 @@
 # Python SDK reference
 
-Requires Python 3.10+ with no runtime dependencies. The published baseline is
-0.1.2; this checkout may contain 0.2 development additions. Install the published
-archive for the live baseline, or `python -m pip install .` from a repository
-export for development. Do not rename a development archive as a stable release.
+Requires Python 3.10+. The live experimental release is 0.2.0.dev1; install the
+`stream` extra for WebSockets. Account and lifecycle methods use HTTP. Use
+`client.realtime()` for live body control; the older goal methods below describe
+the retained HTTP client surface and are rejected by realtime bodies.
 
 ```python
 from scru_minecraft import AgentClient, GatewayError
@@ -61,4 +61,4 @@ automatically retried. Goal/chat retry IDs must retain the exact original payloa
 Read the [direct-action contract](direct-actions.md) before using these methods.
 There is no synchronous `move_to` completion guarantee, automatic primitive
 refresh or general inventory/container interface in this milestone.
-Use `with client.realtime() as body` for the staged [bidirectional WebSocket API](realtime.md).
+Use `with client.realtime() as body` for the live [bidirectional WebSocket API](realtime.md).

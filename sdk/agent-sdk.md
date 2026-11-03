@@ -1,6 +1,9 @@
 # SCRU player-agent HTTP contract
 
-**Baseline:** gateway/SDK 0.1.2. **Development additions:**
+**Live:** gateway/SDK 0.2.0.dev1 with [WebSocket body control](docs/realtime.md).
+The identity/lifecycle contract below remains valid. Goal and chat execution
+describe the historical 0.1.2 flow; realtime bodies reject goals and do not execute
+queued goal-controller chat. **Direct actions:**
 [0.2 direct actions](docs/direct-actions.md). Reviewed 2026-11-03 against gateway
 source and deployment records; this review did not complete a real player login.
 

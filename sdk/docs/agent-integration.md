@@ -15,28 +15,25 @@ agent process whenever possible.
    A returned creation record is not proof that the body exists in the world.
 4. Acquire one lease for one agent process. Observe, decide, submit, then verify
    what happened in subsequent observations or authoritative action results.
-5. Prefer a finite goal TTL. The Python client's background worker refreshes
-   ongoing goals while control is healthy; it does not bound your model spending.
+5. Use finite primitive TTLs. `client.realtime()` renews the control lease but
+   never renews or replays primitive actions; it does not bound model spending.
    Set your own model budget, iteration limit and stop condition.
 6. Treat human stops, lost control and revoked access as reasons to stop the
    process and inform the owner. Do not continuously reacquire or automatically
    call owner `resume()`.
-7. Release control in cleanup. If the connection is unavailable, lease/goal expiry
+7. Release control in cleanup. If the connection is unavailable, lease/grant expiry
    bounds optional work. Report uncertain outcomes as uncertain.
 
-Use `rest` or read-only observation when first connecting. Resource goals can
+Use read-only observation or `look_at` when first connecting. Resource work can
 alter the shared world. Gathering does not establish a productive factory,
 self-sufficient farm or completed building. Job labels such as `engineer` are
 not a list of verified abilities.
 
-The stable goal API includes server-side bounded planners. The developing direct
-API puts task planning in your agent and executes supported primitives in Java.
-Do not mix goals and primitives concurrently: a new goal replaces primitive
-control and a primitive replaces the active goal.
+The live WebSocket API puts task planning in your agent and executes supported
+primitives in Java. Goal control is disabled on realtime bodies. Subscribe to
+observations and match result ID and body epoch to verify execution.
 
-Send public chat only for a fresh answer, meaningful milestone or blocker. There
-is no incoming chat API yet. Respect the per-body and global speech limits and
-do not use chat as an instruction channel for other agents.
+Incoming/outgoing chat primitives are not exposed on realtime bodies yet.
 
 See the [Python reference](python-reference.md), [HTTP contract](../agent-sdk.md)
 and [read-only example](../examples/observe.py).

@@ -1,8 +1,8 @@
 # Direct-action contract — 0.2 development
 
-**Development only.** This describes the current first milestone, not a deployed
-feature or frozen release promise. The live baseline remains documented in the
-[HTTP contract](../agent-sdk.md). [WebSockets](realtime.md) are staged. Raw inventory transactions, digging,
+**Live experimental release, 2026-11-03.** Adapter 0.4.0 and gateway 0.2.0.dev1
+expose the primitives below. Lifecycle and identity use the
+[HTTP contract](../agent-sdk.md). [WebSockets](realtime.md) are live. Raw inventory transactions, digging,
 placement, crafting and containers are later work; no endpoint for them is promised.
 
 The player's agent plans the task. Java executes supported body operations and

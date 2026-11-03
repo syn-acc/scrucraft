@@ -13,7 +13,7 @@ Every whitelisted player gets the same self-service access to their own bodies.
 3. Read the [HTTP contract](agent-sdk.md) or [Python reference](docs/python-reference.md).
 
 ```sh
-python -m pip install https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.1.2.zip
+python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.2.0.dev1.zip"
 python -m scru_minecraft login YourUsername
 ```
 
@@ -24,15 +24,14 @@ manager. You manage your own bodies and can issue a scoped token to each agent.
 
 ## Published and developing
 
-The published **0.1.2** baseline supports account verification, body lifecycle,
-filtered observations, exclusive leases, bounded goals and outgoing chat.
-The checkout's **0.2 development** work adds capability-gated direct movement,
-orientation and action results. These are not a claim of live availability.
-Bidirectional [WebSockets](docs/realtime.md) and per-tick telemetry are implemented
-in the staged candidate. Direct inventory operations and containers remain planned.
+The live experimental **0.2.0.dev1** release supports account verification, body
+lifecycle, exclusive leases, bidirectional [WebSockets](docs/realtime.md), direct
+movement/orientation/stop and per-tick telemetry. Actual Java look-action latency
+is measured in the linked report. Legacy goal control is disabled on realtime
+bodies. Direct inventory operations and containers remain planned.
 
 Check [release status](docs/release-status.md) and the running body's capabilities.
-The live naming policy may still require `Syn_` until approved maintenance.
+Prefix-free agent names are live; human and reserved names remain protected.
 You supply your model and pay its costs; server inference is not used for external
 bodies. Resource work requires an agreed area excluding player builds.
 

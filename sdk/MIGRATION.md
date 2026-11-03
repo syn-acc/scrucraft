@@ -1,8 +1,9 @@
 # Direct-control migration: development milestone 1
 
-This branch is **not deployed**. Production remains SDK/gateway 0.1.2 with the
-goal API. The staged Java adapter is 0.4.0; the SDK/gateway development version
-is 0.2.0.dev1. Do not publish this candidate over the current downloads.
+The first milestone was deployed on 2026-11-03 in an explicitly approved restart
+window: Java adapter 0.4.0 and SDK/gateway 0.2.0.dev1. The direct WebSocket path,
+prefix-free names and actual Java look-action latency are verified live. The
+remaining migration work below is not complete. [Live results](docs/realtime.md).
 
 ## What the body actually is
 
@@ -31,7 +32,7 @@ navigator or Baritone integration.
   tokens out of URLs. Slow receivers do not hold the gateway/controller mutex.
   Reconnect creates a fresh snapshot sequence; it does not replay commands.
 
-The staged adapter now has a direct loopback WebSocket bridge, bypassing the
+The live adapter now has a direct loopback WebSocket bridge, bypassing the
 one-second controller HTTP cycle. Lightweight telemetry and action results are
 sampled each game tick (nominally 20 Hz); terrain scans remain about once a second.
 Snapshots coalesce under backpressure. Grants expire after 200 ms without renewal;
@@ -44,10 +45,10 @@ the nginx upgrade route. The listener binds loopback port 8769. The adapter opts
 in using `control_transport: "websocket"` in the existing private
 `agent-service/gateway.json`; it reads that file's `token_file`. In this mode it
 does not call the goal controller, and goal submissions are explicitly rejected.
-Never expose `/internal/body` through nginx. These are staged configuration
-instructions; do not enable them on the current live adapter.
+Never expose `/internal/body` through nginx. These settings are enabled on the
+live adapter following the approved 2026-11-03 maintenance deployment.
 
-## Still required before production release
+## Remaining migration and validation work
 
 1. Isolated in-game navigation fixtures: slabs/stairs, low ceilings, jump arcs,
    falling, moving entities, terrain changes, chunk edges, death/respawn and stop.
@@ -62,8 +63,8 @@ instructions; do not enable them on the current live adapter.
    from terrain scans, but aggregate cost still needs measurement in Minecraft.
 5. Expand receipt retention and cancellation/reconnect tests; integrate navigation
    with an explicit primitive scheduler. Unsupported operations must stay rejected.
-6. Build one maintenance release including prefix-free names. Preserve the world's
-   backup/rollback path and request a new agreed maintenance window before applying.
+6. Prefix-free names and the WebSocket adapter are deployed. Preserve the recorded
+   backup/rollback path; further Java releases require a new maintenance window.
 
 ## References, not dependencies
 

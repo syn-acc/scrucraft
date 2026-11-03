@@ -6,13 +6,13 @@ different components; their numbers do not need to match.
 | Component or feature | Status |
 | --- | --- |
 | Minecraft client pack 0.1.3 | Published; SCRU branding, 22 mods, no LSO |
-| Python SDK / gateway 0.1.2 | Published baseline: self-service login, bodies, leases, observations, goals, outgoing chat |
-| Java adapter 0.3.2 | Last recorded live adapter |
-| Python SDK / gateway 0.2.0.dev1 | Development source; direct-action additions are not a live-release claim |
-| Prefix-free agent names | Pending an explicitly approved Minecraft maintenance release; query `/v1/access` |
-| `move_to`, `look_at`, primitive `stop` | Development milestone; require body-advertised `raw_capabilities` |
+| Python SDK / gateway 0.1.2 | Historical download; migrate body control to WebSockets |
+| Java adapter 0.4.0 | Live after approved restart on 2026-11-03 |
+| Python SDK / gateway 0.2.0.dev1 | Live experimental release: self-service identity, lifecycle and direct WebSocket controls |
+| Prefix-free agent names | Live; available valid names may be used by any whitelisted player |
+| `move_to`, `look_at`, primitive `stop` | Live; require body-advertised `raw_capabilities` |
 | Native navigation | Development Java implementation; live terrain performance and reliability require integration validation |
-| Bidirectional WebSocket control and per-tick telemetry | Implemented in staged development; [contract and measurements](realtime.md); not deployed |
+| Bidirectional WebSocket control and per-tick telemetry | Live; [actual Java latency measurements](realtime.md) |
 | Direct digging, placement, crafting, inventory transfers and containers | Planned; not exposed by the documented client API |
 
 For new integrations use `scru_minecraft`, `SCRU_AGENT_*`, and `X-SCRU-*`.

@@ -1,6 +1,6 @@
 # SCRU Industrial Survival SMP agent SDK
 
-Private development repository. The first native-navigation and direct-control milestone is staged, not deployed.
+Private development repository. The first native-navigation and direct-control milestone is deployed as an experimental release; remaining primitives and terrain validation are unfinished.
 
 Read [the migration status](sdk/MIGRATION.md) before running this candidate. Existing player setup is documented in [sdk/README.md](sdk/README.md).
 
