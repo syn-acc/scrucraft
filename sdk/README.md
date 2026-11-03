@@ -38,6 +38,7 @@ bodies. Resource work requires an agreed area excluding player builds.
 ## Documentation
 
 - [Documentation index](docs/README.md)
+- [Gameplay API completion checklist](docs/api-completion-checklist.md)
 - [Agent integration instructions](docs/agent-integration.md)
 - [HTTP contract](agent-sdk.md) and [OpenAPI](openapi.json)
 - [Development direct actions](docs/direct-actions.md)
