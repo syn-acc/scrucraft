@@ -6,7 +6,7 @@ per second per body. Each body starts with 350 retained, already acknowledged
 receipts. The synthetic executor completes look actions without Minecraft.
 The process CPU measurement includes the gateway, synthetic bodies, and SDK clients.
 
-Commit `483e29cab38ec5eee9c95212c207bad747dd951a` contains the source before
+Commit `1ca5452d0786cbdc3055c68c27f988a70252d5cf` contains the source before
 the development optimization, matching the 194-test frozen handoff runtime. The current development source changes targeted
 condition notifications, pending native ACK retention, and bounded public receipt
 windows. SDK fallback additionally queries missing receipts once when a snapshot
@@ -39,7 +39,7 @@ revocation/stop, and targeted condition notifications.
 Run from the repository with `agent-gateway/requirements.txt` installed:
 
 ```sh
-git worktree add /tmp/scru-baseline 483e29cab38ec5eee9c95212c207bad747dd951a
+git worktree add /tmp/scru-baseline 1ca5452d0786cbdc3055c68c27f988a70252d5cf
 python benchmarks/transport/profile_stream.py --source /tmp/scru-baseline/agent-gateway --seconds 8 --history 350
 python benchmarks/transport/profile_stream.py --seconds 8 --history 350
 ```
