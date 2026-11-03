@@ -1,12 +1,14 @@
 package gl.syn.minecraft;
 
 import com.google.gson.*;
+import gl.syn.minecraft.mixin.ServerPlayerGameModeAccessor;
 import java.util.*;
 import java.util.function.Consumer;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.*;
@@ -22,6 +24,8 @@ public final class PrimitiveControl {
     private final NativeNavigator navigator;
     private final BodyInventory inventory;
     private final LinkedHashMap<String,JsonObject> results=new LinkedHashMap<>(),payloads=new LinkedHashMap<>();
+    private final Map<String,Long> deadlines=new HashMap<>();
+    private final Map<String,Long> monotonicDeadlines=new HashMap<>();
     private String active, digging, using, lease;
     private int resultRotation;
     private static final Set<String> RESULT_CORE=Set.of("id","state","reason","body_epoch","tick");
@@ -33,7 +37,7 @@ public final class PrimitiveControl {
     private BlockState digState;
     private ItemStack digTool;
     private int digTicks, useTicks;
-    private boolean digStopped, breakAttempt, jumping,sneaking,sprinting;
+    private boolean breakAttempt, jumping,sneaking,sprinting;
     private Float lookYaw,lookPitch;
     private long lastChat=-1000;
     private Consumer<String> chatSink;
@@ -41,8 +45,20 @@ public final class PrimitiveControl {
     private JsonArray inventorySnapshot;
     private long inventoryRevision;
     public long inventoryRevision(JsonArray snapshot) {if(!snapshot.equals(inventorySnapshot)){inventoryRevision++;inventorySnapshot=snapshot.deepCopy();}return inventoryRevision;}
-    public final String epoch=UUID.randomUUID().toString();
-    public PrimitiveControl(AgentPlayer body) {this.body=body;navigator=new NativeNavigator(body);inventory=new BodyInventory(body);}
+    private ServerLevel controlLevel;
+    public String epoch=UUID.randomUUID().toString();
+    public PrimitiveControl(AgentPlayer body) {this.body=body;controlLevel=body.serverLevel();navigator=new NativeNavigator(body);inventory=new BodyInventory(body);}
+    public void checkDimension() {
+        if(controlLevel==body.level())return;
+        try {cancel("dimension_changed");}
+        finally {
+            // Epoch is an executor/world context, not just a Java object identity. Old
+            // queued targets must not become valid at identical coordinates elsewhere.
+            controlLevel=body.serverLevel();epoch=UUID.randomUUID().toString();lease=null;area=null;
+            results.clear();payloads.clear();deadlines.clear();monotonicDeadlines.clear();queried=new JsonArray();inventorySnapshot=null;inventoryRevision=0;resultRotation=0;lastChat=-1000;
+            if(body.stream!=null){body.stream.close();body.stream=null;}
+        }
+    }
     public void chatSink(Consumer<String> sink) {chatSink=sink;}
     private void result(String id,String state,String reason) {result(id,state,reason,null);}
     private void result(String id,String state,String reason,JsonObject details) {
@@ -58,7 +74,7 @@ public final class PrimitiveControl {
         results.remove(id);results.put(id,row);
         // Never silently erase an unacknowledged outcome. Gateway admission bounds unfinished
         // commands (including pending full results); fully retained/orphan outcomes are ACKed.
-        while(results.size()>512) {String oldest=null;for(var entry:results.entrySet())if(entry.getValue().has("details_retained_by_gateway")){oldest=entry.getKey();break;}if(oldest==null)break;results.remove(oldest);payloads.remove(oldest);}
+        while(results.size()>512) {String oldest=null;for(var entry:results.entrySet())if(entry.getValue().has("details_retained_by_gateway")){oldest=entry.getKey();break;}if(oldest==null)break;results.remove(oldest);payloads.remove(oldest);deadlines.remove(oldest);monotonicDeadlines.remove(oldest);}
     }
     public JsonArray observations() {
         JsonArray rows=new JsonArray();List<Map.Entry<String,JsonObject>> selected=new ArrayList<>();int skip=Math.max(0,results.size()-64),index=0;
@@ -84,25 +100,54 @@ public final class PrimitiveControl {
     }
     private long digStarted;
     public void broke(BlockPos p) {if(p.equals(digPos))breakAttempt=true;}
-    private void abortDig(String reason) {
-        if(digging!=null) {
-            body.gameMode.handleBlockBreakAction(digPos,ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,Direction.UP,body.level().getMaxBuildHeight(),0);
-            result(digging,"cancelled",reason);
+    private ServerPlayerGameModeAccessor nativeBreaking() {return (ServerPlayerGameModeAccessor)body.gameMode;}
+    private void clearNativeBreaking() {
+        // Vanilla ABORT clears only isDestroyingBlock. An early STOP can otherwise
+        // leave hasDelayedDestroy armed and destroy a block after our terminal result.
+        var nativeState=nativeBreaking();
+        nativeState.scru$setDestroyingBlock(false);nativeState.scru$setDelayedDestroy(false);nativeState.scru$setLastSentState(-1);
+        if(digPos!=null) {
+            controlLevel.destroyBlockProgress(body.getId(),digPos,-1);
         }
-        digging=null;digPos=null;digState=null;digTool=null;
+    }
+    private void forgetDig() {digging=null;digPos=null;digState=null;digTool=null;}
+    private boolean digCompleted() {return controlLevel==body.level()&&breakAttempt&&digPos!=null&&!body.level().getBlockState(digPos).equals(digState);}
+    private void completeDig() {
+        String id=digging;clearNativeBreaking();forgetDig();result(id,"done","broken");
+    }
+    private boolean abortDig(String reason) {
+        if(digging==null)return false;
+        // Reconcile a synchronous native completion before reporting cancellation.
+        if(digCompleted()){completeDig();return true;}
+        String id=digging;
+        clearNativeBreaking();
+        try {
+            if(controlLevel==body.level())body.gameMode.handleBlockBreakAction(digPos,ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,Direction.UP,body.level().getMaxBuildHeight(),0);
+        } finally {
+            // Also disarm state if a mod cancels or throws from the ABORT interaction hook.
+            clearNativeBreaking();forgetDig();
+        }
+        result(id,"cancelled",reason);return false;
     }
     private void releaseUse(String reason) {
-        if(body.isUsingItem())body.stopUsingItem();
-        if(using!=null)result(using,"cancelled",reason);
+        boolean finished=!body.isUsingItem();
+        if(!finished)body.stopUsingItem();
+        if(using!=null)result(using,finished?"done":"cancelled",finished?"use_finished":reason);
         using=null;
     }
     public void cancel(String reason) {
         if(active!=null) {navigator.cancel(reason);result(active,"cancelled",reason);active=null;}
-        abortDig(reason);releaseUse(reason);inventory.close(reason);
-        if(body.containerMenu!=body.inventoryMenu)body.closeContainer();
         jumping=sneaking=sprinting=false;body.setShiftKeyDown(false);body.setSprinting(false);body.zza=body.xxa=0;lookYaw=lookPitch=null;
+        try {abortDig(reason);} finally {
+            try {releaseUse(reason);} finally {
+                inventory.close(reason);
+                if(body.containerMenu!=body.inventoryMenu)body.closeContainer();
+            }
+        }
     }
     public void grant(JsonObject grant) {
+        checkDimension();
+        if(!grant.has("body_epoch")||!epoch.equals(grant.get("body_epoch").getAsString()))return;
         if(grant.has("acknowledged_results")&&grant.getAsJsonArray("acknowledged_results").size()<=512)for(JsonElement ack:grant.getAsJsonArray("acknowledged_results")) {
             String id=ack.getAsString();JsonObject row=results.get(id);
             if(row!=null&&Set.of("done","failed","cancelled").contains(row.get("state").getAsString()))results.put(id,compact(row,"details_retained_by_gateway"));
@@ -135,9 +180,10 @@ public final class PrimitiveControl {
     private static JsonObject semanticAction(JsonObject action) {
         JsonObject signature=action.deepCopy();
         // This is the gateway's remaining delivery budget, not a change to user intent.
-        signature.remove("timeout_ticks");return signature;
+        signature.remove("timeout_ticks");signature.remove("deadline_ms");return signature;
     }
     public void accept(JsonObject action) {
+        checkDimension();
         String id=action.has("id")?action.get("id").getAsString():"invalid";
         if(results.containsKey(id)) {
             // Gateway rejects changed payload retries; never perform either mutation twice.
@@ -148,6 +194,12 @@ public final class PrimitiveControl {
         payloads.put(id,semanticAction(action));
         try {
             if(!epoch.equals(action.get("body_epoch").getAsString()))throw new NativeActionException("body_changed");
+            if(action.has("deadline_ms")) {
+                long end=BodyGrant.integer(action,"deadline_ms");deadlines.put(id,end);
+                long remaining=Math.min(60_000,Math.max(0,end-System.currentTimeMillis()));
+                monotonicDeadlines.put(id,System.nanoTime()+remaining*1_000_000L);
+                if(deadlineExpired(id))throw new NativeActionException("expired_before_start");
+            }
             if(!body.isAlive())throw new NativeActionException("dead");
             String op=action.get("op").getAsString();
             switch(op) {
@@ -183,19 +235,33 @@ public final class PrimitiveControl {
                 case "dig" -> {
                     handFree();BlockPos p=position(action);BodyAccess.require(body,p,area);reach(p);BlockState s=body.level().getBlockState(p);
                     if(s.isAir())throw new NativeActionException("target_air");if(s.getDestroySpeed(body.level(),p)<0)throw new NativeActionException("unbreakable");
-                    if(!body.hasCorrectToolForDrops(s))throw new NativeActionException("wrong_tool");
-                    int timeout=integer(action,"timeout_ticks",1,1200);digging=id;digPos=p;digState=s;digTool=body.getMainHandItem().copy();digTicks=timeout;digStarted=body.level().getGameTime();digStopped=false;breakAttempt=false;
+                    // Survival allows an unsuitable tool to break many blocks slowly
+                    // without harvest drops. Keep that native choice with the caller.
+                    int timeout=integer(action,"timeout_ticks",1,1200);digging=id;digPos=p;digState=s;digTool=body.getMainHandItem().copy();digTicks=timeout;digStarted=body.level().getGameTime();breakAttempt=false;
+                    clearNativeBreaking();
                     result(id,"started","breaking");body.gameMode.handleBlockBreakAction(p,ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,Direction.UP,body.level().getMaxBuildHeight(),0);
+                    // Native attack() may change this block's own properties (e.g. lighting
+                    // redstone ore). Baseline only that synchronous same-block transition;
+                    // later external changes still invalidate the action.
+                    BlockState afterStart=body.level().getBlockState(p);
+                    if(!breakAttempt&&afterStart.getBlock()==s.getBlock())digState=afterStart;
+                    if(digCompleted())completeDig();
+                    else if(!nativeBreaking().scru$isDestroyingBlock()||!nativeBreaking().scru$destroyPos().equals(p)) {
+                        abortDig("break_rejected");result(id,"failed","break_rejected");
+                    }
                 }
                 case "place" -> {handFree();place(action);result(id,"done","placed");}
                 case "use_item" -> {
                     handFree();int timeout=integer(action,"timeout_ticks",1,1200);InteractionHand h=hand(action);ItemStack stack=body.getItemInHand(h);if(stack.isEmpty())throw new NativeActionException("empty_hand");
-                    if(stack.getItem() instanceof BucketItem||stack.getItem() instanceof BlockItem)throw new NativeActionException("use_on_required");
+                    if(area!=null&&!BodyInventory.reviewedPortableItem(stack)&&(stack.getItem() instanceof BucketItem||stack.getItem() instanceof BlockItem
+                        ||!BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace().equals("minecraft")))throw new NativeActionException("bounded_air_use_footprint_unknown");
+                    var previousMenu=body.containerMenu;
                     InteractionResult outcome=body.gameMode.useItem(body,body.level(),stack,h);if(!outcome.consumesAction()&&!body.isUsingItem())throw new NativeActionException("use_rejected");
-                    if(body.isUsingItem()){using=id;useTicks=timeout;result(id,"started","using");}else result(id,"done","used");
+                    JsonObject opened=body.containerMenu!=previousMenu&&body.containerMenu!=body.inventoryMenu?inventory.adoptItemOpened(area):null;
+                    if(body.isUsingItem()){using=id;useTicks=timeout;result(id,"started","using",opened);}else result(id,"done","used",opened);
                 }
                 case "release_use" -> {if(body.isUsingItem())body.releaseUsingItem();if(using!=null)result(using,"done","released");using=null;result(id,"done","released");}
-                case "use_on" -> {handFree();useOn(action);result(id,"done","interacted");}
+                case "use_on" -> {handFree();result(id,"done","interacted",useOn(action));}
                 case "attack" -> {
                     handFree();Entity target=entity(action);if(target instanceof ServerPlayer&&!body.server.isPvpAllowed())throw new NativeActionException("pvp_disabled");
                     if(!target.isAttackable())throw new NativeActionException("not_attackable");if(body.getAttackStrengthScale(0)<1)throw new NativeActionException("attack_cooldown");
@@ -212,7 +278,13 @@ public final class PrimitiveControl {
                 default -> result(id,"failed","unsupported_operation");
             }
         } catch(NativeActionException ex) {result(id,"failed",ex.getMessage()==null?"invalid_arguments":ex.getMessage());}
-        catch(Exception ex) {unknown(id);}
+        catch(Exception ex) {
+            if(id.equals(digging)) {
+                try {clearNativeBreaking();} catch(Exception ignored) {}
+                forgetDig();
+            }
+            unknown(id);
+        }
     }
     private void unknown(String id) {
         JsonObject details=new JsonObject();details.addProperty("reconciliation_required",true);details.addProperty("side_effects","unknown");
@@ -224,13 +296,17 @@ public final class PrimitiveControl {
         if(body.getEyePosition().distanceToSqr(target.getBoundingBox().getCenter())>9||!body.hasLineOfSight(target))throw new NativeActionException("out_of_reach_or_obstructed");return target;
     }
     private Direction face(JsonObject action) {Direction d=Direction.byName(action.get("face").getAsString());if(d==null)throw new NativeActionException("invalid_face");return d;}
-    private BlockHitResult hit(BlockPos p,Direction face) {
+    private Vec3 facePoint(BlockPos p,Direction face) {
         var shape=body.level().getBlockState(p).getShape(body.level(),p);
         if(shape.isEmpty())throw new NativeActionException("target_has_no_interaction_shape");
         AABB bounds=shape.bounds();Vec3 center=bounds.getCenter();
         Vec3 hit=new Vec3(p.getX()+(face==Direction.WEST?bounds.minX:face==Direction.EAST?bounds.maxX:center.x),
             p.getY()+(face==Direction.DOWN?bounds.minY:face==Direction.UP?bounds.maxY:center.y),
             p.getZ()+(face==Direction.NORTH?bounds.minZ:face==Direction.SOUTH?bounds.maxZ:center.z));
+        return hit;
+    }
+    private BlockHitResult hit(BlockPos p,Direction face) {
+        Vec3 hit=facePoint(p,face);
         if(body.getEyePosition().distanceToSqr(hit)>20.25)throw new NativeActionException("out_of_reach");
         BlockHitResult trace=body.level().clip(new ClipContext(body.getEyePosition(),hit.relative(face,-.001),ClipContext.Block.OUTLINE,ClipContext.Fluid.NONE,body));
         if(trace.getType()!=HitResult.Type.BLOCK||!trace.getBlockPos().equals(p)||trace.getDirection()!=face)throw new NativeActionException("face_obstructed");return new BlockHitResult(hit,face,p,false);
@@ -238,50 +314,71 @@ public final class PrimitiveControl {
     private void place(JsonObject action) {
         InteractionHand hand=hand(action);ItemStack held=body.getItemInHand(hand);
         if(held.isEmpty())throw new NativeActionException("empty_hand");if(!(held.getItem() instanceof BlockItem item))throw new NativeActionException("not_block_item");
-        // Destination coordinates; adjacent support is opposite the requested clicked face.
-        BlockPos destination=position(action);Direction face=face(action);BlockPos support=destination.relative(face.getOpposite());
-        BodyAccess.require(body,destination,area);BodyAccess.require(body,support,area);reach(support);
-        if(!body.level().getBlockState(destination).canBeReplaced())throw new NativeActionException("destination_occupied");
-        Block block=item.getBlock();
-        if(!BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals("minecraft")||block instanceof ScaffoldingBlock)throw new NativeActionException("unsupported_placement_footprint");
-        if(body.level().getBlockState(support).canBeReplaced())throw new NativeActionException("replaceable_support");
-        List<BlockPos> affected=new ArrayList<>();affected.add(destination);
-        if(block instanceof DoorBlock||block instanceof DoublePlantBlock)affected.add(destination.above());
-        if(block instanceof BedBlock)affected.add(destination.relative(body.getDirection()));
-        for(BlockPos pos:affected) {
-            BodyAccess.require(body,pos,area);
-            if(!body.level().getBlockState(pos).canBeReplaced())throw new NativeActionException("destination_occupied");
-            if(body.getBoundingBox().intersects(new AABB(pos))||!body.level().getEntities(body,new AABB(pos),e->e instanceof LivingEntity).isEmpty())throw new NativeActionException("entity_collision");
-        }
-        BlockHitResult targetHit=hit(support,face);
-        var placement=new net.minecraft.world.item.context.BlockPlaceContext(body,hand,held,targetHit);
-        if(!placement.getClickedPos().equals(destination))throw new NativeActionException("placement_redirected");
-        BlockState before=body.level().getBlockState(destination);int count=held.getCount();
-        // Sneaking bypasses support activation, so clicking a chest places instead of opening it.
-        boolean shifted=body.isShiftKeyDown();InteractionResult outcome;
-        body.setShiftKeyDown(true);
-        try {outcome=body.gameMode.useItemOn(body,body.level(),held,hand,targetHit);}
-        finally {body.setShiftKeyDown(shifted);}
-        if(!outcome.consumesAction()||body.level().getBlockState(destination).equals(before)||held.getCount()!=count-1)throw new NativeActionException("placement_rejected");
+        BlockPos destination=position(action);Direction face=face(action);
+        BodyAccess.require(body,destination,area);Block block=item.getBlock();
+        // Unknown mod footprints are permitted only for the explicitly unrestricted policy.
+        // Bounded owners retain the reviewed vanilla footprint checks below.
+        if(area!=null&&(!BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals("minecraft")||block instanceof ScaffoldingBlock))
+            throw new NativeActionException("unsupported_placement_footprint");
+        boolean shifted=body.isShiftKeyDown();body.setShiftKeyDown(true);
+        try {
+            BlockPos clicked=destination.relative(face.getOpposite());
+            BlockState before=body.level().getBlockState(destination);
+            // A replaceable plant, snow layer or matching slab may itself be clicked.
+            // Resolve this with native context rules instead of rejecting all occupied cells.
+            if(!before.isAir()&&!before.getShape(body.level(),destination).isEmpty()) {
+                var probe=new net.minecraft.world.item.context.BlockPlaceContext(body,hand,held,
+                    new BlockHitResult(facePoint(destination,face),face,destination,false));
+                if(probe.getClickedPos().equals(destination)&&probe.canPlace())clicked=destination;
+            }
+            BodyAccess.require(body,clicked,area);reach(clicked);BlockHitResult targetHit=hit(clicked,face);
+            var originalContext=new net.minecraft.world.item.context.BlockPlaceContext(body,hand,held,targetHit);
+            var placement=item.updatePlacementContext(originalContext);
+            if(placement==null||!placement.canPlace())throw new NativeActionException("destination_occupied");
+            if(!placement.getClickedPos().equals(destination))throw new NativeActionException("placement_redirected");
+            if(area!=null) {
+                List<BlockPos> affected=new ArrayList<>();affected.add(destination);
+                if(block instanceof DoorBlock||block instanceof DoublePlantBlock)affected.add(destination.above());
+                if(block instanceof BedBlock)affected.add(destination.relative(body.getDirection()));
+                for(BlockPos pos:affected) {
+                    BodyAccess.require(body,pos,area);
+                    if(!pos.equals(destination)&&!body.level().getBlockState(pos).canBeReplaced())throw new NativeActionException("destination_occupied");
+                }
+            }
+            // Native collision, survival, item-component and mod placement hooks remain authoritative.
+            InteractionResult outcome=body.gameMode.useItemOn(body,body.level(),held,hand,targetHit);
+            if(!outcome.consumesAction()||body.level().getBlockState(destination).equals(before))throw new NativeActionException("placement_rejected");
+        } finally {body.setShiftKeyDown(shifted);}
     }
-    private void useOn(JsonObject action) {
-        InteractionHand hand=hand(action);ItemStack held=body.getItemInHand(hand);InteractionResult outcome;
+    private JsonObject useOn(JsonObject action) {
+        InteractionHand hand=hand(action);ItemStack held=body.getItemInHand(hand);InteractionResult outcome;JsonObject opened=null;
         if(action.has("entity_id")) {
             Entity entity=entity(action);BodyAccess.require(body,entity.blockPosition(),area);
             var previousMenu=body.containerMenu;outcome=body.interactOn(entity,hand);
-            if(body.containerMenu!=previousMenu){body.closeContainer();throw new NativeActionException("unsupported_entity_menu");}
+            if(body.containerMenu!=previousMenu&&body.containerMenu!=body.inventoryMenu)opened=inventory.adoptEntityOpened(entity,area);
         }
         else {
             BlockPos pos=position(action);BodyAccess.require(body,pos,area);reach(pos);Direction face=face(action);
-            BodyAccess.require(body,pos.relative(face),area);
             BlockState block=body.level().getBlockState(pos);
-            if(block.getBlock() instanceof DoorBlock)BodyAccess.require(body,block.getValue(DoorBlock.HALF)==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER?pos.above():pos.below(),area);
-            if(held.getItem() instanceof BlockItem||held.getItem() instanceof BucketItem||held.getItem() instanceof BoneMealItem)throw new NativeActionException("unsupported_use_footprint");
-            // Container state must only be opened through the session API.
-            if(block.hasBlockEntity()||block.getMenuProvider(body.level(),pos)!=null)throw new NativeActionException("open_container_required");
+            boolean menuCandidate=block.getMenuProvider(body.level(),pos)!=null;
+            if(area!=null) {
+                BodyAccess.require(body,pos.relative(face),area);
+                if(block.getBlock() instanceof DoorBlock)BodyAccess.require(body,block.getValue(DoorBlock.HALF)==net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER?pos.above():pos.below(),area);
+                if((!menuCandidate||body.isShiftKeyDown())&&(held.getItem() instanceof BlockItem||held.getItem() instanceof BucketItem||held.getItem() instanceof BoneMealItem))
+                    throw new NativeActionException("unsupported_use_footprint");
+                // Unreviewed mod item/block callbacks may write neighboring cells. Ordinary
+                // unrestricted play delegates them natively; configured bounds must not be bypassed.
+                String itemNamespace=BuiltInRegistries.ITEM.getKey(held.getItem()).getNamespace();
+                String blockNamespace=BuiltInRegistries.BLOCK.getKey(block.getBlock()).getNamespace();
+                if(!itemNamespace.equals("minecraft")||!blockNamespace.equals("minecraft"))throw new NativeActionException("unsupported_use_footprint");
+            }
+            if(menuCandidate)inventory.prepareOpen(pos,area);
+            var previousMenu=body.containerMenu;
             outcome=body.gameMode.useItemOn(body,body.level(),held,hand,hit(pos,face));
+            if(body.containerMenu!=previousMenu&&body.containerMenu!=body.inventoryMenu)opened=inventory.adoptOpened(pos,area);
         }
         if(!outcome.consumesAction())throw new NativeActionException("interaction_rejected");
+        return opened;
     }
     private JsonArray query(JsonObject action) {
         List<BlockPos> positions=new ArrayList<>();
@@ -298,7 +395,23 @@ public final class PrimitiveControl {
         }return out;
     }
     private void orient() {if(lookYaw!=null){body.setYRot(lookYaw);body.setYHeadRot(lookYaw);body.setXRot(lookPitch);}}
+    private boolean deadlineExpired(String id) {
+        Long monotonic=monotonicDeadlines.get(id);
+        return System.currentTimeMillis()>=deadlines.getOrDefault(id,Long.MAX_VALUE)
+            ||(monotonic!=null&&System.nanoTime()-monotonic>=0);
+    }
+    public void beforeNativeTick() {
+        checkDimension();
+        // A native completion in the preceding tick is an outcome, even if the
+        // next grant expires before its post-tick observation is assembled.
+        if(using!=null&&!body.isUsingItem()){result(using,"done","use_finished");using=null;}
+        if(body.stream!=null&&!body.stream.fresh())cancel("control_expired");
+        if(active!=null&&deadlineExpired(active)){String id=active;navigator.cancel("timeout");active=null;result(id,"failed","timeout");}
+        if(digging!=null&&deadlineExpired(digging)){String id=digging;if(!abortDig("timeout"))result(id,"failed","timeout");}
+        if(using!=null&&deadlineExpired(using)){String id=using;releaseUse("timeout");result(id,"failed","timeout");}
+    }
     public void tick(long deadline) {
+        beforeNativeTick();
         if(active!=null) {
             navigator.tick(deadline);
             if(!navigator.state().equals("started")) {result(active,navigator.state(),navigator.reason());active=null;}
@@ -311,14 +424,26 @@ public final class PrimitiveControl {
             try {
                 BodyAccess.require(body,digPos,area);
                 BlockState now=body.level().getBlockState(digPos);
-                if(now.isAir()&&breakAttempt){result(digging,"done","broken");digging=null;digPos=null;return;}
+                if(digCompleted()){completeDig();return;}
                 if(!now.equals(digState))throw new NativeActionException("target_changed");reach(digPos);
                 if(!ItemStack.isSameItemSameComponents(digTool,body.getMainHandItem()))throw new NativeActionException("held_item_changed");
                 if(--digTicks<=0)throw new NativeActionException("timeout");
-                if(!digStopped){body.gameMode.handleBlockBreakAction(digPos,ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,Direction.UP,body.level().getMaxBuildHeight(),0);digStopped=true;}
+                var nativeState=nativeBreaking();
+                float progress=digState.getDestroyProgress(body,body.level(),digPos)
+                    *(nativeState.scru$gameTicks()-nativeState.scru$destroyProgressStart()+1);
+                // Normal START progress does not auto-break. Send STOP only once real native
+                // progress is complete, after this tick's reach/tool/authorization checks.
+                if(progress>=1.0F) {
+                    body.gameMode.handleBlockBreakAction(digPos,ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,Direction.UP,body.level().getMaxBuildHeight(),0);
+                    if(digCompleted()){completeDig();return;}
+                    // A hook may alter hardness/tool state during STOP. Never leave a delayed
+                    // native destroy armed outside the executor's per-tick authorization.
+                    if(nativeState.scru$hasDelayedDestroy())throw new NativeActionException("break_progress_changed");
+                    throw new NativeActionException("break_rejected");
+                }
                 body.swing(InteractionHand.MAIN_HAND);
-            }catch(NativeActionException ex){String id=digging;abortDig(ex.getMessage());result(id,"failed",ex.getMessage());}
-            catch(Exception ex){String id=digging;try{abortDig("executor_error");}catch(Exception ignored){}digging=null;digPos=null;unknown(id);}
+            }catch(NativeActionException ex){String id=digging;if(!abortDig(ex.getMessage()))result(id,"failed",ex.getMessage());}
+            catch(Exception ex){String id=digging;boolean completed=false;try{completed=abortDig("executor_error");}catch(Exception ignored){}forgetDig();if(!completed)unknown(id);}
         }
         if(using!=null) {
             if(!body.isUsingItem()){result(using,"done","use_finished");using=null;}

@@ -20,6 +20,12 @@ def run_cases(fixture, stream):
         fixture.console('gamerule keepInventory false')
         try:
             fixture.console('give VerifyBuilder diamond 2')
+            full_pack = bool(getattr(fixture.args, 'full_pack_mods', None))
+            protected_tool = None
+            if full_pack:
+                fixture.console('item replace entity VerifyBuilder hotbar.1 with minecraft:iron_pickaxe[minecraft:damage=7,minecraft:custom_name=\'"Recovery proof"\'] 1')
+                wait_for(lambda: quantity(stream, 'minecraft:iron_pickaxe') == 1)
+                protected_tool = stream.inventory_slot(1)
             fixture.console('setblock 2 64 0 chest')
             wait_for(lambda: quantity(stream, 'minecraft:diamond') == 2)
             opened = done(stream, stream.open_container(2, 64, 0))
@@ -43,7 +49,37 @@ def run_cases(fixture, stream):
             assert quantity(stream, 'minecraft:diamond') == 0, diagnostic
             dropped = sum(e.get('stack', {}).get('count', 0) for e in observation['entities']
                           if e.get('stack', {}).get('item') == 'minecraft:diamond')
-            assert dropped == 2, {'state': diagnostic, 'entities': observation['entities']}
+            recovery = {'route': 'native_loose_drops', 'diamond_drops': dropped, 'player_diamonds': 0}
+            if full_pack:
+                assert dropped == 0, {'state': diagnostic, 'entities': observation['entities']}
+                corpse = wait_for(lambda: next((e for e in stream.observe()['entities'] if e.get('type') == 'corpse:corpse'), None),
+                                  description='native Corpse entity after owner death')
+                # Native navigation and interaction perform recovery; no /data extraction or inventory restoration.
+                pos = corpse['position']
+                done(stream, stream.move_to(pos[0] + 1.5, 64, pos[2] + 1), timeout=25)
+                done(stream, stream.use_on(entity_id=corpse['id']))
+                container = wait_for(lambda: stream.observe().get('container') if stream.observe().get('container', {}).get('kind') == 'entity_menu' else None,
+                                     description='native owner-authorized corpse menu')
+                assert container['entity_id'] == corpse['id'] and container['entity_type'] == 'corpse:corpse', container
+                rows = [r for r in container['slots'] if r['inventory'] == 'container']
+                assert sum(r['count'] for r in rows if r.get('item') == 'minecraft:diamond') == 2
+                tool = next(r for r in rows if r.get('item') == 'minecraft:iron_pickaxe')
+                stored = stream.inventory_slot(tool['slot'], inventory='container', session_id=container['session_id'], revision=container['revision'])
+                assert stored['components'] == protected_tool['components'] and stored['count'] == 1
+                for item, count, destination in [('minecraft:diamond', 2, 0), ('minecraft:iron_pickaxe', 1, 1)]:
+                    source = next(r for r in container['slots'] if r['inventory'] == 'container' and r.get('item') == item)
+                    container = done(stream, stream.move_item({'inventory': 'container', 'slot': source['slot']},
+                                     {'inventory': 'player', 'slot': destination}, count,
+                                     session_id=container['session_id'], revision=container['revision']))
+                wait_for(lambda: quantity(stream, 'minecraft:diamond') == 2 and quantity(stream, 'minecraft:iron_pickaxe') == 1)
+                assert stream.inventory_slot(1)['components'] == protected_tool['components']
+                assert not any(r['count'] for r in container['slots'] if r['inventory'] == 'container')
+                done(stream, stream.close_container(session_id=container['session_id'], revision=container['revision']))
+                recovery = {'route': 'native_owner_corpse_menu', 'diamond_drops': 0, 'player_diamonds': 2,
+                            'corpse_diamonds_remaining': 0, 'named_damaged_tool_preserved': True,
+                            'owner_recovery_verified': True, 'nonowner_denial_verified': False}
+            else:
+                assert dropped == 2, {'state': diagnostic, 'entities': observation['entities']}
             prior = stream.action_results(movement['id'])[0]
             assert prior['state'] in {'cancelled', 'failed'}, prior
             # A fresh epoch and live snapshots alone do not prove control resumed.
@@ -51,8 +87,7 @@ def run_cases(fixture, stream):
             assert resumed['body_epoch'] == observation['body_epoch'], resumed
             return {'respawn_seconds': time.monotonic()-started, 'epoch_changed': True,
                     'old_container_session': opened['session_id'], 'container_closed': True,
-                    'prior_movement_outcome': prior['state'], 'diamond_drops': 2,
-                    'player_diamonds': 0, 'death_position': death_position,
+                    'prior_movement_outcome': prior['state'], **recovery, 'death_position': death_position,
                     'respawn_position': observation['position'], 'new_epoch_action': resumed['reason'],
                     'fixture_keep_inventory': False, 'fixture_respawn_separated_from_drops': True}
         finally:

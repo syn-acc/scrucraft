@@ -1,5 +1,6 @@
 """Deferred native payloads must remain bounded work and reach a finite result."""
 import unittest
+from unittest.mock import patch
 import test_controller_gateway as fixtures
 
 
@@ -14,6 +15,32 @@ class ResultBackpressureTests(unittest.TestCase):
         return self.f.call('POST','/v1/actions',dict(id='block_query_'+str(index).zfill(8),op='query_blocks',body_epoch='epoch',target=[0,64,0],radius=4))
     def grant(self):
         with self.g.changed:return self.g.realtime_control('Forge')
+    def test_native_capture_lag_is_per_frame_and_reports_clock_skew_truthfully(self):
+        self.sample.update(tick=103,captured_at_ms=1_999_750)
+        with patch.object(fixtures.gateway.time,'time_ns',return_value=2_000_000_000_000):self.g.frame(self.sample)
+        snapshot=self.g.frames['Forge']
+        self.assertEqual(1_999_750,snapshot['captured_at_ms']);self.assertEqual(2_000_000,snapshot['gateway_received_at_ms'])
+        self.assertEqual(250,snapshot['body_receive_lag_ms'])
+        self.sample.update(tick=104,partial=True);self.sample.pop('captured_at_ms')
+        self.g.frame(self.sample)
+        self.assertNotIn('body_receive_lag_ms',self.g.frames['Forge']);self.assertNotIn('captured_at_ms',self.g.frames['Forge'])
+        self.sample.update(tick=105,captured_at_ms=2_000_200)
+        with patch.object(fixtures.gateway.time,'time_ns',return_value=2_000_000_000_000):self.g.frame(self.sample)
+        self.assertIsNone(self.g.frames['Forge']['body_receive_lag_ms'])
+        self.assertEqual(200,self.g.frames['Forge']['body_receive_clock_skew_ms'])
+
+    def test_observation_ack_requires_completed_processing_and_preserves_full_result(self):
+        receipt=self.query(1);previous=dict(self.g.processed_frames['Forge'])
+        self.sample.update(tick=103,action_results=[dict(id=receipt['id'],state='done',body_epoch='epoch',blocks=[{'block':'minecraft:stone'}])])
+        with patch.object(self.g,'goal',side_effect=RuntimeError('fixture processing interrupted')):
+            with self.assertRaises(RuntimeError):self.g.frame(self.sample)
+        self.assertEqual(previous,self.g.processed_frames['Forge'],'Partially processed observation was acknowledged')
+        self.sample.update(tick=104,action_results=[dict(id=receipt['id'],state='done',body_epoch='epoch',details_retained_by_gateway=True)])
+        self.g.frame(self.sample)
+        self.assertEqual({'body_epoch':'epoch','tick':104},self.g.processed_frames['Forge'])
+        row=self.f.call('GET','/v1/action-results',{'action_id':receipt['id']})['results'][0]
+        self.assertEqual([{'block':'minecraft:stone'}],row['blocks'])
+        self.assertEqual('done',row['state'])
     def test_pending_payloads_apply_backpressure_then_expire_explicitly(self):
         ids=[]
         for n in range(32):

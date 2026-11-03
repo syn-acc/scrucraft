@@ -147,8 +147,14 @@ def run_cases(fixture):
 
         from container_gameplay_cases import run_cases as container_cases
         container_cases(fixture, stream)
+        from mod_workstations_gameplay_cases import run_cases as mod_cases
+        mod_cases(fixture, stream)
         from body_gameplay_cases import run_cases as body_cases
         body_cases(fixture, stream)
+        from authorization_gameplay_cases import run_cases as authorization_cases
+        authorization_cases(fixture, stream)
+        from navigation_gameplay_cases import run_cases as navigation_cases
+        navigation_cases(fixture, stream)
         from result_receipt_gameplay_cases import run_cases as receipt_cases
         receipt_cases(fixture, stream)
 
@@ -195,3 +201,5 @@ def run_cases(fixture):
         fixture.case('optional_area_unrestricted_native_journey', ['EXEC-06', 'VERIFY-02'], optional_area)
         from lifecycle_gameplay_cases import run_cases as lifecycle_cases
         lifecycle_cases(fixture, stream)
+        from sdk_examples_gameplay_cases import run_cases as example_cases
+        example_cases(fixture, stream)

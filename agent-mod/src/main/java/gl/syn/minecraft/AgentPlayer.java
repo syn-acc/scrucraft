@@ -35,6 +35,8 @@ public final class AgentPlayer extends ServerPlayer {
     public void attachListener(LocalConnection c) { connection=new LocalListener(this,c); }
     @Override public boolean isFakePlayer() { return true; }
     @Override public void tick() {
+        // Disarm old-world native breaking before ServerPlayer advances its game mode.
+        if(controls!=null)controls.beforeNativeTick();
         super.tick();
         // Network listeners normally drive the full Player tick. There is no
         // remote client for these agents, so drive it here exactly once.

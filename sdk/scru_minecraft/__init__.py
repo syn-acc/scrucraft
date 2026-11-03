@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import threading
 import time
@@ -9,14 +10,42 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+from contextlib import nullcontext
+from copy import copy
 
 __version__ = '0.3.0.dev2'
+
+
+def _readiness_options(timeout,required):
+    if type(timeout) not in (int,float) or not math.isfinite(timeout) or timeout<=0:
+        raise ValueError('timeout must be a positive finite number of seconds')
+    if isinstance(required,str):raise ValueError('required must be a collection of capability names')
+    try:required=tuple(required)
+    except TypeError:raise ValueError('required must be a collection of capability names') from None
+    if not all(isinstance(op,str) for op in required):
+        raise ValueError('required must be a collection of capability names')
+    return set(required)
 
 
 class GatewayError(RuntimeError):
     def __init__(self, status, code, retry_after=None):
         self.status, self.code, self.retry_after = status, code, retry_after
         super().__init__(f'{status}: {code}')
+
+
+def _raise_stored_error(error):
+    """Raise fresh call-site state; never grow a shared background failure traceback."""
+    if isinstance(error, GatewayError):
+        fresh = GatewayError(error.status, error.code, error.retry_after)
+    else:
+        try:fresh = copy(error)
+        except (TypeError, ValueError):fresh = RuntimeError(str(error))
+    fresh.__traceback__ = None
+    fresh.__context__ = None
+    fresh.__cause__ = None
+    # The original traceback/cause is retained once for diagnosis. Concurrent or
+    # repeated readers never re-raise or mutate the background exception object.
+    raise fresh from error
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -51,7 +80,9 @@ class ActionHandle(dict):
         outcome=self.wait(timeout)
         if outcome['state']!='done':raise ActionFailed(outcome)
         return outcome
-    def cancel(self):return self.client.cancel(self.id)
+    def cancel(self):
+        epoch=self.get('body_epoch')
+        return self.client.cancel(self.id,body_epoch=epoch) if epoch is not None else self.client.cancel(self.id)
 
 
 class PrimitiveMethods:
@@ -72,7 +103,9 @@ class PrimitiveMethods:
     def sneak(self,enabled=True,**kw):return self.action('sneak',enabled=enabled,**kw)
     def sprint(self,enabled=True,**kw):return self.action('sprint',enabled=enabled,**kw)
     def chat(self,text,**kw):return self.action('chat',text=text,**kw)
-    def cancel(self,action_id,**kw):return self.action('cancel',action_id=action_id,**kw)
+    def cancel(self,action_id,*,body_epoch=None,**kw):
+        if body_epoch is not None:kw['expected_body_epoch']=body_epoch
+        return self.action('cancel',action_id=action_id,**kw)
     def open_container(self,x,y,z,**kw):return self.action('open_container',target=[x,y,z],**kw)
     def current_container(self):return self.observe().get('container') or {}
     def _session(self,session_id,revision):
@@ -160,6 +193,8 @@ class PrimitiveMethods:
 
 class AgentClient(PrimitiveMethods):
     def __init__(self, url, token, agent=None, *, timeout=8, allow_local_http=False):
+        if type(timeout) not in (int,float) or not math.isfinite(timeout) or timeout<=0:
+            raise ValueError('timeout must be a positive finite number of seconds')
         parts = urllib.parse.urlsplit(url)
         if (parts.scheme != 'https' and not (allow_local_http and parts.scheme == 'http'
                 and parts.hostname in {'127.0.0.1', 'localhost'})) or parts.username or parts.password or parts.query or parts.fragment:
@@ -210,8 +245,9 @@ class AgentClient(PrimitiveMethods):
                                {'request_id': request_id, 'code': code}, authenticated=False)
 
     def _request(self, method, path, value=None, *, lease=True, authenticated=True):
-        with self._lock:
-            delay = self._next_request-time.monotonic()
+        priority = (method,path) in {('DELETE','/v1/goal'),('DELETE','/v1/lease')}
+        with (nullcontext() if priority else self._lock):
+            delay = 0 if priority else self._next_request-time.monotonic()
             if delay > 0:
                 time.sleep(delay)
             headers = {'Accept': 'application/json'}
@@ -236,18 +272,18 @@ class AgentClient(PrimitiveMethods):
                     result = {}
                 raise GatewayError(error.code, result.get('error', 'http_error'), error.headers.get('Retry-After')) from None
             finally:
-                self._next_request = time.monotonic()+.11
+                if not priority:self._next_request = time.monotonic()+.11
 
     def capabilities(self):
         return self._request('GET', '/v1/me')
 
-    def action(self, op, *, target=None, ttl_seconds=30, request_id=None, **fields):
+    def action(self, op, *, target=None, ttl_seconds=30, request_id=None, expected_body_epoch=None, **fields):
         """Submit a primitive; accepted is not evidence of execution or completion."""
         if not self._lease:
             raise ValueError('Acquire control first')
         observation=self.observe()
         value={'op':op,'id':request_id or uuid.uuid4().hex,
-               'body_epoch':observation.get('body_epoch'),'ttl_seconds':ttl_seconds}
+               'body_epoch':expected_body_epoch if expected_body_epoch is not None else observation.get('body_epoch'),'ttl_seconds':ttl_seconds}
         if set(fields) & set(value):raise ValueError('Reserved action fields')
         value.update(fields)
         if target is not None:value['target']=list(target)
@@ -274,20 +310,25 @@ class AgentClient(PrimitiveMethods):
             time.sleep(min(.15,max(0,deadline-time.monotonic())))
 
     def await_ready(self,timeout=30,required=()):
+        required=_readiness_options(timeout,required)
         deadline=time.monotonic()+timeout
         while True:
             body=self._request('GET','/v1/agent')
             if body['removed']:raise GatewayError(409,'agent_removed')
             if body['suspended']:raise GatewayError(423,'human_stop_requires_resume')
             if body['observed']:
-                missing=set(required)-set(body['raw_capabilities'])
+                missing=required-set(body['raw_capabilities'])
                 if missing:raise GatewayError(409,'missing_capabilities:'+','.join(sorted(missing)))
                 return body
             if time.monotonic()>=deadline:raise TimeoutError('Body not ready; check that Minecraft is online')
             time.sleep(min(.5,max(0,deadline-time.monotonic())))
 
     def prepare(self,name=None,*,create=False,area=None,job='engineer',timeout=30,required=()):
-        if name is not None:self.agent=name
+        required=_readiness_options(timeout,required)
+        if name is not None and name!=self.agent:
+            if self._lease:raise ValueError('Close current body control before selecting another body')
+            self.agent=name
+            self._observation=None;self._observed_at=0;self._desired=None
         if not self.agent:raise ValueError('Choose an owned agent name')
         if create:self.create_agent(self.agent,job,area)
         self.await_ready(timeout,required)
@@ -348,7 +389,7 @@ class AgentClient(PrimitiveMethods):
         previous = None
         while not self._stop.is_set():
             if self._error:
-                raise self._error
+                _raise_stored_error(self._error)
             observation = self.observe()
             if observation['id'] != previous:
                 previous = observation['id']
@@ -373,7 +414,7 @@ class AgentClient(PrimitiveMethods):
         if not self._lease:
             raise ValueError('Call connect() or use a with block first')
         if self._error:
-            raise self._error
+            _raise_stored_error(self._error)
         # Dedupe identical goals while keeping a finite renewal deadline.
         with self._lock:
             if self._desired and self._desired[0:2] == (goal, ttl_seconds) and time.monotonic()-self._refreshed < min(10, ttl_seconds/2):
@@ -388,9 +429,10 @@ class AgentClient(PrimitiveMethods):
         return self._request('POST', '/v1/chat', {'text': text, 'request_id': request_id or uuid.uuid4().hex})
 
     def stop(self):
-        with self._lock:
-            self._desired = None
-            return self._request('DELETE', '/v1/goal')
+        # Safety requests must reach the gateway even while an unrelated HTTP call
+        # holds the ordinary pacing lock waiting for its network response.
+        self._desired = None
+        return self._request('DELETE', '/v1/goal')
 
     def _maintain(self):
         while not self._stop.wait(8):
@@ -414,13 +456,14 @@ class AgentClient(PrimitiveMethods):
 
     def close(self):
         self._stop.set()
-        if self._thread and self._thread is not threading.current_thread():
-            self._thread.join(timeout=self.timeout+2)
+        self._desired = None
         try:
             if self._lease:
                 self._request('DELETE', '/v1/lease')
         finally:
             self._lease, self._desired = None, None
+            if self._thread and self._thread is not threading.current_thread():
+                self._thread.join(timeout=self.timeout+2)
 
     def __enter__(self):
         return self.connect()

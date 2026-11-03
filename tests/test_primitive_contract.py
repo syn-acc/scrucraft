@@ -1,5 +1,6 @@
 """Protocol 2 queue and authorization regression tests; no Minecraft simulation claims."""
 import unittest
+from unittest.mock import patch
 import test_controller_gateway as fixtures
 
 
@@ -17,6 +18,19 @@ class PrimitiveContractTests(unittest.TestCase):
     def grant(self):
         with self.g.changed:return self.g.realtime_control('Forge')
     def results(self):return {r['id']:r for r in self.f.call('GET','/v1/action-results')['results']}
+    def test_original_wall_deadline_survives_retry_and_grant_retransmission(self):
+        rid='fixed_deadline_00001'
+        with patch.object(fixtures.gateway.time,'time_ns',return_value=1_000_000_000_000):
+            first=self.submit(rid=rid,target=[0,65,0],ttl_seconds=5)
+        original=self.g.actions['Forge'][rid]['control']['deadline_ms']
+        self.assertEqual(1_005_000,original)
+        self.f.now+=2
+        with patch.object(fixtures.gateway.time,'time_ns',return_value=1_002_000_000_000):
+            replay=self.submit(rid=rid,target=[0,65,0],ttl_seconds=5)
+            grant=self.grant()['commands'][0]
+        self.assertEqual(first,replay);self.assertEqual(original,grant['deadline_ms'])
+        self.assertLess(grant['timeout_ticks'],100)
+        self.assertEqual('unknown_action_fields',self.f.error(400,lambda:self.submit(target=[0,65,0],deadline_ms=9_999_999)))
     def test_rapid_commands_not_lost_and_acknowledged_commands_not_replayed(self):
         a=self.submit('move_to',target=[3,64,0]);b=self.submit('look_at',target=[0,65,0])
         self.assertEqual([a['id'],b['id']],[r['id'] for r in self.grant()['commands']])
@@ -112,6 +126,63 @@ class PrimitiveContractTests(unittest.TestCase):
 
 
 class SDKContractTests(unittest.TestCase):
+    def test_stale_action_handle_cancel_cannot_cancel_reused_id_in_new_epoch(self):
+        import sys
+        sys.path.insert(0,str(fixtures.ROOT/'sdk'))
+        from scru_minecraft import AgentClient,ActionHandle
+        from scru_minecraft.realtime import RealtimeClient
+        fixture=fixtures.GatewayTests();fixture.setUp()
+        sample=fixtures.frame(tick=101)
+        sample.update(body_epoch='new_epoch',control_protocol=2,raw_capabilities=['look_at','cancel'],action_results=[])
+        fixture.g.frame(sample);lease=fixture.lease();rid='reused_action_0000001'
+        fixture.call('POST','/v1/actions',{'op':'look_at','id':rid,'body_epoch':'new_epoch','target':[0,65,1]})
+        try:
+            for transport in ('http','websocket'):
+                client=AgentClient('https://example.invalid','synthetic-token','Forge')
+                def request(method,path,value=None,**kwargs):return fixture.call(method,path,value)
+                if transport=='http':
+                    client._lease=lease['lease_id'];client.observe=lambda:dict(sample);client._request=request
+                    controlled=client
+                else:
+                    controlled=RealtimeClient(client);controlled.observation=dict(sample);controlled.request=request
+                with self.subTest(transport=transport):
+                    old=ActionHandle(controlled,{'id':rid,'body_epoch':'old_epoch','state':'accepted'})
+                    with self.assertRaises(fixtures.gateway.APIError) as raised:old.cancel()
+                    self.assertEqual((409,'body_changed'),(raised.exception.status,raised.exception.code))
+                    self.assertEqual('accepted',fixture.g.actions['Forge'][rid]['result']['state'])
+                    self.assertEqual(1,len(fixture.g.actions['Forge']))
+        finally:fixture.tearDown()
+
+    def test_readiness_rejects_unbounded_timeout_and_preserves_stop_errors(self):
+        client=fixtures.sdk.AgentClient('https://example.invalid','synthetic-token')
+        for timeout in (float('nan'),float('inf'),0,-1,True):
+            with self.subTest(timeout=timeout):
+                with self.assertRaises(ValueError):client.await_ready(timeout=timeout)
+                with self.assertRaises(ValueError):fixtures.sdk.AgentClient('https://example.invalid','synthetic-token',timeout=timeout)
+        with self.assertRaises(ValueError):client.await_ready(required='dig')
+        client.create_agent=lambda *args: self.fail('Invalid readiness options must not create a body')
+        with self.assertRaises(ValueError):client.prepare('New',create=True,timeout=float('nan'))
+        client._request=lambda *args,**kw:{'observed':True,'removed':False,'suspended':True,'raw_capabilities':['dig']}
+        with self.assertRaises(fixtures.sdk.GatewayError) as raised:client.await_ready(required=['dig'])
+        self.assertEqual(423,raised.exception.status)
+        client._request=lambda *args,**kw:{'observed':True,'removed':False,'suspended':False,'raw_capabilities':['look_at']}
+        with self.assertRaises(fixtures.sdk.GatewayError) as raised:client.await_ready(required=['dig'])
+        self.assertEqual('missing_capabilities:dig',raised.exception.code)
+        with self.assertRaises(fixtures.sdk.GatewayError) as raised:client.await_ready(required=(op for op in ['dig']))
+        self.assertEqual('missing_capabilities:dig',raised.exception.code)
+
+    def test_prepare_body_change_invalidates_old_observation_and_rejects_active_lease(self):
+        client=fixtures.sdk.AgentClient('https://example.invalid','synthetic-token','First')
+        client._observation={'agent':'First','body_epoch':'old'};client._observed_at=100
+        client._lease='old-lease'
+        with self.assertRaisesRegex(ValueError,'Close current body control'):client.prepare('Second')
+        self.assertEqual('First',client.agent)
+        client._lease=None;selected=[]
+        def ready(*args):selected.append((client.agent,client._observation,client._observed_at))
+        client.await_ready=ready
+        self.assertIs(client,client.prepare('Second'))
+        self.assertEqual([('Second',None,0)],selected)
+
     def test_wrappers_handles_and_readiness(self):
         class Fake(fixtures.sdk.PrimitiveMethods):
             def observe(self):return {'container':{'session_id':'session','revision':7}}

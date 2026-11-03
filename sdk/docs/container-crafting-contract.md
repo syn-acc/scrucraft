@@ -20,8 +20,10 @@ area. Opening replaces the previous session. The response returns `session_id`,
 
 Supported native menus are chest (including double chest), barrel, shulker box,
 furnace/blast furnace/smoker, hopper, dispenser/dropper, and brewing stand.
-Other menus fail with `unsupported_container`; this is not arbitrary machine
-automation. Native locks, blocked lids, slot rules and furnace extraction hooks
+Other menus fail with `unsupported_container`. The separate development
+`machine_item_port` path supports reviewed Create depot, basin and millstone
+native item handlers; see [mod compatibility](mod-compatibility.md) for slot
+rules, pending full-pack acceptance and processing limits. Native locks, blocked lids, slot rules and furnace extraction hooks
 apply. Opening follows native block interaction, including statistics and any
 piglin reaction.
 
@@ -88,7 +90,11 @@ replay mutations or silently combine stale pages.
 
 ## Recipes
 
-`query_recipes` returns supported crafting recipes in ID order. Supply `offset`
+`query_recipes` returns supported grid recipes and known native processing recipe
+metadata in ID order. `craft_supported` and the legacy `supported` flag describe
+direct grid crafting; processing recipes use `execution: "native_world_ticks"`
+and include serializer-preserved `native_recipe` metadata. `supported: false`
+does not prohibit the native machine route. Supply `offset`
 (default 0) and `limit` (default 32, maximum 64); follow `next_offset` until
 absent. Each recipe describes ingredient alternatives, representative remainder
 items, output, grid dimensions and workstation. Ingredient alternatives are
@@ -115,8 +121,9 @@ summaries omit unusually large ingredients or components.
 items). Supported implementations are ordinary shaped and shapeless crafting
 recipes that fit a 3×3 grid. Recipes fitting 2×2 use the player's crafting grid;
 larger recipes require a reachable crafting table within the current work area.
-An optional `target` selects that table explicitly. Machine recipes and special
-recipe implementations fail with `unsupported_recipe_type`; an absent ID fails
+An optional `target` selects that table explicitly. Known machine recipes fail
+with `machine_processing_required`; other unsupported special recipe
+implementations fail with `unsupported_recipe_type`. An absent ID fails
 with `unknown_recipe`, and missing inventory inputs with
 `insufficient_ingredients`. Restricted crafting rules still apply.
 

@@ -147,3 +147,92 @@ This is evidence of incorrect classification, not proof that all movement drift
 or damage came from that entity. Source uses `ent instanceof Monster`; broader
 hostile-class coverage and native regression cases remain required under OBS-02.
 No Java replacement or additional restart was performed for this report.
+
+## Live dig outcome discrepancy
+
+[Minimal evidence](evidence/live-dig-reconciliation-20261103.json) records a dig
+that failed with `held_item_changed` as an empty selected slot picked up dirt.
+The later authoritative query returned air at the original target; inventory
+contained two dirt instead of one. No dig retry was sent. This requires ACT-07
+and EXEC-02/03/04 follow-up, including whether native delayed breaking continues
+after abort. The evidence does not by itself prove the precise mutation order
+or exclude another world change. Until resolved, failed digs require world and
+inventory reconciliation before any retry. No live Java change was made.
+
+Source follow-up confirmed the cancellation hazard in the exact NeoForge 1.21.1
+`ServerPlayerGameMode`: an early STOP packet activates delayed destruction, while
+ABORT does not clear that delayed state. Our adapter sends STOP on the next tick.
+A later native break can therefore occur after the adapter reports failure or
+cancellation. This mechanism is confirmed from source; a deterministic native
+regression and a verified fix are still required. The controlled first session
+ended safely sheltered; isolated testing is permitted again, but no further live
+maintenance window has been approved.
+
+ACT-07/SDK-05 documentation mitigation was published at 21:44 UTC on 2026-11-03.
+The live guide warns that failed/cancelled digs may finish later. HTTPS contents
+matched SHA-256 `4789594c42a06c4a41d269dc1cc036a924181b63e2fe992ea2800982ace6aca1`;
+all three runtime PIDs stayed unchanged. Backup/audit:
+`uk:/data/minecraft-syn-smp/ops/guide-dig-limit-20261103T214434Z`.
+This completes the warning task, not the native fix or ACT-07 acceptance.
+
+## Full-pack development runs 06 and 07
+
+[Run 06](evidence/api-fixture-run-06.json) and
+[run 07](evidence/api-fixture-run-07.json) use all 25 lock-pinned public server
+mods, a fresh world/default configuration and the candidate delayed-dig fix.
+Each record contains the exact adapter, Python source and mod hashes. Run 06
+passed 28 cases, then an incorrect HTTP-to-WebSocket fixture route prevented
+owner resume and caused subsequent failures. Its failures remain recorded.
+
+Run 07 corrects that fixture routing and passes **52 native cases**. Pickup-driven
+failure, explicit cancel, owner stop, lease release, grant expiry and an injected
+administrative stop all preserve the target after 90 native ticks. Redstone's
+native start-state change remains mineable. The administrative-stop case is
+named `dig_human_stop_cannot_destroy_later` in the machine-readable record; it
+does **not** prove an actual player's chat-delivered stop. The live adapter has
+not received these corrections.
+
+Two cases fail. Death/respawn correctly changes epoch and closes controls, but
+the vanilla loose-diamond assertion fails because the installed Corpse mod stores
+inventory in a corpse. Authorized native corpse recovery is now required under
+MOD-07/SURV-02. This is an uncovered pack workflow, not evidence of item loss.
+
+The [native performance report](evidence/native-performance-run-07.json) fails
+after 42.4 seconds: acknowledgement p95 **132.566 ms**, completion p95
+**3106.542 ms**, observation-gap p99 **455.149 ms**, and a pending action timeout.
+Per-body measured TPS is below 19. Slow-observer recovery and controlling-lease
+preservation also fail. All predeclared thresholds remain unchanged; the short
+synthetic improvements do not establish native performance. A separate
+instrumented full-pack diagnostic investigates CPU, message sizes and release
+causes; instrumented timings cannot count as acceptance evidence.
+
+Later local source includes additional body, menu, authorization and SDK changes
+that these frozen runs did not execute. The original checklist remains **8/40**.
+
+## Real human-chat stop verification
+
+On 2026-11-03 Jamie_Syn typed `Architect, stop` in Minecraft. The live SDK observed
+that exact public message, then verified persistent suspension and no active
+lease. A guarded fresh connection refused control with HTTP-equivalent 423
+`human_stop_requires_resume`; suspension and absent lease remained unchanged.
+[Minimal evidence](evidence/live-human-stop-20261103.json) excludes credentials
+and coordinates. No resume, gameplay action or restart occurred. Architect was
+already idle, so this closes the real delivery/persistence portion of OBS-04,
+EXEC-03 and VERIFY-04, not their active-action cancellation or privacy criteria.
+
+## Published source checkpoint after full-pack run 07
+
+The subsequent dev2 source passes **216 workspace Python tests**, **175 tests in
+the exact source-only public package**, and the Java build/check tasks. Java checks
+cover grant clocks/original deadlines, 11 endpoint cases, 13 name assertions,
+11 inventory conservation assertions, 9 navigation checks, and 13,824 exhaustive
+ingredient-assignment cases. A real Java/Python WebSocket probe passes stale-grant
+rejection, processed-observation ACK backpressure, two-second ACK-stall reconnect,
+no replay, fresh stop, expiry and close.
+
+This checkpoint also compiles the native industrial item ports, reviewed storage,
+backpack/pot/corpse menus and dimension guards. Their new full-pack fixtures and
+clean-install example runner have **not yet passed native acceptance**. The latest
+native load result remains the failed run 07 above. Source publication does not
+deploy or close those checklist items. The gateway and adapter form a paired
+bridge release; see [compatibility](release-status.md).

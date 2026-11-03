@@ -8,4 +8,4 @@ Work through the [API completion checklist](sdk/docs/api-completion-checklist.md
 
 Python checks: `python -m pip install -r agent-gateway/requirements.txt` then `python -m unittest discover -s tests -v`.
 
-Java: JDK 21, Gradle 9.2.1, NeoForge 21.1.265. The build expects the pinned LuckPerms compile dependency in `../../artifacts` relative to agent-mod; no mod binaries or credentials are included.
+Java: JDK 21, Gradle 9.2.1, NeoForge 21.1.265. Run `python agent-mod/prepare_dependencies.py` to verify and stage the pinned public LuckPerms compile dependency, then `gradle -p agent-mod build`; no mod binaries or credentials are included.

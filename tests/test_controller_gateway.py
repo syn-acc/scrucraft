@@ -396,6 +396,41 @@ class BrokerTests(unittest.TestCase):
 
 
 class SDKTests(unittest.TestCase):
+    def test_http_stop_reaches_gateway_while_ordinary_request_is_blocked(self):
+        fixture=GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        fixture.g.frame(frame(tick=101))
+        blocked=threading.Event();release=threading.Event();stopped=threading.Event();outcomes=[];errors=[]
+        class Handler(gateway.Handler):
+            def do_GET(self):
+                if self.path=='/v1/me':blocked.set();release.wait(3)
+                super().do_GET()
+        server=gateway.Server(('127.0.0.1',0),fixture.g);server.RequestHandlerClass=Handler
+        serving=threading.Thread(target=server.serve_forever,daemon=True);serving.start()
+        client=sdk.AgentClient(f'http://127.0.0.1:{server.server_port}',fixture.token,'Forge',allow_local_http=True,timeout=2)
+        lease=fixture.lease();client._lease=lease['lease_id']
+        def ordinary():
+            try:client.capabilities()
+            except Exception as error:errors.append(error)
+        def safety():
+            try:outcomes.append(client.stop())
+            except Exception as error:errors.append(error)
+            finally:stopped.set()
+        worker=threading.Thread(target=ordinary);stopper=threading.Thread(target=safety)
+        try:
+            worker.start();self.assertTrue(blocked.wait(1))
+            client._next_request=time.monotonic()+60
+            stopper.start();self.assertTrue(stopped.wait(.5),'HTTP stop waited behind an unrelated request or pacing')
+            self.assertTrue(worker.is_alive());self.assertFalse(errors)
+            self.assertEqual('stopped',outcomes[0]['status'])
+            self.assertEqual(1,fixture.g.active('Forge')['generation'])
+        finally:
+            release.set();worker.join(3)
+            if stopper.ident is not None:stopper.join(3)
+            client._next_request=0
+            try:client.close()
+            finally:
+                server.shutdown();server.server_close();serving.join(3);fixture.tearDown()
+
     def test_scru_environment_precedes_legacy_without_losing_compatibility(self):
         with patch.dict(os.environ, {'SCRU_AGENT_TOKEN': 'scru-token', 'SYN_AGENT_TOKEN': 'old-token',
                                      'SCRU_AGENT_ID': 'Forge', 'SYN_AGENT_ID': 'Other'}, clear=True):

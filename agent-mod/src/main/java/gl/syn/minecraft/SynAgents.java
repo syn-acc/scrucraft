@@ -21,6 +21,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.*;
@@ -165,7 +166,7 @@ public final class SynAgents {
                 // Emergency reactions run locally even when inference is down.
                 // Direct bodies have no hidden food/inventory composition, including after a human stop.
                 if (!realtime && ticks%20==0 && a.getFoodData().getFoodLevel()<12) consume(a);
-                if(realtime&&a.stream.ready()) {
+                if(realtime&&a.stream!=null&&a.stream.ready()) {
                     String dimension=a.level().dimension().location().toString();
                     boolean terrain=ticks>=a.terrainDue||!dimension.equals(a.terrainDimension);
                     if(a.stream.send(observation(a,!terrain))&&terrain) {
@@ -189,6 +190,7 @@ public final class SynAgents {
     private JsonObject observation(AgentPlayer a,boolean fast) {
         long began=System.nanoTime();
         JsonObject o=new JsonObject();
+        o.addProperty("captured_at_ms",System.currentTimeMillis());
         o.addProperty("body_epoch",a.controls.epoch);
         o.addProperty("partial",fast);o.addProperty("control_transport",realtime?"websocket":"http");
         o.addProperty("selected_slot",a.getInventory().selected);
@@ -235,7 +237,7 @@ public final class SynAgents {
         nearby.sort(Comparator.comparingDouble(a::distanceToSqr));
         for (Entity ent:nearby) {
             JsonObject row=new JsonObject();row.addProperty("id",ent.getId());row.addProperty("type",BuiltInRegistries.ENTITY_TYPE.getKey(ent.getType()).toString());
-            row.addProperty("hostile",ent instanceof Monster);row.addProperty("alive",ent.isAlive());row.addProperty("visible",a.hasLineOfSight(ent));row.addProperty("distance",a.distanceTo(ent));
+            row.addProperty("hostile",ent instanceof Enemy);row.addProperty("alive",ent.isAlive());row.addProperty("visible",a.hasLineOfSight(ent));row.addProperty("distance",a.distanceTo(ent));
             row.add("position",JSON.toJsonTree(new double[]{ent.getX(),ent.getY(),ent.getZ()}));row.add("velocity",JSON.toJsonTree(new double[]{ent.getDeltaMovement().x,ent.getDeltaMovement().y,ent.getDeltaMovement().z}));
             if(ent instanceof LivingEntity living)row.addProperty("health",living.getHealth());
             if(ent instanceof net.minecraft.world.entity.item.ItemEntity item)row.add("stack",BodyInventory.describeStack(item.getItem(),a.registryAccess()));

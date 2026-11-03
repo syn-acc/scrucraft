@@ -4,7 +4,7 @@ import threading
 import time
 import uuid
 import re
-from . import GatewayError, PrimitiveMethods, ActionHandle, _match_action_epoch
+from . import GatewayError, PrimitiveMethods, ActionHandle, _match_action_epoch, _raise_stored_error
 
 
 class RealtimeClient(PrimitiveMethods):
@@ -95,7 +95,7 @@ class RealtimeClient(PrimitiveMethods):
     def _request(self,method,path,body=None):
         rid=uuid.uuid4().hex
         with self.changed:
-            if self.error:raise self.error
+            if self.error:_raise_stored_error(self.error)
             if self.stopped.is_set():raise ConnectionError('Stream closed')
             self.pending[rid]=None
         started=time.perf_counter_ns()
@@ -112,7 +112,7 @@ class RealtimeClient(PrimitiveMethods):
                 self.next_request=time.monotonic()+.006
             with self.changed:
                 arrived=self.changed.wait_for(lambda:self.pending[rid] is not None or self.error,self.client.timeout)
-                if self.error:raise self.error
+                if self.error:_raise_stored_error(self.error)
                 if not arrived:
                     self.connection.close()
                     raise TimeoutError('Command acknowledgement unknown; reconnect and inspect results before retrying')
@@ -129,11 +129,12 @@ class RealtimeClient(PrimitiveMethods):
         with self.changed:
             if not self.changed.wait_for(lambda:self.observation is not None or self.error,self.client.timeout):
                 raise TimeoutError('No body snapshot received')
-            if self.error:raise self.error
+            if self.error:_raise_stored_error(self.error)
             return dict(self.observation)
 
-    def action(self,op,*,target=None,ttl_seconds=30,request_id=None,**fields):
-        value={'id':request_id or uuid.uuid4().hex,'op':op,'body_epoch':self.observe().get('body_epoch'),
+    def action(self,op,*,target=None,ttl_seconds=30,request_id=None,expected_body_epoch=None,**fields):
+        epoch=expected_body_epoch if expected_body_epoch is not None else self.observe().get('body_epoch')
+        value={'id':request_id or uuid.uuid4().hex,'op':op,'body_epoch':epoch,
                'ttl_seconds':ttl_seconds}
         if set(fields)&set(value):raise ValueError('Reserved action fields')
         value.update(fields)
@@ -168,7 +169,7 @@ class RealtimeClient(PrimitiveMethods):
             if terminal(result):return result
         with self.changed:
             self.changed.wait_for(lambda:terminal(cached()) or self.error,max(0,deadline-time.monotonic()))
-            if self.error:raise self.error
+            if self.error:_raise_stored_error(self.error)
             row=cached()
             result=dict(row) if terminal(row) else None
         if result is None or result.get('details_available') or (body_epoch is not None and result.get('body_epoch') not in (None,body_epoch)):
@@ -216,7 +217,7 @@ class RealtimeClient(PrimitiveMethods):
         while True:
             with self.changed:
                 self.changed.wait_for(lambda:self.sequence>cursor or self.error or self.stopped.is_set())
-                if self.error:raise self.error
+                if self.error:_raise_stored_error(self.error)
                 if self.stopped.is_set():return
                 sequence,observation,resync=self.snapshots[-1]
                 gap=cursor!=0 and sequence>cursor+1

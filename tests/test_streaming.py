@@ -17,6 +17,89 @@ except ImportError:
 
 @unittest.skipUnless(AVAILABLE,'Install agent-gateway/requirements.txt to test real WebSockets')
 class StreamTests(unittest.TestCase):
+    def test_private_observation_ack_is_scoped_to_connection_epoch(self):
+        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        sample=fixtures.frame(tick=101);sample.update(body_epoch='old_epoch',control_protocol=2,raw_capabilities=['look_at'],action_results=[])
+        fixture.g.frame(sample)
+        streaming=fixtures.module('scru_streaming_observation_ack','agent-gateway/streaming.py')
+        server=streaming.make_server(fixture.g,port=0);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            with connect('ws://127.0.0.1:'+str(server.socket.getsockname()[1])+'/internal/body',proxy=None,close_timeout=.2) as body:
+                body.send(json.dumps({'token':'internal-test-secret','agent':'Forge','body_epoch':'new_epoch'}))
+                first=json.loads(body.recv(timeout=2))
+                self.assertEqual(-1,first['observed_tick']);self.assertEqual('new_epoch',first['action']['body_epoch'])
+                sample.update(tick=102,body_epoch='new_epoch',captured_at_ms=time.time_ns()//1_000_000)
+                body.send(json.dumps(sample))
+                while True:
+                    acknowledged=json.loads(body.recv(timeout=2))
+                    if acknowledged['observed_tick']==102:break
+                self.assertEqual('new_epoch',acknowledged['action']['body_epoch'])
+                with fixture.g.changed:
+                    self.assertEqual({'body_epoch':'new_epoch','tick':102},fixture.g.processed_frames['Forge'])
+                    self.assertIn('body_receive_lag_ms',fixture.g.frames['Forge'])
+                # A frame with a foreign epoch is rejected before processing/ACK.
+                sample.update(tick=103,body_epoch='foreign_epoch');body.send(json.dumps(sample))
+                with self.assertRaises(ConnectionClosed):
+                    while True:
+                        value=json.loads(body.recv(timeout=2));self.assertNotEqual(103,value['observed_tick'])
+                self.assertEqual(102,fixture.g.processed_frames['Forge']['tick'])
+        finally:
+            server.shutdown();server.socket.close();thread.join(3);fixture.tearDown()
+
+    def test_private_grant_age_includes_blocked_construction_and_keeps_action_deadline(self):
+        fixture=fixtures.GatewayTests();fixture.setUp()
+        sample=fixtures.frame(tick=101);sample.update(body_epoch='epoch',control_protocol=2,raw_capabilities=['look_at'],action_results=[])
+        fixture.g.frame(sample);fixture.lease()
+        accepted=fixture.call('POST','/v1/actions',{'id':'delayed_grant_00001','op':'look_at','body_epoch':'epoch','target':[0,65,0]})
+        expected=fixture.g.actions['Forge'][accepted['id']]['control']['deadline_ms']
+        original=fixture.g.realtime_control;calls=[]
+        def delayed(name):
+            reply=original(name);calls.append(name)
+            if len(calls)==1:time.sleep(.25)
+            return reply
+        fixture.g.realtime_control=delayed
+        streaming=fixtures.module('scru_streaming_expiring_envelope','agent-gateway/streaming.py')
+        server=streaming.make_server(fixture.g,port=0);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            with connect('ws://127.0.0.1:'+str(server.socket.getsockname()[1])+'/internal/body',proxy=None,close_timeout=.2) as body:
+                body.send(json.dumps({'token':'internal-test-secret','agent':'Forge','body_epoch':'epoch'}))
+                first=json.loads(body.recv(timeout=2))
+                self.assertEqual(200,first['expires_at_ms']-first['issued_at_ms'])
+                self.assertLessEqual(first['expires_at_ms'],time.time_ns()//1_000_000,
+                                     'Old work was restamped fresh after construction stalled')
+                second=json.loads(body.recv(timeout=2))
+                self.assertGreater(second['issued_at_ms'],first['issued_at_ms'])
+                self.assertEqual(200,second['expires_at_ms']-second['issued_at_ms'])
+                for envelope in (first,second):
+                    self.assertIs(type(envelope['issued_at_ms']),int)
+                    self.assertIs(type(envelope['expires_at_ms']),int)
+                    self.assertEqual(expected,envelope['action']['commands'][0]['deadline_ms'])
+        finally:
+            server.shutdown();server.socket.close();thread.join(3);fixture.tearDown()
+
+    def test_mixed_case_body_name_releases_canonical_lease_on_disconnect(self):
+        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        sample=fixtures.frame(tick=101);sample.update(body_epoch='epoch',control_protocol=2,raw_capabilities=['look_at'],action_results=[])
+        fixture.g.frame(sample)
+        streaming=fixtures.module('scru_streaming_name_case','agent-gateway/streaming.py')
+        server=streaming.make_server(fixture.g,port=0);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            with connect('ws://127.0.0.1:'+str(server.socket.getsockname()[1])+'/v1/events',proxy=None,close_timeout=.2) as connection:
+                connection.send(json.dumps({'token':fixture.token,'agent':'fOrGe'}))
+                self.assertEqual('Forge',json.loads(connection.recv(timeout=2))['observation']['agent'])
+                connection.send(json.dumps({'request_id':'case_lease','method':'POST','path':'/v1/lease','body':{}}))
+                while True:
+                    reply=json.loads(connection.recv(timeout=2))
+                    if reply.get('request_id')=='case_lease':break
+                self.assertEqual(200,reply['status'])
+                with fixture.g.changed:self.assertIsNotNone(fixture.g.active('Forge'))
+            deadline=time.monotonic()+1
+            with fixture.g.changed:
+                released=fixture.g.changed.wait_for(lambda:fixture.g.active('Forge') is None,timeout=max(0,deadline-time.monotonic()))
+            self.assertTrue(released,'Mixed-case stream disconnect left canonical body controlled')
+        finally:
+            server.shutdown();server.socket.close();thread.join(3);fixture.tearDown()
+
     def test_socket_snapshot_is_bounded_but_old_full_receipt_remains_queryable(self):
         fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
         sample=fixtures.frame(tick=101)

@@ -1,0 +1,18 @@
+{
+  "status": "compiled development checkpoint; not deployed",
+  "sdk_gateway_version": "0.3.0.dev2",
+  "adapter_version": "0.5.0-dev2",
+  "build_input_source_archive_sha256": "e1772ef009bab5f9f9b7075b9967f34541e71b8d2a05e0d469321a0a7fecd014",
+  "adapter_jar_sha256": "251236ef7f3afb26dbb0a830f68e188ef207f187886bf94e1276a8f982fbcba4",
+  "workspace_python_tests_passed": 216,
+  "public_package_python_tests_passed": 175,
+  "java_build_passed": true,
+  "java_websocket_probe_passed": true,
+  "new_full_pack_acceptance_pending": true,
+  "native_performance_gate_passed": false,
+  "notes": [
+    "Publication adds documentation and this evidence file after the recorded build-input archive; runtime source is unchanged.",
+    "Native run 07 predates the latest industrial menus, grant expiry and observation ACK changes.",
+    "Repeated secret scan skipped at the user's explicit request for this publication."
+  ]
+}

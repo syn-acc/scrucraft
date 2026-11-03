@@ -3,6 +3,7 @@ package gl.syn.minecraft;
 /** Endpoint configuration must never turn the private body bridge into an outbound credential leak. */
 public final class BodyStreamEndpointTest {
     public static void main(String[] args) {
+        BodyGrantTest.check();
         int checks=0;
         for(String allowed:new String[]{"ws://127.0.0.1:8769/internal/body","ws://127.0.0.1:18769/internal/body"}) {
             if(!BodyStream.loopbackEndpoint(allowed).toString().equals(allowed))throw new AssertionError(allowed);

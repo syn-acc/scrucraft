@@ -25,3 +25,24 @@ game accounts, player data, worlds, operational backups or provider secrets.
 
 Java changes and live deployment are handled in the integration workspace under
 its maintenance rules. Publishing this repository does not deploy its code.
+
+## Reproduce the source build
+
+From the repository root, use Python 3.10+, JDK 21 and Gradle 9.2.1:
+
+```sh
+python -m pip install -r agent-gateway/requirements.txt
+python -m unittest discover -s tests -q
+python agent-mod/prepare_dependencies.py
+gradle -p agent-mod build
+```
+
+The dependency preparation downloads the public LuckPerms version pinned in
+`pack.lock.json`, verifies its SHA-512 and writes only into ignored
+`agent-mod/build/dependencies/`. For an offline build, use
+`python agent-mod/prepare_dependencies.py --source /path/to/LuckPerms-NeoForge-5.4.150.jar`
+and supply the usual prepopulated Gradle/NeoForge cache. No production host paths
+or credentials are needed. Running `gradle clean` removes the staged dependency;
+prepare it again before building. Native acceptance additionally needs the
+locked public server mods and a disposable isolated world; see
+[verification](docs/verification.md).

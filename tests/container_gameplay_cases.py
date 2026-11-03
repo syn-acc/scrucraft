@@ -277,11 +277,15 @@ def run_cases(fixture, stream):
         page = done(stream, stream.query_recipes(offset=0, limit=2))
         assert len(page['recipes']) == 2 and page['total'] >= 2 and page['next_offset'] == 2, page
         for recipe in page['recipes']:
-            assert recipe['supported'] and recipe['ingredients'] and recipe['output']['count'] > 0, recipe
-            assert recipe['count_semantics'] == 'recipe_executions', recipe
+            assert recipe['ingredients'], recipe
+            if recipe['craft_supported']:
+                assert recipe['supported'] and recipe['output']['count'] > 0, recipe
+                assert recipe['count_semantics'] == 'recipe_executions', recipe
+            else:
+                assert recipe['execution'] == 'native_world_ticks' and recipe['native_recipe'], recipe
         second = done(stream, stream.query_recipes(offset=page['next_offset'], limit=2))
         assert not ({r['recipe_id'] for r in page['recipes']} & {r['recipe_id'] for r in second['recipes']}), (page, second)
-        result = failed(stream.craft('minecraft:iron_ingot_from_smelting_iron_ore', 1), 'unsupported_recipe_type')
+        result = failed(stream.craft('minecraft:iron_ingot_from_smelting_iron_ore', 1), 'machine_processing_required')
         full = stream.recipe('minecraft:cake')
         assert full['recipe_id'] == 'minecraft:cake' and full['output']['item'] == 'minecraft:cake' and full['output']['count'] == 1, full
         assert full['workstation'] == 'minecraft:crafting_table' and 'ingredients_truncated' not in full
@@ -503,3 +507,193 @@ def run_cases(fixture, stream):
                 'player_and_container_multichunk_unicode_reconstruction': True, 'empty_cursor_query': True, 'changed_slot_chunk_rejected': True}
 
     fixture.case('large_components_bounded_observation_exact_transfer', ['ACT-14', 'OBS-01', 'OBS-05', 'VERIFY-03'], large_components)
+
+    if getattr(fixture.args, 'full_pack_mods', None):
+        run_industrial_cases(fixture, stream, reset, failed, container)
+
+
+def run_industrial_cases(fixture, stream, reset, failed, container):
+    """Exact locked Create pack only. Infrastructure is seeded; outputs are never seeded."""
+    def current():
+        value = stream.observe().get('container', {})
+        assert value.get('open') and value.get('kind') == 'machine_item_port', value
+        return value
+
+    def row(state, index):
+        return next(item for item in state['slots'] if item['inventory'] == 'container' and item['slot'] == index)
+
+    def amount(state, item):
+        return sum(r['count'] for r in state['slots'] if r['inventory'] == 'container' and r.get('item') == item)
+
+    def transfer(source, dest, count):
+        state = current()
+        return container(stream.move_item(source, dest, count, session_id=state['session_id'], revision=state['revision']))
+
+    def output(item):
+        state = current()
+        return state if amount(state, item) else None
+
+    def depot_contract():
+        reset()
+        fixture.console('setblock 2 64 0 create:depot')
+        fixture.console('give VerifyBuilder minecraft:iron_ingot 3')
+        wait_for(lambda: quantity(stream, 'minecraft:iron_ingot') == 3)
+        opened = container(stream.open_container(2, 64, 0))
+        assert opened['kind'] == 'machine_item_port' and len([r for r in opened['slots'] if r['inventory'] == 'container']) == 9
+        before = quantity(stream, 'minecraft:iron_ingot')
+        failed(stream.move_item({'inventory': 'player', 'slot': slot(stream, 'minecraft:iron_ingot')},
+                               {'inventory': 'container', 'slot': 1}, 1,
+                               session_id=opened['session_id'], revision=opened['revision']), 'slot_rule_rejected')
+        assert quantity(stream, 'minecraft:iron_ingot') == before
+        placed = transfer({'inventory': 'player', 'slot': slot(stream, 'minecraft:iron_ingot')}, {'inventory': 'container', 'slot': 0}, 2)
+        assert row(placed, 0)['count'] == 2 and row(placed, 0)['role'] == 'input_or_held'
+        full = stream.inventory_slot(0, inventory='container', session_id=placed['session_id'], revision=placed['revision'])
+        assert full['item'] == 'minecraft:iron_ingot' and full['count'] == 2
+        failed(stream.move_item({'inventory': 'container', 'slot': 0}, {'inventory': 'player', 'slot': 1}, 1,
+                               session_id=opened['session_id'], revision=opened['revision']), 'stale_container_revision')
+        returned = transfer({'inventory': 'container', 'slot': 0}, {'inventory': 'player', 'slot': 1}, 2)
+        wait_for(lambda: quantity(stream, 'minecraft:iron_ingot') == 3)
+        assert amount(returned, 'minecraft:iron_ingot') == 0
+        fixture.console('setblock 2 64 0 air')
+        wait_for(lambda: not stream.observe().get('container', {}).get('open'), description='removed machine invalidates port')
+        return {'native_port': 'create:depot', 'native_slots': 9, 'input_output_rules': True,
+                'full_metadata': True, 'stale_revision_rejected': True, 'removed_port_closed': True, 'iron_ingots_conserved': 3}
+
+    fixture.case('create_depot_native_port_exact_transfer', ['ACT-13', 'ACT-14', 'OBS-05', 'VERIFY-03'], depot_contract)
+
+    def powered_press():
+        reset()
+        fixture.console('setblock 2 64 0 create:depot')
+        fixture.console('setblock 2 66 0 create:mechanical_press[facing=east]')
+        fixture.console('give VerifyBuilder minecraft:iron_ingot 1')
+        wait_for(lambda: quantity(stream, 'minecraft:iron_ingot') == 1)
+        recipe = stream.recipe('create:pressing/iron_ingot')
+        assert not recipe['craft_supported'] and recipe['execution'] == 'native_world_ticks'
+        assert recipe['native_recipe']['type'] == 'create:pressing' and recipe['native_recipe']['results'][0]['id'] == 'create:iron_sheet'
+        failed(stream.craft('create:pressing/iron_ingot', 1), 'machine_processing_required')
+        container(stream.open_container(2, 64, 0))
+        inserted = transfer({'inventory': 'player', 'slot': slot(stream, 'minecraft:iron_ingot')}, {'inventory': 'container', 'slot': 0}, 1)
+        time.sleep(1)
+        assert amount(current(), 'minecraft:iron_ingot') == 1 and amount(current(), 'create:iron_sheet') == 0
+        # Native creative motor is fixture infrastructure, not a claimed survival-crafted power source.
+        fixture.console('setblock 3 66 0 create:creative_motor[facing=west]{ScrollValue:64}')
+        processed = wait_for(lambda: output('create:iron_sheet'), timeout=20, description='native powered press output')
+        assert amount(processed, 'minecraft:iron_ingot') == 0 and amount(processed, 'create:iron_sheet') == 1
+        failed(stream.move_item({'inventory': 'container', 'slot': 0}, {'inventory': 'player', 'slot': 0}, 1,
+                               session_id=inserted['session_id'], revision=inserted['revision']), 'stale_container_revision')
+        result_slot = next(r['slot'] for r in processed['slots'] if r['inventory'] == 'container' and r.get('item') == 'create:iron_sheet')
+        result = transfer({'inventory': 'container', 'slot': result_slot}, {'inventory': 'player', 'slot': 0}, 1)
+        wait_for(lambda: quantity(stream, 'create:iron_sheet') == 1)
+        assert amount(result, 'create:iron_sheet') == 0 and quantity(stream, 'minecraft:iron_ingot') == 0
+        return {'recipe': 'create:pressing/iron_ingot', 'input_ingots': 1, 'output_sheets': 1,
+                'unpowered_no_processing': True, 'processing_revision_changed': True,
+                'power': 'fixture-seeded native creative motor 64 rpm', 'machine_output_seeded': False,
+                'survival_power_construction_verified': False}
+
+    fixture.case('create_powered_press_depot_real_processing', ['ACT-14', 'ACT-15', 'OBS-05', 'OBS-06', 'VERIFY-03', 'VERIFY-06'], powered_press)
+
+    def powered_mixer():
+        reset()
+        fixture.console('setblock 2 64 0 create:basin')
+        fixture.console('setblock 2 66 0 create:mechanical_mixer')
+        fixture.console('setblock 3 66 0 create:cogwheel[axis=y]')
+        fixture.console('give VerifyBuilder minecraft:andesite 1')
+        fixture.console('give VerifyBuilder minecraft:iron_nugget 1')
+        wait_for(lambda: quantity(stream, 'minecraft:andesite') == quantity(stream, 'minecraft:iron_nugget') == 1)
+        recipe = stream.recipe('create:mixing/andesite_alloy')
+        assert recipe['native_recipe']['type'] == 'create:mixing' and not recipe['craft_supported']
+        assert recipe['native_recipe']['results'][0]['id'] == 'create:andesite_alloy'
+        opened = container(stream.open_container(2, 64, 0))
+        assert len([r for r in opened['slots'] if r['inventory'] == 'container']) == 18
+        failed(stream.move_item({'inventory': 'player', 'slot': slot(stream, 'minecraft:andesite')},
+                               {'inventory': 'container', 'slot': 9}, 1,
+                               session_id=opened['session_id'], revision=opened['revision']), 'slot_rule_rejected')
+        transfer({'inventory': 'player', 'slot': slot(stream, 'minecraft:andesite')}, {'inventory': 'container', 'slot': 0}, 1)
+        transfer({'inventory': 'player', 'slot': slot(stream, 'minecraft:iron_nugget')}, {'inventory': 'container', 'slot': 1}, 1)
+        time.sleep(1)
+        assert amount(current(), 'minecraft:andesite') == amount(current(), 'minecraft:iron_nugget') == 1
+        assert amount(current(), 'create:andesite_alloy') == 0
+        fixture.console('setblock 3 67 0 create:creative_motor[facing=down]{ScrollValue:64}')
+        processed = wait_for(lambda: output('create:andesite_alloy'), timeout=25, description='native powered mixer output')
+        assert amount(processed, 'minecraft:andesite') == amount(processed, 'minecraft:iron_nugget') == 0
+        assert amount(processed, 'create:andesite_alloy') == 1
+        result_slot = next(r['slot'] for r in processed['slots'] if r['inventory'] == 'container' and r.get('item') == 'create:andesite_alloy')
+        result = transfer({'inventory': 'container', 'slot': result_slot}, {'inventory': 'player', 'slot': 0}, 1)
+        wait_for(lambda: quantity(stream, 'create:andesite_alloy') == 1)
+        assert amount(result, 'create:andesite_alloy') == 0
+        return {'recipe': 'create:mixing/andesite_alloy', 'native_slots': 18, 'input_andesite': 1, 'input_iron_nugget': 1,
+                'output_alloy': 1, 'unpowered_no_processing': True, 'output_insertion_rejected': True,
+                'power': 'fixture-seeded native creative motor and cogwheel 64 rpm', 'machine_output_seeded': False,
+                'survival_power_construction_verified': False}
+
+    fixture.case('create_powered_mixer_basin_real_processing', ['ACT-14', 'ACT-15', 'OBS-05', 'OBS-06', 'VERIFY-03', 'VERIFY-06'], powered_mixer)
+
+    def powered_millstone():
+        reset()
+        fixture.console('setblock 2 64 0 create:millstone')
+        fixture.console('give VerifyBuilder minecraft:wheat 16')
+        wait_for(lambda: quantity(stream, 'minecraft:wheat') == 16)
+        recipe = stream.recipe('create:milling/wheat')
+        native = recipe['native_recipe']
+        assert native['type'] == 'create:milling' and native['processing_time'] == 150
+        assert any(r.get('chance') == .25 and r['id'] == 'minecraft:wheat_seeds' for r in native['results']), native
+        assert any(r.get('chance') == .25 and r.get('count') == 2 and r['id'] == 'create:wheat_flour' for r in native['results']), native
+        opened = container(stream.open_container(2, 64, 0))
+        assert len([r for r in opened['slots'] if r['inventory'] == 'container']) == 10
+        inserted = transfer({'inventory': 'player', 'slot': slot(stream, 'minecraft:wheat')}, {'inventory': 'container', 'slot': 0}, 16)
+        failed(stream.move_item({'inventory': 'container', 'slot': 0}, {'inventory': 'player', 'slot': 0}, 1,
+                               session_id=inserted['session_id'], revision=inserted['revision']), 'slot_rule_rejected')
+        time.sleep(1)
+        assert amount(current(), 'minecraft:wheat') == 16 and amount(current(), 'create:wheat_flour') == 0
+        fixture.console('setblock 2 63 0 create:creative_motor[facing=up]{ScrollValue:256}')
+        batches = []
+        for batch in range(2):
+            if batch:
+                fixture.console('give VerifyBuilder minecraft:wheat 16')
+                wait_for(lambda: quantity(stream, 'minecraft:wheat') == 16)
+                # Inventory mutation also changes revision; wait for the matching port snapshot.
+                wait_for(lambda: sum(r['count'] for r in current()['slots'] if r['inventory'] == 'player' and r.get('item') == 'minecraft:wheat') == 16)
+                transfer({'inventory': 'player', 'slot': slot(stream, 'minecraft:wheat')}, {'inventory': 'container', 'slot': 0}, 16)
+            processed = wait_for(lambda: current() if amount(current(), 'minecraft:wheat') == 0 else None,
+                                 timeout=35, description='native 16-wheat milling batch')
+            flour, seeds = amount(processed, 'create:wheat_flour'), amount(processed, 'minecraft:wheat_seeds')
+            assert 16 <= flour <= 48 and (flour - 16) % 2 == 0 and 0 <= seeds <= 16, processed
+            batches.append({'wheat_consumed': 16, 'flour_actual': flour, 'seed_actual': seeds})
+            for item, destination in [('create:wheat_flour', 2 + batch), ('minecraft:wheat_seeds', 4 + batch)]:
+                while amount(current(), item):
+                    source = next(r for r in current()['slots'] if r['inventory'] == 'container' and r.get('item') == item)
+                    transfer({'inventory': 'container', 'slot': source['slot']}, {'inventory': 'player', 'slot': destination}, source['count'])
+            assert not any(r['count'] for r in current()['slots'] if r['inventory'] == 'container')
+        flour_total, seeds_total = sum(b['flour_actual'] for b in batches), sum(b['seed_actual'] for b in batches)
+        wait_for(lambda: quantity(stream, 'create:wheat_flour') == flour_total and quantity(stream, 'minecraft:wheat_seeds') == seeds_total)
+        state = current()
+        done(stream, stream.close_container(session_id=state['session_id'], revision=state['revision']))
+        fixture.console('give VerifyBuilder minecraft:water_bucket 1')
+        wait_for(lambda: quantity(stream, 'minecraft:water_bucket') == 1)
+        done(stream, stream.craft('create:crafting/appliances/dough', 1))
+        wait_for(lambda: quantity(stream, 'create:dough') == quantity(stream, 'minecraft:bucket') == 1)
+        assert quantity(stream, 'minecraft:water_bucket') == 0 and quantity(stream, 'create:wheat_flour') == flour_total - 1
+        # Prove real furnace ticks on one dough; the separate 32-bread survival journey remains pending.
+        fixture.console('setblock 0 64 2 furnace[facing=north]')
+        fixture.console('give VerifyBuilder minecraft:coal 1')
+        wait_for(lambda: quantity(stream, 'minecraft:coal') == 1)
+        furnace = container(stream.open_container(0, 64, 2))
+        furnace = container(stream.move_item({'inventory': 'player', 'slot': slot(stream, 'create:dough')}, {'inventory': 'container', 'slot': 0}, 1,
+                                            session_id=furnace['session_id'], revision=furnace['revision']))
+        container(stream.move_item({'inventory': 'player', 'slot': slot(stream, 'minecraft:coal')}, {'inventory': 'container', 'slot': 1}, 1,
+                                   session_id=furnace['session_id'], revision=furnace['revision']))
+        baked = wait_for(lambda: stream.observe().get('container') if any(r.get('item') == 'minecraft:bread' and r['count'] == 1
+                         for r in stream.observe().get('container', {}).get('slots', []) if r['inventory'] == 'container') else None,
+                         timeout=20, description='native furnace bakes Create dough')
+        container(stream.move_item({'inventory': 'container', 'slot': 2}, {'inventory': 'player', 'slot': 8}, 1,
+                                   session_id=baked['session_id'], revision=baked['revision']))
+        wait_for(lambda: quantity(stream, 'minecraft:bread') == 1)
+        assert quantity(stream, 'minecraft:bucket') == 1 and quantity(stream, 'minecraft:wheat_seeds') == seeds_total
+        return {'recipe': 'create:milling/wheat', 'batches': batches, 'flour_total': flour_total, 'seeds_total': seeds_total,
+                'all_native_byproducts_collected': True, 'input_extraction_denied_by_native_port': True,
+                'dough_crafted': 1, 'empty_buckets_preserved': 1, 'furnace_bread': 1,
+                'power': 'fixture-seeded native creative motor 256 rpm', 'machine_output_seeded': False,
+                'waterwheel_and_32_bread_survival_journey_verified': False}
+
+    fixture.case('create_millstone_two_batches_dough_furnace_native_chain',
+                 ['ACT-13', 'ACT-14', 'ACT-15', 'OBS-05', 'OBS-06', 'VERIFY-03', 'VERIFY-06'], powered_millstone)

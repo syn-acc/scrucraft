@@ -119,6 +119,7 @@ class Gateway:
         # Leases intentionally do not survive a gateway restart.
         self.leases, self.frames, self.receipts, self.rates = {}, {}, {}, {}
         self.frame_ids = {}
+        self.processed_frames = {}  # Internal observation ACKs: only fully processed frames.
         self.last_chat = 0
         self.enrollments = {}
         self.body_connections = {}
@@ -550,6 +551,10 @@ class Gateway:
                     del records[oldest]
                 # Protocol 2 carries a deduplicated queue; legacy bodies have only one mailbox.
                 protocol=frame.get('control_protocol',1)
+                if protocol>=2:
+                    # Fixed at original acceptance, independent of later grant
+                    # retransmission or the injectable lease/retention test clock.
+                    control['deadline_ms']=time.time_ns()//1_000_000+ttl*1000
                 if protocol<2:
                     require(op in {'move_to','look_at','stop'},'adapter_upgrade_required',409)
                     self.cancel_actions(name,'replaced_before_completion',lease['id'])
@@ -663,6 +668,7 @@ class Gateway:
         return None
 
     def frame(self, observation):
+        received_at_ms=time.time_ns()//1_000_000
         name = observation.get('agent')
         try:
             body = self.body(name)
@@ -702,6 +708,16 @@ class Gateway:
             snapshot = {**old, **snapshot}
         else:
             snapshot['terrain_captured_at'] = self.clock()
+        # Native timestamps are same-host diagnostics, distinct from the gateway's
+        # own captured_at freshness. Partial frames must not inherit an old sample.
+        for key in ('captured_at_ms','gateway_received_at_ms','body_receive_lag_ms','body_receive_clock_skew_ms'):
+            snapshot.pop(key,None)
+        native_capture=observation.get('captured_at_ms')
+        if type(native_capture) is int and native_capture>=0:
+            lag=received_at_ms-native_capture
+            snapshot.update(captured_at_ms=native_capture,gateway_received_at_ms=received_at_ms,
+                            body_receive_lag_ms=lag if lag>=0 else None)
+            if lag<0:snapshot['body_receive_clock_skew_ms']=-lag
         snapshot['inventory'] = [{k: v for k, v in row.items() if k != 'hydration'}
                                  for row in snapshot.get('inventory', [])]
         # Opaque per-tick IDs stay stable if the controller retries the same frame.
@@ -739,6 +755,7 @@ class Gateway:
             else:lease.pop('control',None)
         if lease and lease.get('chat') and lease['chat']['expires_at'] > self.clock():
             result.update({k: lease['chat'][k] for k in ('say', 'announcement_id')})
+        self.processed_frames[name]={'body_epoch':observation.get('body_epoch'),'tick':observation['tick']}
         return result
 
     def result_rows(self, name, native=None):

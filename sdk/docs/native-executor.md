@@ -23,7 +23,29 @@ The socket reader only replaces the latest authorization grant; it never touches
 
 the world. The gateway sends `kind: controls`, `body_epoch`, `lease_id`, `area`,
 
-`commands`, and `valid_for_ticks: 4`. A grant older than 200 ms cannot execute.
+`commands`, and `valid_for_ticks: 4`. The dev2 same-host bridge envelope carries
+
+`issued_at_ms`/`expires_at_ms` with at most 200 ms lifetime; queued arrival cannot
+
+renew that lifetime. Native wall-clock and monotonic checks reject expired or
+
+future-issued grants. Each command retains its original `deadline_ms`, including
+
+retries; native pre-tick checks disarm expired controls before vanilla effects.
+
+The gateway's matching-epoch `observed_tick` acknowledges a processed native
+
+snapshot. The body permits one unacknowledged snapshot, then builds current state
+
+after acknowledgement. A two-second ACK stall closes the bridge and uses bounded
+
+reconnect backoff; this does not replay mutations or resume a stopped owner lease.
+
+`captured_at_ms`, `gateway_received_at_ms` and `body_receive_lag_ms` distinguish
+
+native capture from receipt. Negative wall-clock deltas are reported as clock skew,
+
+not zero latency. Public-client backpressure is measured separately.
 
 Changing or removing the lease cancels active work and closes inventory sessions.
 
@@ -114,11 +136,15 @@ area. The held block is used without automatic tool selection. Vanilla doors,
 
 beds and double plants additionally validate their second cell before placement.
 
-Unknown modded footprints and scaffolding reject with
+In the dev2 candidate, unknown modded footprints and scaffolding reject with
 
-`unsupported_placement_footprint`. Replaceable support is rejected because vanilla
+`unsupported_placement_footprint` when an owner configured bounds. Unrestricted
 
-would redirect placement to that support cell. Native collision and survival
+play delegates native mod placement. Replaceable destinations and matching slabs
+
+use native placement contexts; a context redirecting to a different destination
+
+fails `placement_redirected`. Native collision and survival
 
 placement rules still apply. A rejected native hook can return `placement_rejected`;
 
@@ -138,7 +164,9 @@ not prove atomic rollback. Do not replay uncertain mutations automatically.
 
 It reports `broken` only after observing the body's break event and removal of
 
-the target. Unbreakable blocks, insufficient harvesting tools, changed targets,
+the target. In dev2, unsuitable tools use native slower breaking and harvest-drop
+
+rules, including no drops where Minecraft requires a better tool. Unbreakable blocks, changed targets,
 
 out-of-reach targets and tool changes fail explicitly. It never walks or selects
 
@@ -174,21 +202,25 @@ Stop or lost control clears every request.
 
 immediately, duration-based use starts and completes when native use ends.
 
-`release_use` explicitly releases a held use. Buckets and block items are rejected
+`release_use` explicitly releases a held use. In the dev2 candidate, unrestricted
 
-by the generic air-use call because their world-write footprint needs a targeted
+air use delegates bucket, block-item and mod callbacks to Minecraft. Configured
 
-operation.
+bounds reject unknown air-use footprints with `bounded_air_use_footprint_unknown`.
 
 
 
 `use_on` accepts either `entity_id` or a block `target` plus `face`, and an optional
 
-hand. It validates line of sight, reach and work area. Block-entity and workstation menus require
+hand. It validates line of sight, reach and work area. In the dev2 candidate,
 
-`open_container` (unsupported workstation types fail explicitly); block/bucket/bone-meal use on blocks is rejected because the
+reviewed native block menus opened by the interaction become tracked container
 
-executor does not promise bounded arbitrary growth or fluid writes. Vanilla door
+sessions; unsupported menus fail explicitly. Unrestricted use delegates ordinary
+
+block, bucket, bone-meal and mod callbacks. Configured bounds reject unknown growth,
+
+fluid and mod footprints with `unsupported_use_footprint`. Vanilla door
 
 interaction checks both halves. Entity interaction uses vanilla `interactOn`. Interactions that open an
 

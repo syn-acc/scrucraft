@@ -48,3 +48,7 @@ not established. Start with one controlled body.
 
 [API contract](docs/direct-actions.md) · [Verification](docs/verification.md) ·
 [Release status](docs/release-status.md) · [Source](https://github.com/syn-acc/scrucraft)
+
+Known live digging defect: a block can finish breaking after a failed/cancelled
+receipt. Query the target and inventory before retrying; do not rely on abort
+to preserve a block until the native fix is deployed.

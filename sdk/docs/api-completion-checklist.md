@@ -19,6 +19,8 @@ and unverified acceptance criteria visible even where an operation is implemente
 The gateway forwards individual operations; task planning and skill composition
 belong in the player's agent. Native navigation belongs in the body adapter.
 
+See the [ordered completion plan](completion-plan.md) and [per-item coverage matrix](api-coverage-matrix.md).
+
 ## How we work through this
 
 Keep an item unchecked until its Java/gateway implementation, Python SDK method,
@@ -107,6 +109,11 @@ do not synthesize items, teleport or silently select tools on the server.
   dimension and work area. Test unbreakable blocks, changed targets, cancellation,
   tool breakage and out-of-area rejection. Completion means the intended block
   was broken, not merely that mining began; do not implicitly walk to it.
+  Live defect: a dig returned `failed/held_item_changed`, followed by an air
+  block at its target and an extra dirt item without a dig retry. Reconcile
+  failure/abort with native delayed breaking; verify item pickup, cancellation
+  and human stop cannot leave a later unreported mutation.
+  [Minimal live evidence](evidence/live-dig-reconciliation-20261103.json).
 - [ ] **ACT-08 — `place(x, y, z, face)`**: interact with an explicitly documented
   support block/face using the held item. Define whether coordinates name the
   support or destination; check the actual destination and all affected cells
@@ -247,3 +254,47 @@ do not synthesize items, teleport or silently select tools on the server.
 
 Existing evidence: [live WebSocket measurements](realtime.md),
 [current direct-action contract](direct-actions.md), and [migration history](../MIGRATION.md).
+
+## Additional requirements identified by the installed-pack audit
+
+These supplement the original 40 IDs; they do not replace or inflate the checked
+count. The detailed audit expands this to **13 separately tracked open additions**:
+PACK-01, MOD-01–10 and SURV-01–02. The [compatibility matrix](mod-compatibility.md)
+defines exact supported workflows and native acceptance criteria for each MOD ID.
+This is a finite release contract, not a claim about every future mod/configuration.
+
+- [ ] **PACK-01 — Reproducible installed-pack verification.** Pin/verify all 25
+  installed public mod JARs and relevant gameplay configuration. Use fresh worlds,
+  isolated ports and no production data/credentials. Record configuration differences.
+- [ ] **MOD-01 — Create placement and direct control.** Reviewed kinetic blocks,
+  orientation, crank/wrench, native waterwheel power and configured boundaries.
+- [ ] **MOD-02 — Native pressing and mixing.** Real depot/press and basin/mixer
+  input/output, unpowered baseline, powered completion and inventory accounting.
+- [ ] **MOD-03 — Survival milling and bread.** Two fresh 16-wheat milling batches,
+  actual probabilistic byproducts, bucket/dough remainders, real fuel/smelting and
+  32 delivered bread, powered by an agent-built waterwheel in the full journey.
+- [ ] **MOD-04 — Machine-port transaction integrity.** Native input/output rules,
+  exact counts/components, session/revision/reach/bounds, processing/concurrent
+  changes, removal and disconnect reconciliation without mutation replay.
+- [ ] **MOD-05 — Sophisticated storage/backpacks.** Native block and item/worn
+  inventory sessions, compartments, high-capacity stacks, filters, upgrades,
+  ownership and close/reconnect conservation.
+- [ ] **MOD-06 — Farmer's Delight workstations.** Real heated pot and cutting-board
+  workflows, serving containers, tool durability, output rolls and full metadata.
+- [ ] **MOD-07 — Personal loot and corpse recovery.** Native Lootr body-specific
+  access and authorized corpse recovery, preserving restrictions and components.
+- [ ] **MOD-08 — Steam 'n' Rails controls.** Explicit track/control placement,
+  station/schedule/riding interaction and moving-contraption lifecycle/ownership/
+  stop semantics for the documented supported scope.
+- [ ] **MOD-09 — Fluid processing.** Tank observations, real bucket/approved fluid
+  interaction, heated/fluid basin recipes, spout filling and drain emptying with
+  conservation. Recipe discovery alone does not close this requirement.
+- [ ] **MOD-10 — Installed-pack gameplay effects.** Native primitive/survival suite
+  under the exact pack, seasonal farming/difficulty effects and performance mods.
+- [ ] **SURV-01 — Agent-driven survival journey.** Through documented primitives,
+  gather/prepare/consume food, recover health, use shelter and respond to threats.
+  Record finite duration, initial supplies, consumption/gathering, health and deaths.
+  Composition stays in the external agent; no hidden paid inference is enabled.
+- [ ] **SURV-02 — Interrupted-work recovery.** Damage, death/respawn, recoverable
+  inventory/corpse access, disconnect/expiry and stale epochs. Verify reconciliation,
+  human-stop persistence, deliberate resume and preservation of player work.

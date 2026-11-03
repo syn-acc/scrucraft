@@ -33,7 +33,7 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         name=auth.get('agent');epoch=auth.get('body_epoch')
         if not isinstance(epoch,str) or not 1<=len(epoch)<=80:raise ValueError('invalid_epoch')
         with gateway.changed:
-            gateway.body(name)
+            name=gateway.body(name)['name']
             if name in gateway.body_connections:
                 raise ValueError('body_already_connected')
             gateway.body_connections[name]=connection
@@ -56,16 +56,24 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         previous_payload=None;renew_at=0
         try:
             while not ended.is_set() and connection.state is State.OPEN:
+                issued_at_ms=time.time_ns()//1_000_000
                 with gateway.changed:
                     revision=gateway.body_revisions.get(name,0)
                     try:reply=gateway.realtime_control(name)
                     except Exception:reply={'kind':'idle','body_epoch':epoch,'valid_for_ticks':4}
                     if reply.get('body_epoch')!=epoch:
                         reply={'kind':'idle','body_epoch':epoch,'valid_for_ticks':4}
-                payload=json.dumps({'type':'control','action':reply})
-                if payload!=previous_payload or time.monotonic()>=renew_at:
-                    connection.send(payload)
-                    previous_payload=payload;renew_at=time.monotonic()+.1
+                    processed=gateway.processed_frames.get(name,{})
+                    observed_tick=processed.get('tick',-1) if processed.get('body_epoch')==epoch else -1
+                action_payload=json.dumps(reply)
+                signature=(action_payload,observed_tick)
+                if signature!=previous_payload or time.monotonic()>=renew_at:
+                    # Same-host absolute expiry survives TCP/socket backlog. Java
+                    # additionally limits remaining life with its monotonic clock.
+                    connection.send(json.dumps({'type':'control','issued_at_ms':issued_at_ms,
+                                                'expires_at_ms':issued_at_ms+200,
+                                                'observed_tick':observed_tick,'action':reply}))
+                    previous_payload=signature;renew_at=time.monotonic()+.1
                 with changed:
                     changed.wait_for(lambda:ended.is_set() or gateway.body_revisions.get(name,0)!=revision,
                                              timeout=max(0,renew_at-time.monotonic()))
@@ -80,7 +88,7 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         token=auth.get('token');name=auth.get('agent')
         if not isinstance(token,str):raise ValueError('unauthorized')
         with gateway.changed:
-            principal=gateway.authenticate('Bearer '+token);gateway.body(name,principal)
+            principal=gateway.authenticate('Bearer '+token);name=gateway.body(name,principal)['name']
         stopped=threading.Event()
         changed=gateway.body_condition(name)
         owned_lease=None

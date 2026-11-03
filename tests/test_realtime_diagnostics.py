@@ -5,6 +5,8 @@ import sys
 import threading
 import time
 import unittest
+import traceback
+import concurrent.futures
 from unittest.mock import patch
 
 sys.path.insert(0,str(pathlib.Path(__file__).parents[1]/'sdk'))
@@ -14,6 +16,44 @@ from scru_minecraft.realtime import RealtimeClient
 
 class RealtimeDiagnosticsTests(unittest.TestCase):
     def stream(self):return RealtimeClient(AgentClient('https://example.invalid','synthetic-private-token-123456','Body',timeout=2))
+    def test_repeated_concurrent_failure_reads_have_bounded_tracebacks_and_original_cause(self):
+        stream=self.stream();rid='pending_action_000001'
+        stream.observation={'action_results':[{'id':rid,'state':'accepted','body_epoch':'epoch'}]}
+        try:raise ConnectionError('Transport closed; action outcome unknown; commands are never automatically replayed')
+        except ConnectionError as error:original=error
+        stream.error=original
+        origin_depth=len(traceback.extract_tb(original.__traceback__))
+        operations=[stream.observe,lambda:stream.request('POST','/v1/actions',{'op':'drop'}),
+                    lambda:stream.wait_action(rid,.01),lambda:next(stream.observations())]
+        def read(index):
+            try:operations[index%len(operations)]()
+            except ConnectionError as error:
+                self.assertIsNot(original,error);self.assertIs(original,error.__cause__)
+                self.assertIn('outcome unknown',str(error));self.assertIn('never automatically replayed',str(error))
+                return len(traceback.extract_tb(error.__traceback__)),len(''.join(traceback.format_exception(error)))
+            self.fail('Disconnected access returned success')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:results=list(executor.map(read,range(200)))
+        self.assertEqual(origin_depth,len(traceback.extract_tb(original.__traceback__)))
+        self.assertLessEqual(max(depth for depth,_ in results),6)
+        self.assertLess(max(size for _,size in results),3000)
+        self.assertEqual({},stream.pending,'No failed read may submit or replay a command')
+
+    def test_http_background_error_preserves_gateway_fields_without_traceback_growth(self):
+        from scru_minecraft import GatewayError
+        client=self.stream().client;client._lease='synthetic-lease'
+        try:raise GatewayError(429,'rate_limited',3)
+        except GatewayError as error:original=error
+        client._error=original;depth=len(traceback.extract_tb(original.__traceback__))
+        for index in range(100):
+            try:
+                if index%2:next(client.observations())
+                else:client.set_goal('rest','synthetic-frame')
+            except GatewayError as error:
+                self.assertIsNot(error,original);self.assertIs(error.__cause__,original)
+                self.assertEqual((429,'rate_limited',3),(error.status,error.code,error.retry_after))
+            else:self.fail('Background error was lost')
+        self.assertEqual(depth,len(traceback.extract_tb(original.__traceback__)))
+
     def test_pacing_rechecks_deadline_moved_while_waiting(self):
         stream=self.stream();clock=[0.0];waits=[];sent=[]
         class Stopped:

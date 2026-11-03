@@ -40,7 +40,15 @@ controller. Architect completed native navigation through the public SDK. This
 does not establish full gameplay, industrial production or multi-body latency.
 The approved restart window is consumed; further Java deployments require a new one.
 
-The current source checkout is SDK/gateway **0.3.0.dev2**, an undeployed transport
-optimization candidate. The live frozen release remains **0.3.0.dev1**.
+The current source checkout is SDK/gateway **0.3.0.dev2** with adapter
+**0.5.0-dev2**, an undeployed correctness, transport and mod-interaction candidate.
+The live frozen release remains SDK/gateway **0.3.0.dev1** and adapter **0.5.0-dev1**.
 See [synthetic measurements](../../benchmarks/transport/README.md); these do not
 establish native multi-body readiness.
+
+The dev2 private bridge requires timestamped expiring grants. Its adapter and
+gateway must be deployed and rolled back as a reviewed pair: the new adapter
+fails closed with an old gateway that does not supply those fields. This is an
+internal same-host protocol change; the public SDK action format remains stable.
+Freeze exact hashes after acceptance; a development version label alone does not
+identify a tested artifact. No new production maintenance window is authorized.
