@@ -138,3 +138,12 @@ PLAYER verified its runtime matches the frozen handoff.
 The [synthetic benchmark](../../benchmarks/transport/README.md) records a short
 repeat with less traffic and CPU. It does not run Minecraft, and short-run latency
 varies. No native or live ten-body success is claimed for these changes.
+
+## Live observation defect: phantom hostility
+
+PLAYER reported `minecraft:phantom` with `hostile:false` at 21:38:11 on 2026-11-03.
+Architect's health decreased from 20 to about 16.17 during nearby movement/idle.
+This is evidence of incorrect classification, not proof that all movement drift
+or damage came from that entity. Source uses `ent instanceof Monster`; broader
+hostile-class coverage and native regression cases remain required under OBS-02.
+No Java replacement or additional restart was performed for this report.

@@ -281,3 +281,8 @@ estimate from native hardness and elapsed ticks; terminal action outcomes are th
 authority for completion. Public chat retains the last 24 identified messages;
 
 consumers deduplicate by message ID, and reconnect may have gaps.
+
+Known live observation defect (OBS-02): `minecraft:phantom` can be reported with
+`hostile:false` because the current classifier uses the `Monster` base class.
+Do not interpret false as a guarantee of harmlessness; consider entity type,
+observed targeting and damage. A broader native classification fix is pending.

@@ -159,8 +159,13 @@ do not synthesize items, teleport or silently select tools on the server.
 
 - [ ] **OBS-02 — Entity observations**: bounded nearby entity queries with IDs,
   types, positions and interaction-relevant state. Define range, limits, target
-  lifetime and privacy boundaries. Current output is filtered to selected hostiles
-  and dropped items rather than a general interaction view.
+  lifetime and privacy boundaries. The candidate now includes general nearby
+  entities, but classification still needs verification. Live PLAYER evidence on
+  2026-11-03 at 21:38:11 observed `minecraft:phantom` with `hostile:false` while
+  Architect was under attack. The adapter currently classifies only `Monster`
+  subclasses. Correct flying-mob/other hostile classifications and add native
+  phantom, ghast and slime cases; a false value must not be treated as proof that
+  an entity is harmless. This item remains open.
 - [ ] **OBS-03 — Block states**: bounded radius and explicit-position queries
   returning block IDs, state properties, dimension and freshness. Distinguish
   unloaded/unknown cells from air. Current resource/walkable samples are insufficient
