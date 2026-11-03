@@ -5,6 +5,9 @@ window: Java adapter 0.4.0 and SDK/gateway 0.2.0.dev1. The direct WebSocket path
 prefix-free names and actual Java look-action latency are verified live. The
 remaining migration work below is not complete. [Live results](docs/realtime.md).
 
+Track implementation and release acceptance in the
+[Gameplay API completion checklist](docs/api-completion-checklist.md).
+
 ## What the body actually is
 
 `AgentPlayer` extends Minecraft `ServerPlayer` in survival mode. Its connection is
