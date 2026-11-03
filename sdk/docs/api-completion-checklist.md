@@ -167,7 +167,7 @@ do not synthesize items, teleport or silently select tools on the server.
 - [ ] **OBS-02 — Entity observations**: bounded nearby entity queries with IDs,
   types, positions and interaction-relevant state. Define range, limits, target
   lifetime and privacy boundaries. The candidate now includes general nearby
-  entities, but classification still needs verification. Live PLAYER evidence on
+  entities, but classification still needs verification. Live telemetry on
   2026-11-03 at 21:38:11 observed `minecraft:phantom` with `hostile:false` while
   Architect was under attack. The adapter currently classifies only `Monster`
   subclasses. Correct flying-mob/other hostile classifications and add native

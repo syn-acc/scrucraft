@@ -76,7 +76,7 @@ cover each specified success/failure edge, including navigation terrain, real
 inventory conservation, cancellation/revocation/death, and container contention.
 Transport tests and successful compilation do not establish those behaviors.
 
-PLAYER verified Jamie_Syn through a real private in-game code exchange. The full
+Jamie_Syn completed a real private in-game code exchange. The full
 player gameplay and human-chat stop acceptance cases remain separately tracked.
 Ten-body performance needs the predeclared targets and retained raw evidence in
 [verification](docs/verification.md); small fixtures do not establish production

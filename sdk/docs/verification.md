@@ -122,14 +122,14 @@ in the repository is not passing evidence.
 
 The controlled checkpoint has a separate [artifact manifest](evidence/controlled-candidate-20261103.json).
 
-PLAYER confirmed deployment on 2026-11-03 with offline world/gateway backups,
+Deployment was verified on 2026-11-03 with offline world/gateway backups,
 Minecraft PID 2205174, gateway PID 2205169 and unchanged controller PID 3192194.
 Audit: `uk:/data/minecraft-syn-smp/ops/architect-release-20261103T213025Z`.
 Architect joined as Jamie_Syn's survival body and completed an SDK navigation
 request. This first smoke result is not a live latency measurement. The published
 SDK ZIP has documentation-only adjustments (SHA-256
 `3d760a411eab7837960a93cfd1ff4d95bdd4f8cd5d9b26ef6b20c0947cf0f95c`);
-PLAYER verified its runtime matches the frozen handoff.
+Its runtime was verified against the frozen build.
 
 ## Subsequent development work: 0.3.0.dev2 (not deployed)
 
@@ -141,7 +141,7 @@ varies. No native or live ten-body success is claimed for these changes.
 
 ## Live observation defect: phantom hostility
 
-PLAYER reported `minecraft:phantom` with `hostile:false` at 21:38:11 on 2026-11-03.
+Live telemetry reported `minecraft:phantom` with `hostile:false` at 21:38:11 on 2026-11-03.
 Architect's health decreased from 20 to about 16.17 during nearby movement/idle.
 This is evidence of incorrect classification, not proof that all movement drift
 or damage came from that entity. Source uses `ent instanceof Monster`; broader

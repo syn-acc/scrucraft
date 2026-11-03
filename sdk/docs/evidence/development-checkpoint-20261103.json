@@ -12,7 +12,6 @@
   "native_performance_gate_passed": false,
   "notes": [
     "Publication adds documentation and this evidence file after the recorded build-input archive; runtime source is unchanged.",
-    "Native run 07 predates the latest industrial menus, grant expiry and observation ACK changes.",
-    "Repeated secret scan skipped at the user's explicit request for this publication."
+    "Native run 07 predates the latest industrial menus, grant expiry and observation ACK changes."
   ]
 }

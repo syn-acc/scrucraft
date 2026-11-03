@@ -37,17 +37,17 @@ such as implemented or unsupported; define a finite supported release contract.
 7. **SDK-04/05; VERIFY-06:** reproduce clean installation/examples and exact
    release artifacts; publish stable contracts, capabilities, supported mod
    coverage, privacy/credential scans, hashes, rollback and every item's evidence
-   or honest blocker. Java deployment remains blocked on a new user-approved
+   or explicit blocker. Java deployment requires an approved
    maintenance window after the candidate is concrete and reviewable.
 
-## Current ownership
+## Workstreams
 
-- Root: durable checklist/plan, integration, isolated run scheduling, evidence,
+- Integration: checklist/plan, isolated run scheduling, evidence,
   documentation and public PR. One native test/build at a time on the UK host.
-- Body primitives agent: dig cancellation, native controls/entities/navigation.
-- Container agent: industrial pack compatibility, containers/crafting and native
+- Native body: dig cancellation, controls/entities/navigation.
+- Inventory: industrial pack compatibility, containers/crafting and native
   conservation/concurrency fixtures. Coordinate shared Java interaction hooks.
-- Gateway/SDK agent: complete coverage matrix, execution/recovery contracts,
+- Gateway/SDK: coverage matrix, execution/recovery contracts,
   transport behavior, SDK usability and tests.
 
 Every test report must name the checklist IDs it advances. A method existing,

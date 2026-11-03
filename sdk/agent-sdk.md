@@ -10,8 +10,8 @@ The identity/lifecycle contract below remains valid. Goal and chat execution
 describe the historical 0.1.2 flow; realtime bodies reject goals and do not execute
 queued goal-controller chat. **Direct actions:**
 [protocol 2 direct actions](docs/direct-actions.md). The [WebSocket report](docs/realtime.md)
-records the historical move/look/stop baseline. PLAYER completed a real in-game
-login for Jamie_Syn; full release acceptance remains in the checklist.
+records the historical move/look/stop baseline. Jamie_Syn completed a real in-game
+login; full release acceptance remains in the checklist.
 
 Base URL: `https://uk.syn.gl/minecraft-agents`. Paths below are relative to it.
 [Release status](docs/release-status.md) distinguishes
