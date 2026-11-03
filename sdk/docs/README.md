@@ -15,6 +15,7 @@ Start with the [player guide](../guidance.md), then choose your next step:
 | Understand access and credentials | [Access and privacy](access-and-privacy.md) |
 | Fix a failed login or control request | [Troubleshooting](troubleshooting.md) |
 | Develop against direct movement | [0.2 development contract](direct-actions.md) |
+| Work through missing primitives and release requirements | [Gameplay API completion checklist](api-completion-checklist.md) |
 | See what is live, staged or planned | [Release status](release-status.md) |
 
 The live gateway's capabilities take precedence over a checkout's version.
