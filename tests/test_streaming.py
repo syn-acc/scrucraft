@@ -17,9 +17,107 @@ except ImportError:
 
 @unittest.skipUnless(AVAILABLE,'Install agent-gateway/requirements.txt to test real WebSockets')
 class StreamTests(unittest.TestCase):
+    def test_unrelated_body_telemetry_does_not_amplify_grants(self):
+        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        fixture.g.handle('POST','/v1/agents',fixture.headers,{'name':'Second','area':fixtures.AREA})
+        samples=[]
+        for name in ('Forge','Second'):
+            sample=fixtures.frame(name=name,tick=101)
+            sample.update(body_epoch='epoch_'+name,control_protocol=2,raw_capabilities=['look_at'],action_results=[])
+            fixture.g.frame(sample);samples.append(sample)
+        streaming=fixtures.module('scru_streaming_wakeups','agent-gateway/streaming.py')
+        server=streaming.make_server(fixture.g,port=0)
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        base='ws://127.0.0.1:'+str(server.socket.getsockname()[1])+'/internal/body'
+        try:
+            with connect(base,proxy=None,close_timeout=.2) as first,connect(base,proxy=None,close_timeout=.2,max_queue=None) as second:
+                for connection,sample in zip((first,second),samples):
+                    connection.send(json.dumps({'token':'internal-test-secret','agent':sample['agent'],'body_epoch':sample['body_epoch']}))
+                    connection.send(json.dumps(sample))
+                time.sleep(.12)
+                while True:
+                    try:first.recv(timeout=.01)
+                    except TimeoutError:break
+                for index in range(20):
+                    samples[1]['tick']+=1;second.send(json.dumps(samples[1]));time.sleep(.01)
+                received=0
+                while True:
+                    try:first.recv(timeout=.02);received+=1
+                    except TimeoutError:break
+                self.assertLessEqual(received,5,'Unrelated telemetry amplified private grant sends')
+        finally:
+            server.shutdown();server.socket.close();thread.join(3);fixture.tearDown()
+
+    def test_stop_and_policy_revocation_preserve_short_grant_deadline(self):
+        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        sample=fixtures.frame(tick=101)
+        sample.update(body_epoch='epoch',control_protocol=2,raw_capabilities=['look_at'],action_results=[])
+        fixture.g.frame(sample);fixture.lease()
+        streaming=fixtures.module('scru_streaming_policy','agent-gateway/streaming.py')
+        server=streaming.make_server(fixture.g,port=0)
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        url='ws://127.0.0.1:'+str(server.socket.getsockname()[1])+'/internal/body'
+        try:
+            with connect(url,proxy=None,close_timeout=.2) as body:
+                body.send(json.dumps({'token':'internal-test-secret','agent':'Forge','body_epoch':'epoch'}))
+                body.send(json.dumps(sample))
+                grant=json.loads(body.recv(timeout=2))['action'];old=grant['lease_id']
+                self.assertIsNotNone(old)
+                started=time.monotonic();fixture.call('DELETE','/v1/goal')
+                while grant.get('lease_id')==old:grant=json.loads(body.recv(timeout=1))['action']
+                self.assertIsNotNone(grant['lease_id']);self.assertEqual([],grant['commands'])
+                self.assertLess(time.monotonic()-started,.5)
+                # A database-wide policy change has no frame/notification; heartbeat still rechecks authority.
+                with fixture.g.changed:
+                    digest=fixture.g.active('Forge')['token_hash']
+                    fixture.g.db.execute('UPDATE tokens SET enabled=0 WHERE hash=?',(digest,));fixture.g.db.commit()
+                started=time.monotonic()
+                while grant.get('lease_id') is not None:grant=json.loads(body.recv(timeout=1))['action']
+                self.assertLess(time.monotonic()-started,.5);self.assertIsNone(fixture.g.active('Forge'))
+        finally:
+            server.shutdown();server.socket.close();thread.join(3);fixture.tearDown()
+
+    def test_malformed_primitive_types_match_http_and_websocket_400(self):
+        import urllib.request,urllib.error
+        fixture=fixtures.GatewayTests();fixture.setUp()
+        sample=fixtures.frame(tick=101)
+        sample.update(body_epoch='epoch',control_protocol=2,raw_capabilities=sorted(fixtures.gateway.PRIMITIVES),action_results=[])
+        fixture.g.frame(sample);lease=fixture.lease()
+        streaming=fixtures.module('scru_streaming_validation','agent-gateway/streaming.py')
+        websocket=streaming.make_server(fixture.g,port=0)
+        http=fixtures.gateway.Server(('127.0.0.1',0),fixture.g)
+        threads=[threading.Thread(target=server.serve_forever,daemon=True) for server in (websocket,http)]
+        for thread in threads:thread.start()
+        base=dict(id='invalid_action_0001',body_epoch='epoch')
+        bodies=[dict(base,op='use_item',hand=[]),dict(base,op='query_inventory',inventory=[],slot=0),
+                dict(base,op='move_item',session_id='session',revision=0,count=1,
+                     **{'from':{'inventory':[],'slot':0},'to':{'inventory':'player','slot':1}}),None]
+        try:
+            with connect('ws://127.0.0.1:'+str(websocket.socket.getsockname()[1])+'/v1/events',proxy=None,close_timeout=.2) as connection:
+                connection.send(json.dumps({'token':fixture.token,'agent':'Forge'}))
+                for index,body in enumerate(bodies):
+                    with fixture.g.changed:fixture.now+=.2
+                    rid='validation_'+str(index)
+                    connection.send(json.dumps({'request_id':rid,'method':'POST','path':'/v1/actions','lease_id':lease['lease_id'],'body':body}))
+                    while True:
+                        result=json.loads(connection.recv(timeout=2))
+                        if result.get('request_id')==rid:break
+                    self.assertEqual((400,'invalid_request'),(result['status'],result['error']))
+                    with fixture.g.changed:fixture.now+=.2
+                    request=urllib.request.Request('http://127.0.0.1:'+str(http.server_address[1])+'/v1/actions',
+                        data=json.dumps(body).encode(),headers={**fixture.h,'Content-Type':'application/json'},method='POST')
+                    with self.assertRaises(urllib.error.HTTPError) as raised:urllib.request.urlopen(request,timeout=2)
+                    self.assertEqual(400,raised.exception.code)
+                    self.assertEqual('invalid_request',json.load(raised.exception)['error'])
+                self.assertEqual({},fixture.g.actions.get('Forge',{}))
+        finally:
+            websocket.shutdown();websocket.socket.close();http.shutdown();http.server_close()
+            for thread in threads:thread.join(3)
+            fixture.tearDown()
+
     def test_protocol2_sdk_handles_async_observations_and_reconnect(self):
         import asyncio
-        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.time
+        fixture=fixtures.GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
         streaming=fixtures.module('scru_streaming_v2','agent-gateway/streaming.py')
         server=streaming.make_server(fixture.g,port=0)
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()

@@ -1,9 +1,10 @@
 # Direct-control migration and candidate status
 
-The first milestone was deployed on 2026-11-03 in an explicitly approved restart
-window: Java adapter 0.4.0 and SDK/gateway 0.2.0.dev1. The direct WebSocket path,
-prefix-free names and actual Java look-action latency are verified live. The
-remaining migration work below is not complete. [Live results](docs/realtime.md).
+The live controlled experimental release is SDK/gateway **0.3.0.dev1** and Java
+adapter **0.5.0-dev1**, deployed on 2026-11-03 with an offline backup. Architect
+joined through verified owner access and completed native SDK navigation.
+44 isolated native cases and 194 Python checks passed for this checkpoint;
+the ten-body load test failed. This is not comprehensive API acceptance.
 
 Track implementation and release acceptance in the
 [Gameplay API completion checklist](docs/api-completion-checklist.md).
@@ -17,7 +18,7 @@ remain active. The original controller uses `move`, `mine`, `place`, `interact`,
 Python selected goals and generated movement waypoints. There was no native
 navigator or Baritone integration.
 
-## Deployed baseline: 0.2.0.dev1 / adapter 0.4.0
+## Historical baseline: 0.2.0.dev1 / adapter 0.4.0
 
 - Incremental native A* with bounded search size, tick slicing and loaded-terrain
   checks. Terrain edges use player collision boxes, half-block height samples,
@@ -51,14 +52,14 @@ does not call the goal controller, and goal submissions are explicitly rejected.
 Never expose `/internal/body` through nginx. These settings are enabled on the
 live adapter following the approved 2026-11-03 maintenance deployment.
 
-## Current candidate: 0.3.0.dev1 / adapter 0.5.0-dev1
+## Live experimental checkpoint: 0.3.0.dev1 / adapter 0.5.0-dev1
 
 The source now implements protocol 2 command queues and independent compatible
 controls; direct digging, placement, hand/inventory inputs, entity/block use,
 containers and recipe crafting; raw inventory/entity/block/public-chat observations;
 and synchronous/async SDK handles, readiness, diagnostics and bounded reconnect.
-This is **not deployed** and is not a declaration that the comprehensive checklist
-has passed. See the [candidate guide](candidate-guidance.md),
+This is deployed for a controlled single-body session and does not mean the
+comprehensive checklist has passed. See the [player guide](guidance.md),
 [wire contract](docs/direct-actions.md), [native semantics](docs/native-executor.md)
 and [verification evidence](docs/verification.md).
 
@@ -75,7 +76,8 @@ cover each specified success/failure edge, including navigation terrain, real
 inventory conservation, cancellation/revocation/death, and container contention.
 Transport tests and successful compilation do not establish those behaviors.
 
-Actual in-game login delivery still needs a participating whitelisted player.
+PLAYER verified Jamie_Syn through a real private in-game code exchange. The full
+player gameplay and human-chat stop acceptance cases remain separately tracked.
 Ten-body performance needs the predeclared targets and retained raw evidence in
 [verification](docs/verification.md); small fixtures do not establish production
 capacity. Production mod interactions, final package/example checks and rollback

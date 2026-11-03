@@ -60,3 +60,36 @@ class RealtimeDiagnosticsTests(unittest.TestCase):
         self.assertEqual(1011,stream.last_disconnect['close_code'])
         self.assertNotIn(secret,str(stream.error));self.assertNotIn('private request',str(stream.error))
         self.assertEqual('unrecognized_close_reason',stream.last_disconnect['close_reason'])
+
+    def test_expired_handle_reconciles_unknown_without_waiting_or_replay(self):
+        from scru_minecraft import ActionHandle
+        stream=self.stream();rid='expired_action_0001';calls=[]
+        stream.observation={'action_results':[]}
+        stream.submitted[rid]={'body_epoch':'old','deadline':time.monotonic()-1}
+        def read(action_id):
+            calls.append(action_id);return [{'id':action_id,'state':'unknown','reason':'result_not_retained'}]
+        stream.action_results=read
+        outcome=ActionHandle(stream,{'id':rid,'body_epoch':'old','state':'accepted'}).wait(.5)
+        self.assertEqual('unknown',outcome['state']);self.assertEqual([rid],calls)
+
+    def test_old_handle_cannot_accept_reused_id_from_new_body_epoch(self):
+        from scru_minecraft import ActionHandle,ActionFailed
+        stream=self.stream();rid='reused_action_0001';calls=[]
+        newer={'id':rid,'state':'done','body_epoch':'new','reason':'dropped'}
+        stream.observation={'action_results':[newer]}
+        def read(action_id):calls.append(action_id);return [dict(newer)]
+        stream.action_results=read
+        with self.assertRaises(ActionFailed) as raised:
+            ActionHandle(stream,{'id':rid,'body_epoch':'old','state':'accepted'}).result(.1)
+        self.assertEqual('unknown',raised.exception.outcome['state'])
+        self.assertEqual('body_epoch_mismatch',raised.exception.outcome['reason'])
+        self.assertEqual('old',raised.exception.outcome['body_epoch']);self.assertEqual([rid],calls)
+
+    def test_wait_timeout_reads_authoritative_result_once(self):
+        stream=self.stream();rid='terminal_action_0001';calls=[]
+        stream.observation={'action_results':[]}
+        stream.submitted[rid]={'body_epoch':'epoch','deadline':time.monotonic()+30}
+        def read(action_id):calls.append(action_id);return [{'id':action_id,'state':'done','body_epoch':'epoch'}]
+        stream.action_results=read
+        self.assertEqual('done',stream.wait_action(rid,.001,body_epoch='epoch')['state'])
+        self.assertEqual([rid],calls)

@@ -1,20 +1,21 @@
 # Gameplay API completion checklist
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is deployed in the controlled experimental release.
 
 Working backlog, reviewed **2026-11-03**. This is the release checklist for a
 player-ready SDK, not an advertisement of currently supported operations.
 
-Live baseline: adapter **0.4.0**, SDK/gateway **0.2.0.dev1**. Direct control exposes
-only `move_to`, `look_at` and `stop`. Authentication, body ownership, leases and
-bidirectional WebSockets are implemented. Live latency measurements exercised
-`look_at`; they do not establish navigation or general gameplay reliability.
+Live experimental checkpoint: adapter **0.5.0-dev1**, SDK/gateway **0.3.0.dev1**,
+deployed 2026-11-03 for a controlled single-body session. All 44 isolated native
+gameplay cases passed; the ten-body latency test failed. **8/40** checklist items
+have individually linked completion evidence. Deployment does not complete the
+remaining acceptance criteria or establish multi-body readiness.
 
-Signatures below are proposed SDK interfaces. Final wire fields, slot conventions
-and interaction targets must be documented before implementation is marked done.
+Signatures below describe the documented SDK interfaces. Keep unsupported cases
+and unverified acceptance criteria visible even where an operation is implemented.
 The gateway forwards individual operations; task planning and skill composition
 belong in the player's agent. Native navigation belongs in the body adapter.
 
@@ -36,10 +37,14 @@ passing one gameplay fixture does not complete a whole checklist section.
 
 ## 1. Execution contract — fix before adding more actions
 
-- [ ] **EXEC-01 — Independent compatible controls.** Looking must not silently
+- [x] **EXEC-01 — Independent compatible controls.** Looking must not silently
   cancel navigation. Define which movement, hand and inventory operations can run
   together; incompatible operations must explicitly queue, replace or reject.
   Test moving while looking and changing a held item during a hand action.
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): `flat_navigation_while_looking`, `dig_hand_channel_and_explicit_cancel`.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
 - [ ] **EXEC-02 — An outcome for every accepted command.** Correlate action ID and
   body epoch through `accepted`, optional `started`, and `done`/`failed`/`cancelled`.
   A command replaced before Java receives it must also get an outcome. Never
@@ -63,19 +68,31 @@ passing one gameplay fixture does not complete a whole checklist section.
 
 ## 2. Missing action primitives
 
-These are missing from the direct gateway/SDK, even where an older internal Java
-controller already has related functionality. Reuse real survival mechanics;
+These were missing from the live direct gateway/SDK when this backlog was created.
+Checked entries below are verified candidate implementations, not deployment claims. Reuse real survival mechanics;
 do not synthesize items, teleport or silently select tools on the server.
 
 ### Inventory and movement inputs
 
-- [ ] **ACT-01 — `select_slot(n)`**: select the documented hotbar slot and observe
+- [x] **ACT-01 — `select_slot(n)`**: select the documented hotbar slot and observe
   the held stack. Test every valid slot, empty slots and invalid indices.
-- [ ] **ACT-02 — `swap_hands()`**: exchange main/offhand stacks through vanilla
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): `inventory_and_held_controls`, `inventory_invalid_arguments_and_drop_shortage`.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
+- [x] **ACT-02 — `swap_hands()`**: exchange main/offhand stacks through vanilla
   mechanics. Test empty and populated hands; verify counts and item components.
-- [ ] **ACT-03 — `drop(slot, count)`**: drop an exact legal quantity from an
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): `inventory_and_held_controls`, `swap_two_populated_hands_preserves_components`.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
+- [x] **ACT-03 — `drop(slot, count)`**: drop an exact legal quantity from an
   explicit slot. Test partial/full stacks, invalid counts and ambiguous retries;
   verify inventory decrement and spawned item entity without duplication.
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): `drop_partial_full_and_idempotent_retry`, invalid-count and Binding Curse cases.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
 - [ ] **ACT-04 — `jump(enabled)`**: define one-shot versus held jumping and its
   interaction with navigation. Test grounded/airborne behaviour and release on stop.
 - [ ] **ACT-05 — `sneak(enabled)`**: expose and observe sneaking. Test collisions,
@@ -132,10 +149,14 @@ do not synthesize items, teleport or silently select tools on the server.
 
 ## 3. Observations and read queries required by those actions
 
-- [ ] **OBS-01 — Complete inventory**: stable slot identifiers for hotbar, main
+- [x] **OBS-01 — Complete inventory**: stable slot identifiers for hotbar, main
   inventory, armor, offhand and cursor; explicit empty slots, counts, durability,
   relevant item components and inventory revision. Current output omits empty
   slots and does not provide the complete equipment/container contract.
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): 42-slot inventory, populated hands and full Unicode metadata reconstruction cases.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
 - [ ] **OBS-02 — Entity observations**: bounded nearby entity queries with IDs,
   types, positions and interaction-relevant state. Define range, limits, target
   lifetime and privacy boundaries. Current output is filtered to selected hostiles
@@ -147,12 +168,20 @@ do not synthesize items, teleport or silently select tools on the server.
 - [ ] **OBS-04 — Public chat**: incoming messages with IDs, sender and timestamp,
   delivered as events with deduplication. Exclude private login codes and private
   messages. The existing internal human-stop processing is not a public chat API.
-- [ ] **OBS-05 — Containers**: session ID/revision, slot roles, contents, capacity
+- [x] **OBS-05 — Containers**: session ID/revision, slot roles, contents, capacity
   and close/invalidation events. Other players' unrelated storage must not appear
   in ambient observations; require an authorized open session.
-- [ ] **OBS-06 — Recipes**: discover supported recipe IDs, ingredients, outputs,
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): container revision, range/removal invalidation, native slot rules and full metadata cases.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
+- [x] **OBS-06 — Recipes**: discover supported recipe IDs, ingredients, outputs,
   remainders and workstation requirements; distinguish unsupported recipe types
   from insufficient ingredients. Agents must not guess IDs from display names.
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): `recipe_discovery_paging_and_machine_rejection`, full revision-pinned recipe retrieval.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
 - [ ] **OBS-07 — Execution and body state**: expose active actions, break/use
   progress, selected slot, hands, requested/actual movement toggles and terminal
   outcomes. Keep fast updates separate from costly terrain queries and document
@@ -168,10 +197,14 @@ do not synthesize items, teleport or silently select tools on the server.
 - [ ] **SDK-02 — Reconnect and resync**: reconnect the transport with bounded
   backoff, clear stale body/container state and reconcile outstanding actions.
   Never automatically override a human stop or replay uncertain mutations.
-- [ ] **SDK-03 — Async actions and subscriptions**: provide an asynchronous API
+- [x] **SDK-03 — Async actions and subscriptions**: provide an asynchronous API
   alongside the synchronous client, action handles with completion/cancellation,
   and typed observation/event subscriptions. Looking while moving must not require
   application authors to manage sockets or lease renewal.
+  Candidate evidence: [PR #1](https://github.com/syn-acc/scrucraft/pull/1),
+  [run 04](evidence/api-fixture-run-04.json): `tests/test_streaming.py::test_protocol2_sdk_handles_async_observations_and_reconnect`; native independent-controls cases.
+  Contract: [native actions](direct-actions.md) and [Python SDK](python-reference.md).
+
 - [ ] **SDK-04 — Pacing and diagnostics**: expose action limits and retry timing;
   safely pace submissions without hiding errors or delaying stop behind work.
   Surface connection state, observation freshness and request timing. Check

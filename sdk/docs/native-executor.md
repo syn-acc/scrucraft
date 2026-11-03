@@ -1,10 +1,10 @@
 # Native executor contract (candidate)
 
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
 
 This document describes the staged protocol-2 executor. Deployment and checklist
@@ -146,7 +146,7 @@ a tool implicitly.
 
 
 
-Hotbar slots are 0â€“8; main inventory 9â€“35; armor 36â€“39 (feet to head); offhand 40.
+Hotbar slots are 0–8; main inventory 9–35; armor 36–39 (feet to head); offhand 40.
 
 The observed cursor has slot -1 and cannot be passed to `drop`. `drop(slot,count)`
 
@@ -208,7 +208,7 @@ only when server PvP is enabled; native damage/team rules remain applicable.
 
 chat), adds it to the public-chat observation and returns `delivered`. Text is
 
-1â€“220 characters with no slash-command prefix/control/formatting characters;
+1–220 characters with no slash-command prefix/control/formatting characters;
 
 there is one message per body per 40 game ticks. Private login codes and whispers
 
@@ -244,7 +244,7 @@ the current world/body context. Entity inventory/private chat is never disclosed
 
 
 
-`query_blocks` accepts a centre `target` and radius 0â€“4, or up to 64 explicit
+`query_blocks` accepts a centre `target` and radius 0–4, or up to 64 explicit
 
 `positions`. Each requested cell must be within 32 blocks of the body. Rows carry
 

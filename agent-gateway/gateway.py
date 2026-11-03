@@ -123,8 +123,15 @@ class Gateway:
         self.enrollments = {}
         self.body_connections = {}
         self.stream_revision = 0
+        self.body_revisions = {}
         self.actions = {}  # Bounded, epoch-scoped receipts, including commands not seen by Java yet.
         self.native_acks = {}
+
+    def notify_body(self, name):
+        with self.changed:
+            self.stream_revision += 1
+            self.body_revisions[name] = self.body_revisions.get(name,0)+1
+            self.changed.notify_all()
 
     def update_results(self, name, observation=None):
         records = self.actions.setdefault(name, {})
@@ -199,9 +206,7 @@ class Gateway:
         if frame:
             frame['action_results'] = self.update_results(name)
             frame['id'] = secrets.token_urlsafe(18)
-        with self.changed:
-            self.stream_revision += 1
-            self.changed.notify_all()
+        self.notify_body(name)
 
     def release(self, name, reason):
         lease = self.leases.pop(name, None)
@@ -240,7 +245,7 @@ class Gateway:
         if op=='drop':integer('slot',0,40);integer('count',1,99)
         if op=='attack' or op=='use_on' and 'entity_id' in value:integer('entity_id',0,2147483647)
         if op in {'place','use_item','use_on'} and 'hand' in value:
-            fields.add('hand');require(value['hand'] in {'main','off'});control['hand']=value['hand']
+            fields.add('hand');require(isinstance(value['hand'],str) and value['hand'] in {'main','off'});control['hand']=value['hand']
         if op in {'jump','sneak','sprint'}:
             fields.add('enabled');require(type(value.get('enabled')) is bool);control['enabled']=value['enabled']
         if op=='query_blocks':
@@ -255,7 +260,7 @@ class Gateway:
             if 'limit' in value:integer('limit',1,64)
         if op=='query_inventory':
             fields.add('inventory');inventory=value.get('inventory','player')
-            require(inventory in {'player','container'});control['inventory']=inventory
+            require(isinstance(inventory,str) and inventory in {'player','container'});control['inventory']=inventory
             integer('slot',-1 if inventory=='player' else 0,40 if inventory=='player' else 255)
             if 'offset' in value:integer('offset',0,16777216)
             if 'limit' in value:integer('limit',1,16384)
@@ -281,7 +286,7 @@ class Gateway:
             for key in ('from','to'):
                 fields.add(key); slot=value.get(key)
                 require(isinstance(slot,dict) and set(slot)=={'inventory','slot'})
-                require(slot['inventory'] in {'player','container'} and type(slot['slot']) is int and 0<=slot['slot']< (36 if slot['inventory']=='player' else 256))
+                require(isinstance(slot['inventory'],str) and slot['inventory'] in {'player','container'} and type(slot['slot']) is int and 0<=slot['slot']< (36 if slot['inventory']=='player' else 256))
                 control[key]=dict(slot)
         if op=='craft':
             fields.add('recipe_id');require(isinstance(value.get('recipe_id'),str) and re.fullmatch(r'[a-z0-9_.-]+:[a-z0-9_./-]+',value['recipe_id']))
@@ -403,6 +408,7 @@ class Gateway:
 
     def handle(self, method, path, headers, value):
         with self.lock:
+            require(isinstance(value,dict),'invalid_request')
             if path == '/internal/frame' and method == 'POST':
                 expected = pathlib.Path(self.settings()['internal_token_file']).read_text().strip()
                 require(hmac.compare_digest(headers.get('Authorization', ''), 'Bearer '+expected), 'unauthorized', 401)
@@ -486,6 +492,7 @@ class Gateway:
                 lease = {'id': secrets.token_urlsafe(24), 'token_hash': p['hash'],
                          'expires_at': self.clock()+30, 'goal': None, 'chat': None}
                 self.leases[name] = lease
+                self.notify_body(name)
                 return {'lease_id': lease['id'], 'expires_at': lease['expires_at']}
             lease = self.lease(body, p, client_header(headers, 'Lease'))
             if path == '/v1/actions' and method == 'POST':
@@ -519,19 +526,17 @@ class Gateway:
                 if protocol<2:lease.update(control=control,control_until=self.clock()+ttl)
                 lease['goal']=None
                 frame['action_results']=self.result_rows(name);frame['id']=secrets.token_urlsafe(18)
-                self.stream_revision += 1
-                self.changed.notify_all()
+                self.notify_body(name)
                 return receipt
             if path == '/v1/lease' and method == 'PUT':
                 lease['expires_at'] = self.clock()+30
+                self.notify_body(name)
                 return {'lease_id': lease['id'], 'expires_at': lease['expires_at']}
             if (path, method) in {('/v1/lease', 'DELETE'), ('/v1/goal', 'DELETE')}:
                 lease['goal'], lease['chat'] = None, None
                 lease.pop('control',None)
                 lease['generation']=lease.get('generation',0)+1
                 self.cancel_actions(name,'owner_stop',lease['id'])
-                self.stream_revision += 1
-                self.changed.notify_all()
                 if path == '/v1/lease':
                     self.release(name, 'control_revoked')
                 return {'status': 'stopped', 'agent': name}
@@ -669,9 +674,7 @@ class Gateway:
         self.update_results(name, observation)
         snapshot['action_results'] = self.result_rows(name, observation.get('action_results',[]))
         self.frames[name] = snapshot
-        with self.changed:
-            self.stream_revision += 1
-            self.changed.notify_all()
+        self.notify_body(name)
         history = self.frame_ids.setdefault(name, {})
         history[snapshot['id']] = snapshot['captured_at']
         self.frame_ids[name] = {key: at for key, at in history.items() if self.clock()-at <= 5}

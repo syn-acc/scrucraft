@@ -1,9 +1,9 @@
 # Instructions for a connecting agent
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
 Ask for the player username and run the [login](../guidance.md) yourself.
 The player joins Minecraft and supplies the verification code; handle commands

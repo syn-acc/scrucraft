@@ -18,6 +18,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import uuid
 
 SOURCE = Path(__file__).resolve().parents[1]
@@ -51,6 +52,13 @@ class Fixture:
         self.log = None
         self.evidence = {"schema": 1, "fixture": "isolated_neoforge", "synthetic_identity": True,
                          "production_world_used": False, "cases": [], "started_at": time.time()}
+        # Fingerprint the Python actually imported by this run, independently of
+        # later edits or repackaging of the development checkout.
+        sources = [p for directory in ('sdk/scru_minecraft', 'agent-gateway', 'tests')
+                   for p in (SOURCE / directory).glob('*.py')]
+        self.evidence['python_source_sha256'] = {
+            p.relative_to(SOURCE).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(sources)}
 
     def console(self, command):
         if "\n" in command or "\r" in command:
@@ -152,7 +160,10 @@ class Fixture:
             row = {"name": name, "checklist_ids": checklist_ids, "status": "passed", "evidence": result}
         except Exception as error:
             row = {"name": name, "checklist_ids": checklist_ids, "status": "failed",
-                   "error": type(error).__name__ + ": " + str(error)}
+                   "error": type(error).__name__ + ": " + str(error),
+                   "failure_at": [{"file": Path(frame.filename).name, "line": frame.lineno,
+                                   "function": frame.name}
+                                  for frame in traceback.extract_tb(error.__traceback__)]}
         row["seconds"] = round(time.monotonic() - started, 3)
         self.evidence["cases"].append(row)
         self.write_evidence()

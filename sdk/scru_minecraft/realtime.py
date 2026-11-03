@@ -4,7 +4,7 @@ import threading
 import time
 import uuid
 import re
-from . import GatewayError, PrimitiveMethods, ActionHandle
+from . import GatewayError, PrimitiveMethods, ActionHandle, _match_action_epoch
 
 
 class RealtimeClient(PrimitiveMethods):
@@ -138,7 +138,8 @@ class RealtimeClient(PrimitiveMethods):
         if set(fields)&set(value):raise ValueError('Reserved action fields')
         value.update(fields)
         if target is not None:value['target']=list(target)
-        self.submitted[value['id']]=None
+        self.submitted[value['id']]={'body_epoch':value['body_epoch'],
+            'deadline':time.monotonic()+(ttl_seconds if type(ttl_seconds) is int and 1<=ttl_seconds<=30 else 30)}
         while len(self.submitted)>512:self.submitted.pop(next(iter(self.submitted)))
         return ActionHandle(self,self.request('POST','/v1/actions',value))
 
@@ -146,17 +147,33 @@ class RealtimeClient(PrimitiveMethods):
     def look_at(self,x,y,z,**kwargs):return self.action('look_at',target=[x,y,z],**kwargs)
     def stop(self):return self.request('DELETE','/v1/goal')
 
-    def wait_action(self,action_id,timeout=30):
-        def terminal():
+    def wait_action(self,action_id,timeout=30,*,body_epoch=None):
+        def cached():
             rows=(self.observation or {}).get('action_results',[])+list(self.reconciled.values())
-            return next((r for r in rows if r['id']==action_id and r['state'] in {'done','failed','cancelled','unknown'} and not r.get('details_pending')),None)
+            return next((r for r in rows if r['id']==action_id),None)
+        def terminal(row):
+            return row is not None and ((body_epoch is not None and row.get('body_epoch') not in (None,body_epoch))
+                or row['state'] in {'done','failed','cancelled','unknown'} and not row.get('details_pending'))
+        def authoritative():return _match_action_epoch(self.action_results(action_id)[0],body_epoch)
+        deadline=time.monotonic()+timeout
         with self.changed:
-            if not self.changed.wait_for(lambda:terminal() or self.error,timeout):raise TimeoutError('Action still pending')
+            row=cached()
+            submitted=self.submitted.get(action_id)
+            query_missing=row is None and (not submitted or time.monotonic()>=submitted['deadline'])
+        # New accepted work normally waits on push only. Old/unknown handles reconcile once,
+        # and a final authoritative read distinguishes expired evidence from pending execution.
+        if query_missing:
+            result=authoritative()
+            if terminal(result):return result
+        with self.changed:
+            self.changed.wait_for(lambda:terminal(cached()) or self.error,max(0,deadline-time.monotonic()))
             if self.error:raise self.error
-            result=dict(terminal())
-        if result.get('details_available'):
-            return self.action_results(action_id)[0]
-        return result
+            row=cached()
+            result=dict(row) if terminal(row) else None
+        if result is None or result.get('details_available') or (body_epoch is not None and result.get('body_epoch') not in (None,body_epoch)):
+            result=authoritative()
+        if terminal(result):return _match_action_epoch(result,body_epoch)
+        raise TimeoutError('Action is still pending according to the gateway')
 
     def action_results(self,action_id=None):
         return self.request('GET','/v1/action-results',{'action_id':action_id} if action_id else None)['results']
@@ -166,14 +183,14 @@ class RealtimeClient(PrimitiveMethods):
         if type(attempts) is not int or not 1<=attempts<=5:raise ValueError('attempts must be 1..5')
         if not 0<=initial_delay<=5:raise ValueError('initial_delay must be 0..5 seconds')
         from websockets.exceptions import WebSocketException
-        outstanding=list(self.submitted)
+        outstanding=dict(self.submitted)
         try:self.close()
         except (OSError,GatewayError,TimeoutError):pass
         for attempt in range(attempts):
             self.__init__(self.client)
             try:
                 self.connect()
-                self.submitted=dict.fromkeys(outstanding)
+                self.submitted=dict(outstanding)
                 for rid in outstanding:
                     self.reconciled[rid]=self.action_results(rid)[0]
                 return self

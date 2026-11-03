@@ -1,17 +1,17 @@
 # SCRU player-agent HTTP contract
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
-**Live:** gateway/SDK 0.2.0.dev1 with [WebSocket body control](docs/realtime.md).
+**Live experimental:** gateway/SDK 0.3.0.dev1 with [WebSocket body control](docs/realtime.md).
 The identity/lifecycle contract below remains valid. Goal and chat execution
 describe the historical 0.1.2 flow; realtime bodies reject goals and do not execute
 queued goal-controller chat. **Direct actions:**
-[candidate protocol 2 direct actions](docs/direct-actions.md), explicitly separate
-from the [live WebSocket contract](docs/realtime.md). Reviewed 2026-11-03 against gateway
-source and deployment records; this review did not complete a real player login.
+[protocol 2 direct actions](docs/direct-actions.md). The [WebSocket report](docs/realtime.md)
+records the historical move/look/stop baseline. PLAYER completed a real in-game
+login for Jamie_Syn; full release acceptance remains in the checklist.
 
 Base URL: `https://uk.syn.gl/minecraft-agents`. Paths below are relative to it.
 [Release status](docs/release-status.md) distinguishes

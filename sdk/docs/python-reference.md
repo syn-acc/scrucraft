@@ -1,15 +1,13 @@
-# Python SDK reference â€” candidate 0.3.0.dev1
+# Python SDK reference — candidate 0.3.0.dev1
 
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
 
-This reference describes the **undeployed candidate**. Live 0.2.0.dev1 supports
-
-move/look/stop only. Install the `stream` extra; Python 3.10+ is required.
+This reference describes the experimental gameplay SDK. Install the `stream` extra; Python 3.10+ is required.
 
 
 

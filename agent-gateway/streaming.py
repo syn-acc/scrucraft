@@ -52,16 +52,22 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                 ended.set()
                 with gateway.changed:gateway.changed.notify_all()
         reader=threading.Thread(target=receive,daemon=True);reader.start()
+        previous_payload=None;renew_at=0
         try:
             while not ended.is_set() and connection.state is State.OPEN:
                 with gateway.changed:
-                    revision=gateway.stream_revision
+                    revision=gateway.body_revisions.get(name,0)
                     try:reply=gateway.realtime_control(name)
                     except Exception:reply={'kind':'idle','body_epoch':epoch,'valid_for_ticks':4}
                     if reply.get('body_epoch')!=epoch:
                         reply={'kind':'idle','body_epoch':epoch,'valid_for_ticks':4}
-                connection.send(json.dumps({'type':'control','action':reply}))
-                with gateway.changed:gateway.changed.wait_for(lambda:ended.is_set() or gateway.stream_revision!=revision,timeout=.1)
+                payload=json.dumps({'type':'control','action':reply})
+                if payload!=previous_payload or time.monotonic()>=renew_at:
+                    connection.send(payload)
+                    previous_payload=payload;renew_at=time.monotonic()+.1
+                with gateway.changed:
+                    gateway.changed.wait_for(lambda:ended.is_set() or gateway.body_revisions.get(name,0)!=revision,
+                                             timeout=max(0,renew_at-time.monotonic()))
         finally:
             ended.set();connection.close()
             with gateway.changed:gateway.release(name,'body_disconnected')
@@ -100,6 +106,8 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                             result=gateway.handle(method,path,headers,value.get('body',{}))
                             if method=='POST' and path=='/v1/lease':owned_lease=result['lease_id']
                         response={'type':'response','request_id':rid,'status':200,'result':result}
+                    except (ValueError,TypeError,KeyError):
+                        response={'type':'response','request_id':rid,'status':400,'error':'invalid_request'}
                     except Exception as error:
                         response={'type':'response','request_id':rid,'status':getattr(error,'status',503),
                                   'error':getattr(error,'code','service_unavailable'),'retry_after':getattr(error,'retry',None)}
@@ -115,10 +123,12 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         try:
             while not stopped.is_set() and connection.state is State.OPEN:
                 with gateway.changed:
+                    revision=gateway.body_revisions.get(name,0)
                     principal=gateway.authenticate('Bearer '+token);body=gateway.body(name,principal)
                     if body['data'].get('removed'):break
-                    frame=dict(gateway.snapshot(body));frame['action_results']=gateway.compact_results(gateway.result_rows(name));frame_id=frame['id'];event=None
+                    current=gateway.snapshot(body);frame_id=current['id'];event=None
                     if frame_id!=previous_id:
+                        frame=dict(current);frame['action_results']=gateway.compact_results(gateway.result_rows(name))
                         sequence+=1
                         # Terrain is sent initially, then only when a fresh terrain sample arrives.
                         observation=frame if previous_id is None else {k:v for k,v in frame.items() if k not in {'blocks','walkable'}}
@@ -127,8 +137,10 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                         event={'type':'snapshot','sequence':sequence,'resync':previous_id is None,'observation':observation}
                         previous_id,previous_terrain=frame_id,terrain
                     if event is None:
-                        gateway.changed.wait(timeout=.1);continue
+                        gateway.changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1);continue
                 send(event)
+                with gateway.changed:
+                    gateway.changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1)
         except Exception as error:
             close_error(connection,'player','snapshot',error)
         finally:

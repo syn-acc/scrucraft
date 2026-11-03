@@ -31,13 +31,22 @@ class ActionFailed(RuntimeError):
         super().__init__(f"{outcome['id']}: {outcome['state']}: {outcome.get('reason','')}")
 
 
+def _match_action_epoch(outcome, body_epoch):
+    if body_epoch is not None and outcome.get('state')!='unknown' and outcome.get('body_epoch')!=body_epoch:
+        return {'id':outcome['id'],'state':'unknown','reason':'body_epoch_mismatch',
+                'body_epoch':body_epoch,'observed_body_epoch':outcome.get('body_epoch')}
+    return outcome
+
+
 class ActionHandle(dict):
     """A backwards-compatible receipt with explicit completion and cancellation."""
     def __init__(self, client, receipt):
         super().__init__(receipt);self.client=client
     @property
     def id(self):return self['id']
-    def wait(self, timeout=30):return self.client.wait_action(self.id,timeout)
+    def wait(self, timeout=30):
+        epoch=self.get('body_epoch')
+        return self.client.wait_action(self.id,timeout,body_epoch=epoch) if epoch is not None else self.client.wait_action(self.id,timeout)
     def result(self, timeout=30):
         outcome=self.wait(timeout)
         if outcome['state']!='done':raise ActionFailed(outcome)
@@ -256,10 +265,10 @@ class AgentClient(PrimitiveMethods):
     def action_results(self,action_id=None):
         return self._request('GET','/v1/action-results',{'action_id':action_id} if action_id else None)['results']
 
-    def wait_action(self,action_id,timeout=30):
+    def wait_action(self,action_id,timeout=30,*,body_epoch=None):
         deadline=time.monotonic()+timeout
         while True:
-            result=self.action_results(action_id)[0]
+            result=_match_action_epoch(self.action_results(action_id)[0],body_epoch)
             if result['state'] in {'done','failed','cancelled','unknown'} and not result.get('details_pending'):return result
             if time.monotonic()>=deadline:raise TimeoutError('Action still pending')
             time.sleep(min(.15,max(0,deadline-time.monotonic())))

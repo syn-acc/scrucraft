@@ -1,10 +1,10 @@
-# Direct action contract â€” protocol 2 candidate
+# Direct action contract — protocol 2 candidate
 
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
 
 The candidate SDK/gateway **0.3.0.dev1** and adapter **0.5.0-dev1** implement this
@@ -37,13 +37,13 @@ HTTP `POST /v1/actions` and WSS `POST /v1/actions` use the identical JSON body:
 
 
 
-IDs are 16â€“80 ASCII letters/digits/underscore/hyphen. TTL is an integer 1â€“30
+IDs are 16–80 ASCII letters/digits/underscore/hyphen. TTL is an integer 1–30
 
 seconds, independent of the renewable 30-second lease. Every request checks the
 
 current whitelist UUID, body ownership, lease, human-stop state, observed epoch
 
-and advertised capability. Coordinates must be finite and within Â±30000000;
+and advertised capability. Coordinates must be finite and within ±30000000;
 
 block coordinates are integers. Unknown fields are rejected. Work areas use an
 
@@ -145,7 +145,7 @@ cancelled/failed action is **not** a transaction rollback.
 
 
 
-Container player slots are 0â€“35; container slots come from the opened session,
+Container player slots are 0–35; container slots come from the opened session,
 
 not menu-global indices. Exact revisions prevent stale transfers. Supported native
 
@@ -239,7 +239,7 @@ never calls resume. The legacy goal and chat routes fail on realtime bodies with
 
 
 
-Fast snapshots include complete inventory slots 0â€“8 hotbar, 9â€“35 main, 36â€“39 armor,
+Fast snapshots include complete inventory slots 0–8 hotbar, 9–35 main, 36–39 armor,
 
 40 offhand and -1 cursor, including explicit empties, counts, durability, components
 

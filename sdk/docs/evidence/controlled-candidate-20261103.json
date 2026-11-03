@@ -1,0 +1,16 @@
+{
+  "source_archive_sha256": "7c903104db7b75cfa41e89d704f72312bb47959025ba0b4f52c8ab388bdcfae6",
+  "files": {
+    "agent-mod/build/libs/syn-agents-0.5.0-dev1.jar": "20053467b2681897546f7fbd54c5ca149bcb9744187525f6f7dc9d1dad2f6a39",
+    "agent-gateway/gateway.py": "56636dfb04c039fa46c788b63ee870b12879731e489e08f623bcbe8185c711ab",
+    "agent-gateway/streaming.py": "64fc0205bbbec1172395ba47fae6ff87ba1c7a99a6356f8eba3e5ad6d709157d",
+    "sdk/scru_minecraft/__init__.py": "7cafb1115afb60b3a0a4b18df4b9d5b36258c9e5db2e939501e8cbdbe082871d",
+    "sdk/scru_minecraft/realtime.py": "d3d23968967d3cc68c29f1149c0e5e9e72392445df732075d92b2439ee0f6945",
+    "public/scru-minecraft-sdk-0.3.0.dev1.zip": "1eec50dc57ded7b3b3780445f1e7750240015a3022cd2d2a33ff8a6e6d832868"
+  },
+  "python_checks": 194,
+  "native_gameplay_cases_passed": 44,
+  "ten_body_performance": "FAILED: not approved as multi-body low-latency release",
+  "checkpoint": "controlled experimental single-body gameplay only",
+  "post_run05_changes": "SDK expired-handle/epoch reconciliation and malformed input validation, covered by focused tests"
+}

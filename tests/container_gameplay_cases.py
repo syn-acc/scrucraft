@@ -2,9 +2,12 @@
 import json
 import hashlib
 import time
+import threading
+import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 from gameplay_cases import done, quantity, slot
-from isolated_game_fixture import wait_for
+from isolated_game_fixture import wait_for, OWNER
 
 
 def run_cases(fixture, stream):
@@ -79,6 +82,133 @@ def run_cases(fixture, stream):
 
     fixture.case('container_competing_mutation_stale_revision', ['ACT-14', 'OBS-05', 'VERIFY-03'], stale_revision)
 
+    def concurrent_native_viewers():
+        reset()
+        fixture.console('setblock 2 64 0 chest')
+        fixture.console('item replace block 2 64 0 container.0 with minecraft:diamond 4')
+        viewer_name = 'Viewer' + uuid.uuid4().hex[:8]
+        viewer = None
+        evidence = {}
+        try:
+            viewer_client = fixture.client(viewer_name)
+            fixture.console(f'tp {viewer_name} 0.5 64 -1.5')
+            fixture.console(f'clear {viewer_name}')
+            viewer = viewer_client.realtime().connect()
+            wait_for(lambda: abs(viewer.observe()['position'][2] + 1.5) < .2)
+            primary_open = container(stream.open_container(2, 64, 0))
+            second_open = done(viewer, viewer.open_container(2, 64, 0))
+            assert primary_open['session_id'] != second_open['session_id']
+            assert stream.observe()['container']['open'] and viewer.observe()['container']['open']
+            gate = threading.Barrier(2)
+
+            def contend(connection, opened):
+                gate.wait(timeout=5)
+                receipt = connection.move_item({'inventory': 'container', 'slot': 0}, {'inventory': 'player', 'slot': 0}, 3,
+                              session_id=opened['session_id'], revision=opened['revision'])
+                return connection.wait_action(receipt['id'], timeout=15)
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                first = pool.submit(contend, stream, primary_open)
+                second = pool.submit(contend, viewer, second_open)
+                outcomes = [first.result(timeout=20), second.result(timeout=20)]
+            assert sorted(row['state'] for row in outcomes) == ['done', 'failed'], outcomes
+            assert next(row for row in outcomes if row['state'] == 'failed')['reason'] == 'stale_container_revision', outcomes
+            wait_for(lambda: quantity(stream, 'minecraft:diamond') + quantity(viewer, 'minecraft:diamond') == 3)
+            primary_state = wait_for(lambda: (value if value.get('revision', 0) > primary_open['revision'] else None)
+                                     if (value := stream.observe().get('container', {})) else None)
+            remaining = next(row['count'] for row in primary_state['slots'] if row['inventory'] == 'container' and row['slot'] == 0)
+            assert remaining == 1
+            loser = stream if outcomes[0]['state'] == 'failed' else viewer
+            loser_state = wait_for(lambda: (value if value.get('revision', 0) >
+                                  (primary_open if loser is stream else second_open)['revision'] else None)
+                                  if (value := loser.observe().get('container', {})) else None)
+            recovered = done(loser, loser.move_item({'inventory': 'container', 'slot': 0}, {'inventory': 'player', 'slot': 0}, 1,
+                             session_id=loser_state['session_id'], revision=loser_state['revision']))
+            wait_for(lambda: quantity(stream, 'minecraft:diamond') + quantity(viewer, 'minecraft:diamond') == 4)
+            chest_count = next(row['count'] for row in recovered['slots'] if row['inventory'] == 'container' and row['slot'] == 0)
+            assert chest_count == 0
+            evidence.update(native_viewers=2, human_or_gui_viewers=False, contested_requests=2,
+                            successes=1, stale_revision_failures=1, fresh_revision_recovery=True,
+                            primary_diamonds=quantity(stream, 'minecraft:diamond'),
+                            second_diamonds=quantity(viewer, 'minecraft:diamond'), chest_diamonds=chest_count,
+                            total_diamonds_before_fixture_cleanup=4)
+            return evidence
+        finally:
+            if viewer is not None:
+                try:
+                    viewer.close()
+                except Exception:
+                    pass  # Authorized removal below revokes any remaining lease and native body.
+            with fixture.gateway.changed:
+                registered = fixture.gateway.db.execute('SELECT 1 FROM bodies WHERE name=?', (viewer_name,)).fetchone()
+                if registered and not fixture.gateway.body(viewer_name)['data'].get('removed'):
+                    owner = fixture.gateway.issue(OWNER['name'], 'player', player_uuid=OWNER['uuid'])
+                    fixture.gateway.handle('DELETE', '/v1/agent',
+                        {'Authorization': 'Bearer ' + owner, 'X-SCRU-Agent': viewer_name}, {})
+            if registered:
+                def removed():
+                    with fixture.gateway.changed:
+                        return (viewer_name not in fixture.gateway.body_connections and
+                                fixture.gateway.body(viewer_name)['data'].get('removed', False))
+                wait_for(removed, timeout=15, description='fixture second native viewer removed')
+                evidence['fixture_second_body_removed'] = True
+
+    fixture.case('container_two_native_viewers_contested_transfer_conservation', ['ACT-14', 'VERIFY-03'], concurrent_native_viewers)
+
+    def disconnect_transfer_reconciliation():
+        reset()
+        fixture.console('setblock 2 64 0 chest')
+        fixture.console('give VerifyBuilder diamond 5')
+        wait_for(lambda: quantity(stream, 'minecraft:diamond') == 5)
+        opened = container(stream.open_container(2, 64, 0))
+        source = slot(stream, 'minecraft:diamond')
+        request_id = uuid.uuid4().hex
+        arguments = dict(session_id=opened['session_id'], revision=opened['revision'], request_id=request_id)
+        receipt = stream.move_item({'inventory': 'player', 'slot': source}, {'inventory': 'container', 'slot': 0}, 2, **arguments)
+        try:
+            def native_finished():
+                with fixture.gateway.changed:
+                    row = fixture.gateway.actions.get('VerifyBuilder', {}).get(receipt['id'], {}).get('result', {})
+                    if row.get('state') in {'failed', 'cancelled', 'unknown'}:
+                        raise AssertionError(dict(row))
+                    return dict(row) if row.get('state') == 'done' and not row.get('details_pending') else None
+            # Wait through fixture instrumentation, deliberately not through the application's action handle.
+            original = wait_for(native_finished, description='native transfer before disconnect')
+            stream.connection.close()
+            wait_for(lambda: stream.stopped.is_set(), description='SDK observes forced public disconnect')
+            def lease_released():
+                with fixture.gateway.changed:
+                    return fixture.gateway.active('VerifyBuilder') is None
+            wait_for(lease_released, description='public disconnect releases prior lease')
+            stream.reconnect(attempts=1)
+            reconciled = stream.action_results(request_id)[0]
+            assert reconciled['state'] == 'done' and reconciled.get('moved') == 2, reconciled
+            assert reconciled['body_epoch'] == original['body_epoch'] and reconciled['id'] == request_id
+            wait_for(lambda: not stream.observe().get('container', {}).get('open', False), description='old container session released')
+            reopened = container(stream.open_container(2, 64, 0))
+            assert reopened['session_id'] != opened['session_id']
+            try:
+                stream.move_item({'inventory': 'player', 'slot': source}, {'inventory': 'container', 'slot': 0}, 2, **arguments)
+            except Exception as error:
+                assert getattr(error, 'status', None) == 409 and getattr(error, 'code', None) == 'action_belongs_to_previous_lease', repr(error)
+            else:
+                raise AssertionError('Previous-lease mutation was accepted for replay')
+            wait_for(lambda: quantity(stream, 'minecraft:diamond') == 3)
+            stored = next(row['count'] for row in reopened['slots'] if row['inventory'] == 'container' and row['slot'] == 0)
+            assert stored == 2 and stored + quantity(stream, 'minecraft:diamond') == 5
+            done(stream, stream.close_container(session_id=reopened['session_id'], revision=reopened['revision']))
+            return {'exact_action_id_reconciled': True, 'native_executions': 1, 'moved': 2,
+                    'prior_lease_replay_rejected': True, 'old_session_invalidated': True,
+                    'player_diamonds': 3, 'chest_diamonds': 2, 'total_diamonds': 5,
+                    'disconnect_timing': 'after native completion, before application handle wait; no simulated lost network frame'}
+        finally:
+            with fixture.gateway.changed:
+                needs_reconnect = stream.stopped.is_set() or fixture.gateway.active('VerifyBuilder') is None
+            if needs_reconnect:
+                stream.reconnect(attempts=1)
+
+    fixture.case('container_disconnect_reconcile_without_mutation_replay', ['ACT-14', 'ACT-16', 'EXEC-04', 'VERIFY-03'], disconnect_transfer_reconciliation)
+
     def components():
         reset()
         fixture.console('setblock 2 64 0 chest')
@@ -111,6 +241,36 @@ def run_cases(fixture, stream):
         return {'inside_half': [23, 64, 0], 'outside_half': [24, 64, 0], 'area_max_x_exclusive': 24, 'failure': result['reason']}
 
     fixture.case('double_chest_second_half_work_area', ['ACT-13', 'ACT-14', 'VERIFY-04'], double_chest_area)
+
+    def double_chest_success():
+        reset()
+        fixture.console('setblock 2 64 0 minecraft:chest[facing=north,type=left]')
+        fixture.console('setblock 3 64 0 minecraft:chest[facing=north,type=right]')
+        fixture.console('give VerifyBuilder diamond 3')
+        wait_for(lambda: quantity(stream, 'minecraft:diamond') == 3)
+        opened = container(stream.open_container(2, 64, 0))
+        storage = [row for row in opened['slots'] if row['inventory'] == 'container']
+        player = [row for row in opened['slots'] if row['inventory'] == 'player']
+        assert len(storage) == 54 and {row['slot'] for row in storage} == set(range(54)), opened
+        assert len(player) == 36 and {row['slot'] for row in player} == set(range(36)), opened
+        source = slot(stream, 'minecraft:diamond')
+        moved = container(stream.move_item({'inventory': 'player', 'slot': source}, {'inventory': 'container', 'slot': 53}, 3,
+                          session_id=opened['session_id'], revision=opened['revision']))
+        assert next(row['count'] for row in moved['slots'] if row['inventory'] == 'container' and row['slot'] == 53) == 3
+        wait_for(lambda: quantity(stream, 'minecraft:diamond') == 0)
+        moved = container(stream.move_item({'inventory': 'container', 'slot': 53}, {'inventory': 'player', 'slot': source}, 1,
+                          session_id=moved['session_id'], revision=moved['revision']))
+        wait_for(lambda: quantity(stream, 'minecraft:diamond') == 1)
+        done(stream, stream.close_container(session_id=moved['session_id'], revision=moved['revision']))
+        reopened = container(stream.open_container(2, 64, 0))
+        stored = next(row for row in reopened['slots'] if row['inventory'] == 'container' and row['slot'] == 53)
+        assert stored['item'] == 'minecraft:diamond' and stored['count'] == 2, reopened
+        assert stored['count'] + quantity(stream, 'minecraft:diamond') == 3
+        done(stream, stream.close_container(session_id=reopened['session_id'], revision=reopened['revision']))
+        return {'storage_slots': 54, 'player_slots': 36, 'second_menu_half_slot': 53,
+                'deposited': 3, 'withdrawn': 1, 'persisted_after_reopen': 2, 'player_diamonds': 1, 'total_diamonds': 3}
+
+    fixture.case('double_chest_complete_layout_second_half_conservation', ['ACT-13', 'ACT-14', 'OBS-05', 'VERIFY-03'], double_chest_success)
 
     def recipe_discovery():
         reset()
@@ -221,6 +381,59 @@ def run_cases(fixture, stream):
                 'stop_closed_session': True, 'stop_reason': closed['reason'], 'cursor_fixture': 'empty'}
 
     fixture.case('container_explicit_close_and_stop', ['ACT-16', 'OBS-05', 'EXEC-03'], close_and_stop)
+
+    def administrator_order_stop():
+        reset()
+        fixture.console('setblock 2 64 0 chest')
+        fixture.console('give VerifyBuilder diamond 2')
+        wait_for(lambda: quantity(stream, 'minecraft:diamond') == 2)
+        opened = container(stream.open_container(2, 64, 0))
+        source = slot(stream, 'minecraft:diamond')
+        moved = container(stream.move_item({'inventory': 'player', 'slot': source}, {'inventory': 'container', 'slot': 0}, 1,
+                          session_id=opened['session_id'], revision=opened['revision']))
+        with fixture.gateway.changed:
+            owner_token = fixture.gateway.issue(OWNER['name'], 'player', player_uuid=OWNER['uuid'])
+        owner_headers = {'Authorization': 'Bearer ' + owner_token, 'X-SCRU-Agent': 'VerifyBuilder'}
+        try:
+            # This invokes the shared native order recorder as Server, not a human chat event.
+            fixture.console('synagent order VerifyBuilder, stop')
+            def suspended():
+                with fixture.gateway.changed:
+                    return fixture.gateway.body('VerifyBuilder')['data'].get('suspended', False)
+            wait_for(suspended, description='administrator order persistent stop latch')
+            closed = wait_for(lambda: (value if not value.get('open', False) else None)
+                              if (value := stream.observe().get('container', {})) else None)
+            assert closed['closed_session_id'] == opened['session_id'], closed
+            assert quantity(stream, 'minecraft:diamond') == 1
+            try:
+                stream.reconnect(attempts=1)
+            except Exception as error:
+                assert getattr(error, 'status', None) == 423, repr(error)
+            else:
+                raise AssertionError('Reconnect bypassed the persistent administrator stop')
+            assert suspended()
+            with fixture.gateway.changed:
+                resumed = fixture.gateway.handle('POST', '/v1/resume', owner_headers, {})
+            assert resumed['status'] == 'resumed', resumed
+            stream.reconnect(attempts=1)
+            reopened = container(stream.open_container(2, 64, 0))
+            stored = next(row['count'] for row in reopened['slots'] if row['inventory'] == 'container' and row['slot'] == 0)
+            assert stored == 1 and quantity(stream, 'minecraft:diamond') == 1
+            done(stream, stream.close_container(session_id=reopened['session_id'], revision=reopened['revision']))
+            return {'source': 'administrator console synagent order through shared native recordOrder',
+                    'actual_human_chat_event_verified': False, 'persistent_stop_closed_session': True,
+                    'reconnect_denied_423_until_owner_resume': True, 'deliberate_owner_resume_verified': True,
+                    'cursor_fixture': 'empty', 'chest_diamonds': stored, 'player_diamonds': 1, 'total_diamonds': 2}
+        finally:
+            # Leave the shared synthetic test body controllable even if an assertion fails.
+            with fixture.gateway.changed:
+                if fixture.gateway.body('VerifyBuilder')['data'].get('suspended'):
+                    fixture.gateway.handle('POST', '/v1/resume', owner_headers, {})
+                needs_reconnect = stream.stopped.is_set() or fixture.gateway.active('VerifyBuilder') is None
+            if needs_reconnect:
+                stream.reconnect(attempts=1)
+
+    fixture.case('administrator_order_container_stop_persistence_owner_resume', ['ACT-13', 'ACT-16', 'EXEC-03', 'VERIFY-04'], administrator_order_stop)
 
     def furnace_slots():
         reset()

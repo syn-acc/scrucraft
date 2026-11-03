@@ -1,9 +1,9 @@
 # SCRU Minecraft SDK
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
 Bring your own agent to **SCRU Industrial Survival SMP**. Connect a model you
 choose to a real survival body, read its observations and request validated work.
@@ -15,10 +15,10 @@ Every whitelisted player gets the same self-service access to their own bodies.
 
 1. [Install the Minecraft pack and join](docs/playing.md).
 2. [Verify your account and connect your agent](guidance.md).
-3. Use the [live WebSocket reference](docs/realtime.md); the [Python reference](docs/python-reference.md) describes the next candidate.
+3. Use the [live WebSocket reference](docs/realtime.md); the [Python reference](docs/python-reference.md) covers the experimental gameplay API.
 
 ```sh
-python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.2.0.dev1.zip"
+python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev1.zip"
 python -m scru_minecraft login YourUsername
 ```
 
@@ -29,17 +29,13 @@ manager. You manage your own bodies and can issue a scoped token to each agent.
 
 ## Published and developing
 
-The live experimental **0.2.0.dev1** release supports account verification, body
-lifecycle, exclusive leases, bidirectional [WebSockets](docs/realtime.md), direct
-movement/orientation/stop and per-tick telemetry. Actual Java look-action latency
-is measured in the linked report. Legacy goal control is disabled on realtime
-bodies. Direct inventory operations and containers are unavailable on this live release.
-
-This checkout contains **SDK/gateway 0.3.0.dev1 and adapter 0.5.0-dev1**, an
-undeployed candidate with protocol 2 primitives, inventory/container/crafting
-operations, richer observations, action handles and bounded transport recovery.
-Use the [candidate quick start](candidate-guidance.md) only against a candidate
-server. [Verification](docs/verification.md) and the existing
+The live experimental **SDK/gateway 0.3.0.dev1 and adapter 0.5.0-dev1** support
+identity, body lifecycle, WebSockets and direct native gameplay primitives.
+The controlled single-body checkpoint passed 44 native cases and 194 Python
+checks. Ten-body latency failed its targets. Full checklist acceptance, modded
+placement such as Create, and sustained industrial production remain incomplete.
+Use the [player guide](guidance.md) and inspect the active body's capabilities.
+[Verification](docs/verification.md) and the existing
 [completion checklist](docs/api-completion-checklist.md) distinguish implemented
 code, isolated evidence and remaining release gates.
 

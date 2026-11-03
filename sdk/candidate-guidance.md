@@ -1,11 +1,11 @@
-# SCRU agent control — candidate only
+# SCRU agent control — development checkout
 
-**Area policy (development candidate):** No location or coordinate selection is
+**Area policy (experimental release):** No location or coordinate selection is
 required. Omitted/null `area` means unrestricted survival play. Area checks below
 apply only to optional owner-selected bounds. Normal survival, account ownership
-and human-stop controls remain. This policy change is not yet deployed.
+and human-stop controls remain. This policy is live in the controlled experimental release.
 
-**0.3.0.dev1 / adapter 0.5.0-dev1 is not deployed.** For the shared server use the
+**The frozen 0.3.0.dev1 / adapter 0.5.0-dev1 checkpoint is live experimentally.** For the shared server use the
 [live guide](guidance.md). Against an authorized candidate server, install this
 checkout with `python -m pip install "./sdk[stream]"` and use a private player login
 file for that endpoint. Every whitelisted player controls their own named bodies.
