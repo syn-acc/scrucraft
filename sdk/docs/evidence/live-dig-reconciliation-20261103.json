@@ -1,0 +1,23 @@
+{
+  "source": "Live SDK session, minimal excerpt; coordinates and unrelated observations omitted",
+  "adapter": "0.5.0-dev1",
+  "dig": {
+    "at": "2026-11-03T21:39:49.684623+00:00",
+    "id": "6c9db309ee3144d5a064e282b3b7784c",
+    "state": "failed",
+    "reason": "held_item_changed",
+    "world_tick": 5366257,
+    "selected_slot": 2,
+    "inventory_dirt": 1
+  },
+  "follow_up": {
+    "at": "2026-11-03T21:40:02.409974+00:00",
+    "query_id": "31dc9ad44b7a4f88a761ee3fc60eec84",
+    "world_tick": 5366510,
+    "original_target_block": "minecraft:air",
+    "inventory_dirt": 2
+  },
+  "dig_retried": false,
+  "interpretation": "Possible native delayed-break continuation after failed receipt; cause and exact mutation attribution require a regression test.",
+  "source_follow_up": "Exact NeoForge 1.21.1 source confirms ABORT leaves hasDelayedDestroy set; adapter sends STOP early. This proves a cancellation hazard, not exclusive attribution of this live mutation."
+}

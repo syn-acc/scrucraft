@@ -1,4 +1,4 @@
-"""Deliberately acquire control, request rest, and release an existing body."""
+"""Deliberately acquire realtime control, stop, and release an existing body."""
 import argparse
 
 from scru_minecraft import AgentClient, GatewayError
@@ -14,10 +14,12 @@ def main():
     try:
         client = (AgentClient.from_env(agent=args.agent) if args.from_env else
                   AgentClient.from_file(args.credentials, agent=args.agent))
-        with client as agent:
-            frame = agent.observe()
-            receipt = agent.set_goal('rest', observation_id=frame['id'])
-            print('Goal receipt:', receipt['status'], '(acceptance only)')
+        with client.realtime() as agent:
+            receipt = agent.action('stop')
+            result = agent.wait_action(receipt['id'])
+            print('Native stop:', result['state'], result.get('reason', ''))
+            if result['state'] != 'done':
+                parser.exit(1, 'Stop did not complete; inspect the reported result.\n')
         print('Control released.')
     except GatewayError as error:
         parser.exit(1, f'Gateway {error.status}: {error.code}; no automatic retry or resume.\n')

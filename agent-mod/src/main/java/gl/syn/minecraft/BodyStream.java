@@ -8,13 +8,14 @@ import java.util.concurrent.atomic.*;
 
 /** Bounded network mailbox. World access and control application remain on the game thread. */
 final class BodyStream implements AutoCloseable {
-    private record Grant(JsonObject action,long received) {}
     private final HttpClient http;
     private final String name,epoch,token;
     private final URI endpoint;
-    private final AtomicReference<Grant> latest=new AtomicReference<>();
+    private final AtomicReference<BodyGrant> latest=new AtomicReference<>();
     private final AtomicBoolean sending=new AtomicBoolean(),connecting=new AtomicBoolean();
     private final AtomicLong generation=new AtomicLong();
+    private final AtomicLong pendingObservation=new AtomicLong(-1);
+    private volatile long pendingSince;
     private volatile WebSocket socket;
     private volatile long retryAfter;
     private volatile boolean closed;
@@ -22,14 +23,24 @@ final class BodyStream implements AutoCloseable {
         this(http,name,epoch,token,URI.create("ws://127.0.0.1:8769/internal/body"));
     }
     BodyStream(HttpClient http,String name,String epoch,String token,URI endpoint) {
-        this.http=http;this.name=name;this.epoch=epoch;this.token=token;this.endpoint=endpoint;
+        this.http=http;this.name=name;this.epoch=epoch;this.token=token;this.endpoint=loopbackEndpoint(endpoint.toString());
+    }
+    static URI loopbackEndpoint(String value) {
+        URI uri=URI.create(value);
+        if(!"ws".equals(uri.getScheme())||!"127.0.0.1".equals(uri.getHost())||uri.getPort()<1||uri.getPort()>65535
+            ||!"/internal/body".equals(uri.getPath())||uri.getUserInfo()!=null||uri.getQuery()!=null||uri.getFragment()!=null)
+            throw new IllegalArgumentException("Body stream endpoint must be a loopback ws://127.0.0.1:PORT/internal/body URL");
+        return uri;
     }
     void connect() {
+        checkAckTimeout();
         if(closed||socket!=null||System.nanoTime()<retryAfter||!connecting.compareAndSet(false,true))return;
         long attempt=generation.incrementAndGet();
+        pendingObservation.set(-1);sending.set(false);
         http.newWebSocketBuilder().connectTimeout(java.time.Duration.ofSeconds(2))
             .buildAsync(endpoint,new WebSocket.Listener() {
                 private final StringBuilder fragments=new StringBuilder();
+                private long latestIssued=-1;
                 @Override public void onOpen(WebSocket ws) {
                     if(closed||generation.get()!=attempt){ws.abort();return;}
                     JsonObject auth=new JsonObject();auth.addProperty("agent",name);
@@ -41,14 +52,19 @@ final class BodyStream implements AutoCloseable {
                 }
                 @Override public CompletionStage<?> onText(WebSocket ws,CharSequence data,boolean last) {
                     if(generation.get()!=attempt||closed){ws.abort();return null;}
-                    if(fragments.length()+data.length()>16384){ws.abort();failed(attempt);return null;}
+                    if(fragments.length()+data.length()>131072){ws.abort();failed(attempt);return null;}
                     fragments.append(data);
                     if(last) {
                         try {
                             JsonObject envelope=JsonParser.parseString(fragments.toString()).getAsJsonObject();
                             JsonObject action=envelope.getAsJsonObject("action");
                             if(!"control".equals(envelope.get("type").getAsString())||!epoch.equals(action.get("body_epoch").getAsString()))throw new IllegalArgumentException();
-                            latest.set(new Grant(action,System.nanoTime()));
+                            BodyGrant grant=BodyGrant.receive(envelope,System.currentTimeMillis(),System.nanoTime(),latestIssued);
+                            long observed=BodyGrant.integer(envelope,"observed_tick");
+                            long pending=pendingObservation.get();
+                            if(pending>=0&&observed>=pending)pendingObservation.compareAndSet(pending,-1);
+                            if(grant!=null)latestIssued=grant.issued;
+                            latest.set(grant);
                         } catch(Exception ex) {ws.abort();failed(attempt);}
                         fragments.setLength(0);
                     }
@@ -60,24 +76,36 @@ final class BodyStream implements AutoCloseable {
     }
     private void failed(long attempt) {
         if(generation.get()!=attempt)return;
-        socket=null;latest.set(null);retryAfter=System.nanoTime()+2_000_000_000L;connecting.set(false);
+        socket=null;latest.set(null);pendingObservation.set(-1);sending.set(false);retryAfter=System.nanoTime()+2_000_000_000L;connecting.set(false);
     }
     JsonObject poll() {
-        Grant grant=latest.get();
-        if(socket==null||grant==null||System.nanoTime()-grant.received()>200_000_000L)return null;
-        return grant.action();
+        checkAckTimeout();
+        BodyGrant grant=latest.get();
+        if(socket==null||grant==null)return null;
+        return grant.poll(System.currentTimeMillis(),System.nanoTime());
     }
-    boolean ready() {return socket!=null&&!sending.get();}
+    boolean fresh() {checkAckTimeout();BodyGrant grant=latest.get();return socket!=null&&grant!=null&&grant.fresh(System.currentTimeMillis(),System.nanoTime());}
+    private void checkAckTimeout() {
+        long attempt=generation.get(),pending=pendingObservation.get();
+        if(pending>=0&&System.nanoTime()-pendingSince>=2_000_000_000L&&pendingObservation.compareAndSet(pending,-1)) {
+            WebSocket ws=socket;if(ws!=null)ws.abort();failed(attempt);
+        }
+    }
+    boolean ready() {checkAckTimeout();return socket!=null&&!sending.get()&&pendingObservation.get()<0;}
     boolean send(JsonObject observation) {
         WebSocket ws=socket;
         long attempt=generation.get();
-        if(ws==null||!sending.compareAndSet(false,true))return false;
+        long tick=BodyGrant.integer(observation,"tick");
+        if(ws==null||pendingObservation.get()>=0||!sending.compareAndSet(false,true))return false;
+        pendingSince=System.nanoTime();
+        if(!pendingObservation.compareAndSet(-1,tick)){sending.set(false);return false;}
         try {
             ws.sendText(observation.toString(),true).whenComplete((v,error)->{
+                if(generation.get()!=attempt)return;
                 sending.set(false);if(error!=null){ws.abort();failed(attempt);}
             });
         } catch(RuntimeException ex) {sending.set(false);ws.abort();failed(attempt);return false;}
         return true;
     }
-    @Override public void close() {closed=true;generation.incrementAndGet();latest.set(null);WebSocket ws=socket;socket=null;if(ws!=null)ws.abort();}
+    @Override public void close() {closed=true;generation.incrementAndGet();latest.set(null);pendingObservation.set(-1);sending.set(false);WebSocket ws=socket;socket=null;if(ws!=null)ws.abort();}
 }

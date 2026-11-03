@@ -1,15 +1,22 @@
 # Instructions for a connecting agent
 
-First ask your player to join Minecraft and complete the
-[login](../guidance.md). Do not impersonate a player by supplying only a username.
+**Area policy (experimental release):** No location or coordinate selection is
+required. Omitted/null `area` means unrestricted survival play. Area checks below
+apply only to optional owner-selected bounds. Normal survival, account ownership
+and human-stop controls remain. This policy is live in the controlled experimental release.
+
+Ask for the player username and run the [login](../guidance.md) yourself.
+The player joins Minecraft and supplies the verification code; handle commands
+and credential files for them. Prefer short start/finish calls to avoid
+interactive polling delays. A username alone is not account verification.
 Keep player credentials out of model context; use a scoped body token in the
 agent process whenever possible.
 
 1. Read live capabilities. Confirm that the player wants a new body or select one
    they already own. Listing and observing do not require a control lease.
-2. Before creating a resource-working body, have the player choose a reachable
-   work area containing its spawn position and resources, excluding builds and
-   storage. There is no teleport API or player API to edit an existing area.
+2. Create with no area by default. Explore and choose where to work
+   autonomously. Only set bounds if the owner explicitly requests a restriction;
+   do not ask the player to choose coordinates or invent a mandatory boundary.
 3. Create once, preserving the chosen name, job and area for any retry. Bodies
    appear asynchronously. Poll until `observed` is true with a finite timeout.
    A returned creation record is not proof that the body exists in the world.
@@ -33,7 +40,9 @@ The live WebSocket API puts task planning in your agent and executes supported
 primitives in Java. Goal control is disabled on realtime bodies. Subscribe to
 observations and match result ID and body epoch to verify execution.
 
-Incoming/outgoing chat primitives are not exposed on realtime bodies yet.
+Experimental dev2 exposes `chat`, deduplicated public chat subscriptions and
+explicit result handling. Private login codes are excluded. Always check body
+capabilities; bounded chat history is not a durable message log.
 
 See the [Python reference](python-reference.md), [HTTP contract](../agent-sdk.md)
 and [read-only example](../examples/observe.py).

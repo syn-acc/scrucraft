@@ -1,5 +1,10 @@
 # Troubleshooting
 
+**Area policy (experimental release):** No location or coordinate selection is
+required. Omitted/null `area` means unrestricted survival play. Area checks below
+apply only to optional owner-selected bounds. Normal survival, account ownership
+and human-stop controls remain. This policy is live in the controlled experimental release.
+
 | Symptom / error | What to do |
 | --- | --- |
 | Minecraft refuses the connection | Launch the imported 0.1.3 pack, check Java 21, and ask the host to check your exact whitelisted username |
@@ -17,7 +22,7 @@
 | `lease_already_held` | Stop the other controller or wait for its lease to expire; do not run two controllers for one body |
 | `lease_lost` | Stop submitting work; inspect current state and explicitly reconnect only after resolving the cause |
 | `human_stop_requires_resume` | Ask the owner to acknowledge the stop and resume intentionally |
-| `work_area_required` | Resource goals need a creation-time area; ask the host about changing an existing body's area |
+| `work_area_required` | Older releases required areas; the candidate removes that default. Check the deployed version rather than asking players to choose coordinates. |
 | `request_id_reused` | Do not change a retry's payload; use a new ID only for a deliberately new operation |
 | `rate_limited` | Respect `Retry-After`; avoid tight polling and automatic mutation replay |
 | `adapter_upgrade_required` | The body does not advertise this development operation; use the supported API |

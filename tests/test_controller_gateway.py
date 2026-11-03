@@ -212,12 +212,12 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(result['name'], 'Forge')
         self.assertEqual(self.g.db.execute('SELECT COUNT(*) FROM bodies').fetchone()[0], 1)
 
-    def test_no_work_area_prevents_resource_goals(self):
+    def test_no_work_area_allows_resource_goals(self):
         body = self.g.body('Forge')
         body['data']['area'] = None
         self.g.save(body)
         self.lease()
-        self.error(403, self.goal)
+        self.assertEqual('accepted', self.goal()['status'])
 
     def test_removed_agent_tokens_cannot_be_reused(self):
         h = dict(self.headers, **{'X-Syn-Agent': 'Forge'})
@@ -310,6 +310,13 @@ class GatewayTests(unittest.TestCase):
 
 
 class ExternalControllerTests(unittest.TestCase):
+    def test_no_area_allows_observed_resources_in_any_dimension(self):
+        for dimension in ('minecraft:overworld', 'minecraft:the_nether'):
+            o = frame()
+            o['dimension'] = dimension
+            o['blocks'] = [{'pos': [1, 64, 0], 'block': 'minecraft:oak_log'}]
+            self.assertEqual(controller.external_action(o, {'goal': 'gather_wood', 'area': None})['kind'], 'mine')
+
     def test_storage_and_unobserved_blocks_never_mined(self):
         for block in ('minecraft:chest', 'minecraft:barrel', 'minecraft:oak_planks'):
             o = frame()
@@ -389,6 +396,41 @@ class BrokerTests(unittest.TestCase):
 
 
 class SDKTests(unittest.TestCase):
+    def test_http_stop_reaches_gateway_while_ordinary_request_is_blocked(self):
+        fixture=GatewayTests();fixture.setUp();fixture.g.clock=time.monotonic
+        fixture.g.frame(frame(tick=101))
+        blocked=threading.Event();release=threading.Event();stopped=threading.Event();outcomes=[];errors=[]
+        class Handler(gateway.Handler):
+            def do_GET(self):
+                if self.path=='/v1/me':blocked.set();release.wait(3)
+                super().do_GET()
+        server=gateway.Server(('127.0.0.1',0),fixture.g);server.RequestHandlerClass=Handler
+        serving=threading.Thread(target=server.serve_forever,daemon=True);serving.start()
+        client=sdk.AgentClient(f'http://127.0.0.1:{server.server_port}',fixture.token,'Forge',allow_local_http=True,timeout=2)
+        lease=fixture.lease();client._lease=lease['lease_id']
+        def ordinary():
+            try:client.capabilities()
+            except Exception as error:errors.append(error)
+        def safety():
+            try:outcomes.append(client.stop())
+            except Exception as error:errors.append(error)
+            finally:stopped.set()
+        worker=threading.Thread(target=ordinary);stopper=threading.Thread(target=safety)
+        try:
+            worker.start();self.assertTrue(blocked.wait(1))
+            client._next_request=time.monotonic()+60
+            stopper.start();self.assertTrue(stopped.wait(.5),'HTTP stop waited behind an unrelated request or pacing')
+            self.assertTrue(worker.is_alive());self.assertFalse(errors)
+            self.assertEqual('stopped',outcomes[0]['status'])
+            self.assertEqual(1,fixture.g.active('Forge')['generation'])
+        finally:
+            release.set();worker.join(3)
+            if stopper.ident is not None:stopper.join(3)
+            client._next_request=0
+            try:client.close()
+            finally:
+                server.shutdown();server.server_close();serving.join(3);fixture.tearDown()
+
     def test_scru_environment_precedes_legacy_without_losing_compatibility(self):
         with patch.dict(os.environ, {'SCRU_AGENT_TOKEN': 'scru-token', 'SYN_AGENT_TOKEN': 'old-token',
                                      'SCRU_AGENT_ID': 'Forge', 'SYN_AGENT_ID': 'Other'}, clear=True):

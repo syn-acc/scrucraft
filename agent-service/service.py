@@ -19,7 +19,8 @@ EXTERNAL_GOALS={'rest','eat','gather_food','gather_wood','gather_ore','collect_i
 
 def external_inside(p,area,dimension):
     try:
-        return area['dimension']==dimension and len(p)==3 and all(type(n) in (int,float) and math.isfinite(n) and lo<=n<hi for n,lo,hi in zip(p,area['min'],area['max']))
+        valid=len(p)==3 and all(type(n) in (int,float) and math.isfinite(n) for n in p)
+        return valid and (area is None or area['dimension']==dimension and all(lo<=n<hi for n,lo,hi in zip(p,area['min'],area['max'])))
     except (TypeError,KeyError):return False
 
 def external_resource(row):
@@ -31,7 +32,7 @@ def external_action(o,proposal):
     """Re-check the final action, not just the model goal. No storage or building API."""
     area=proposal.get('area');dim=o.get('dimension','minecraft:overworld')
     within=lambda p:external_inside(p,area,dim)
-    working=area is not None and within(o['position'])
+    working=within(o['position'])
     bounded=dict(o)
     bounded.pop('project',None)
     bounded['blocks']=[r for r in o.get('blocks',[]) if working and within(r['pos']) and external_resource(r)]

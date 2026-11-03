@@ -19,7 +19,21 @@ public final class NativeNavigator implements NavigationSearch.Terrain {
     private NavigationSearch.Cell cell(Vec3 p) {
         return new NavigationSearch.Cell((int)Math.floor(p.x),(int)Math.round(p.y*2),(int)Math.floor(p.z));
     }
-    private Vec3 point(NavigationSearch.Cell c) {return new Vec3(c.x()+.5,c.halfY()/2.0,c.z()+.5);}
+    private Vec3 surface(NavigationSearch.Cell c) {
+        double x=c.x()+.5,y=c.halfY()/2.0,z=c.z()+.5;
+        var world=body.serverLevel();
+        for(double dx:new double[]{-.3,.3})for(double dz:new double[]{-.3,.3})
+            if(!world.hasChunkAt(BlockPos.containing(x+dx,y,z+dz)))return null;
+        List<NavigationGround.Box> collisions=new ArrayList<>();
+        for(var shape:world.getBlockCollisions(body,new AABB(x-.3,y-.251,z-.3,x+.3,y+.251,z+.3)))
+            for(AABB box:shape.toAabbs())collisions.add(new NavigationGround.Box(
+                box.minX,box.minY,box.minZ,box.maxX,box.maxY,box.maxZ));
+        double ground=NavigationGround.resolve(x,c.halfY(),z,collisions);
+        return Double.isNaN(ground)?null:new Vec3(x,ground,z);
+    }
+    private Vec3 point(NavigationSearch.Cell c) {
+        Vec3 ground=surface(c);return ground!=null?ground:new Vec3(c.x()+.5,c.halfY()/2.0,c.z()+.5);
+    }
     private AABB bounds(Vec3 p) {return new AABB(p.x-.3,p.y+.001,p.z-.3,p.x+.3,p.y+1.8,p.z+.3);}
     private boolean clear(Vec3 p) {
         var world=body.serverLevel();
@@ -36,8 +50,8 @@ public final class NativeNavigator implements NavigationSearch.Terrain {
         return world.noCollision(body,bounds(p));
     }
     public boolean standing(NavigationSearch.Cell c) {
-        Vec3 p=point(c);
-        return clear(p)&&!body.serverLevel().noCollision(body,bounds(p).move(0,-.05,0));
+        Vec3 p=surface(c);
+        return p!=null&&clear(p);
     }
     public boolean traversable(NavigationSearch.Cell from,NavigationSearch.Cell to) {
         Vec3 a=point(from),b=point(to);
@@ -58,12 +72,14 @@ public final class NativeNavigator implements NavigationSearch.Terrain {
                 ||body.position().distanceToSqr(new Vec3(x,y,z))>64*64) {
             state="failed";reason="target_out_of_range";return;
         }
-        goal=cell(new Vec3(x,y,z));remaining=Math.min(1200,Math.max(20,timeoutTicks));
+        goal=cell(new Vec3(x,y,z));remaining=Math.min(1200,Math.max(1,timeoutTicks));
         stalled=0;replans=0;checkpoint=body.position();begin();
     }
     private void begin() {
         body.zza=0;body.xxa=0;path=List.of();index=1;
-        search=new NavigationSearch(this,cell(body.position()),goal,4096);state="started";
+        // An independent held jump can make the body airborne before this command
+        // arrives. Plan from its actual landing, never from an invented air floor.
+        search=body.onGround()?new NavigationSearch(this,cell(body.position()),goal,4096):null;state="started";
     }
     public void cancel(String why) {
         if(search!=null)search.cancel();
@@ -75,18 +91,26 @@ public final class NativeNavigator implements NavigationSearch.Terrain {
         if(!state.equals("started"))return;
         if(--remaining<=0) {cancel("timeout");state="failed";return;}
         if(!body.isAlive()) {cancel("dead");state="failed";return;}
+        if(search==null) {
+            if(!body.onGround())return;
+            search=new NavigationSearch(this,cell(body.position()),goal,4096);
+        }
         if(search.state().equals("searching"))search.step(16,deadlineNanos);
         if(search.state().equals("searching"))return;
         if(!search.state().equals("ready")) {cancel(search.state());state="failed";return;}
         if(path.isEmpty())path=search.path();
-        if(index>=path.size()) {
-            if(body.position().distanceToSqr(point(goal))<.25&&body.onGround()) {
-                body.zza=0;body.xxa=0;state="done";reason="arrived";return;
-            }
-            index=path.size()-1;
+        // The last waypoint index is size-1. Completion must not depend on a
+        // stalled replan producing a one-cell path before index reaches size.
+        if(body.position().distanceToSqr(point(goal))<.25&&body.onGround()&&standing(goal)) {
+            body.zza=0;body.xxa=0;state="done";reason="arrived";return;
         }
+        if(index>=path.size())index=path.size()-1;
         Vec3 target=point(path.get(index));
-        if(body.position().distanceToSqr(target)<.16 && body.onGround() && index<path.size()-1) {
+        Vec3 relative=target.subtract(body.position());
+        // Held jumps must not make the navigator orbit a waypoint it crossed in
+        // the air. Advance along the ground route by horizontal proximity once
+        // the body is at/above that step; do not skip an ascent from below it.
+        if(relative.horizontalDistanceSqr()<.16&&relative.y<=.1&&relative.y>=-1.5&&index<path.size()-1) {
             target=point(path.get(++index));
         }
         boolean obstructed=!standing(path.get(index))
@@ -100,6 +124,11 @@ public final class NativeNavigator implements NavigationSearch.Terrain {
             return;
         }
         Vec3 delta=target.subtract(body.position());
+        // Landing at the final point completes the action. While airborne over
+        // it, release forward input instead of continually overshooting it.
+        if(index==path.size()-1&&delta.horizontalDistanceSqr()<.04) {
+            body.zza=0;body.xxa=0;return;
+        }
         body.setYRot((float)(Math.atan2(-delta.x,delta.z)*180/Math.PI));body.setYHeadRot(body.getYRot());
         body.zza=.8f;body.xxa=0;
         if(body.onGround()&&(delta.y>.4||body.horizontalCollision))body.jumpFromGround();

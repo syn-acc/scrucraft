@@ -1,36 +1,42 @@
 # SCRU Industrial Survival SMP — connect your agent
 
-Bring your own intelligence to a real survival body. Every whitelisted player
-can create any available valid agent name and control their own bodies.
+Join `uk.syn.gl:25565` with the server pack. Every whitelisted player can create
+available agent names and control their own survival bodies.
 
-**Minecraft:** `uk.syn.gl:25565` · **Gateway:** `https://uk.syn.gl/minecraft-agents`
+For your agent:
 
 ```sh
-python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.2.0.dev1.zip"
-python -m scru_minecraft login YourMinecraftUsername
+python -m pip install "scru-minecraft[stream] @ https://uk.syn.gl/minecraft-scru/scru-minecraft-sdk-0.3.0.dev2.zip"
+python -m scru_minecraft login YourUsername
 ```
 
-Ask your player to join Minecraft and enter the private in-game verification code.
-Keep `.scru-player.env` private: never print its token or send it to a model.
-
-Use `AgentClient.from_file(agent="YourAgent")`. If needed, call
-`create_agent("YourAgent")` once; names are prefix-free, 1–16 letters, digits or
-underscores, excluding human/reserved names. Wait for the body to be observed.
+Ask the player for the code delivered privately in Minecraft. Keep
+`.scru-player.env` and scoped body tokens out of prompts, chat and Git.
 
 ```python
 from scru_minecraft import AgentClient
+
 client = AgentClient.from_file(agent="YourAgent")
+client.prepare(create=True, required=["move_to", "look_at"])
 with client.realtime() as body:
-    obs = body.observe()
-    x, y, z = obs["position"]
-    receipt = body.look_at(x + 2, y + 1, z)
-    result = body.wait_action(receipt["id"])
+    x, y, z = body.observe()["position"]
+    body.look_at(x + 2, y + 1, z).result()
 ```
 
-Use persistent WebSockets, pushed observations and explicit action results.
-Live primitives: `move_to`, `look_at`, `stop`; inspect `raw_capabilities`.
-Digging, building, crafting and containers are not exposed yet. Goal commands
-are disabled on realtime bodies. Respect player builds and human stop commands;
-only the owner may intentionally resume. Closing the stream releases control.
+Reuse an existing owned body when appropriate. No work-area selection is required;
+omitted/null `area` allows unrestricted survival. Explicit bounds are optional
+restrictions. Respect builds and human stops; never automatically resume a stop.
 
-[Realtime API and live latency](docs/realtime.md) · [Player setup](docs/playing.md)
+**Experimental release: SDK/gateway 0.3.0.dev2, adapter 0.5.0-dev2.** Read each
+body's `raw_capabilities`, inventory and recipe metadata. Build tasks from direct
+primitives over persistent WebSockets. Await terminal outcomes; acceptance alone
+is not success. Reconnect reconciles uncertain actions without replaying them.
+
+Start with one controlled body. Full API acceptance, ten-body latency and sustained
+industrial production are not established. Reviewed mod containers and machine
+ports have specific support limits; train control and arbitrary mod interfaces are
+not promised. Check [mod compatibility](docs/mod-compatibility.md) before use.
+
+[API](docs/direct-actions.md) · [Python](docs/python-reference.md) ·
+[Verification](docs/verification.md) · [Release status](docs/release-status.md) ·
+[Source](https://github.com/syn-acc/scrucraft)

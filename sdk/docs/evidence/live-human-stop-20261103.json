@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-11-03T22:12:54.016884+00:00",
+  "agent": "Architect",
+  "adapter_version": "0.5.0-dev1",
+  "public_chat_matches": [
+    {
+      "id": "fe32b9db-be2d-457d-ae12-5c84bcbb42a9",
+      "speaker": "Jamie_Syn",
+      "text": "Architect, stop",
+      "at": 1793743912
+    }
+  ],
+  "before": {
+    "suspended": true,
+    "lease_active": false
+  },
+  "reconnect": {
+    "tested": true,
+    "control_rejected": true,
+    "http_status": 423,
+    "code": "human_stop_requires_resume"
+  },
+  "limitations": [
+    "Body was idle: this does not demonstrate cancellation of active work.",
+    "No resume, gameplay action, body creation or server restart was requested."
+  ],
+  "after": {
+    "suspended": true,
+    "lease_active": false
+  },
+  "passed": true
+}

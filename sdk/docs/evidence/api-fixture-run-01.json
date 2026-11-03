@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "fixture": "isolated_neoforge",
+  "synthetic_identity": true,
+  "production_world_used": false,
+  "cases": [
+    {
+      "name": "inventory_and_held_controls",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-02",
+        "ACT-04",
+        "ACT-05",
+        "ACT-06",
+        "OBS-01",
+        "OBS-07",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slots": 42,
+        "hotbar_slots_selected": 9,
+        "components_preserved": true,
+        "stop_released_toggles": true
+      },
+      "seconds": 1.478
+    },
+    {
+      "name": "flat_navigation_while_looking",
+      "checklist_ids": [
+        "EXEC-01",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": {
+          "id": "f5ff900eca7746e4ae4ca1bcb7040668",
+          "state": "done",
+          "reason": "arrived",
+          "body_epoch": "035d3f00-585c-4858-a553-ef1f903ef4ed",
+          "tick": 174
+        },
+        "position": [
+          8.351674703141503,
+          64.0,
+          0.45021569976327397
+        ],
+        "look_did_not_cancel_or_redirect_navigation": true
+      },
+      "seconds": 5.296
+    },
+    {
+      "name": "dig_craft_place_container_chat",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-12",
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "ACT-16",
+        "OBS-03",
+        "OBS-04",
+        "OBS-05",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "log_consumed": 1,
+        "planks": {
+          "placed": 1,
+          "player": 1,
+          "chest": 2
+        },
+        "fixture_supplied": [
+          "one oak log block",
+          "crafting table",
+          "empty chest"
+        ],
+        "synthetic_identity_only": true
+      },
+      "seconds": 7.209
+    },
+    {
+      "name": "craft_recipe_remainders",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:cake",
+        "output": 1,
+        "bucket_remainders": 3
+      },
+      "seconds": 0.54
+    },
+    {
+      "name": "mutation_retry_conservation",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_retry_executions": 1,
+        "changed_payload_rejected": true
+      },
+      "seconds": 0.557
+    },
+    {
+      "name": "craft_full_inventory_atomic_failure",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "inventory_full",
+        "slots_unchanged": true,
+        "log_count": 2,
+        "occupied_storage_slots": 36
+      },
+      "seconds": 0.84
+    },
+    {
+      "name": "craft_mixed_tag_ingredients",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:chest",
+        "oak_planks_consumed": 4,
+        "birch_planks_consumed": 4,
+        "chests": 1
+      },
+      "seconds": 0.501
+    },
+    {
+      "name": "container_competing_mutation_stale_revision",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "old_revision": 1,
+        "new_revision": 2,
+        "failure": "stale_container_revision",
+        "external_mutation": "fixture console simulates another viewer",
+        "chest_stones": 2,
+        "player_stones": 0
+      },
+      "seconds": 0.799
+    },
+    {
+      "name": "container_named_damaged_stack_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "components_preserved": true,
+        "damage": 7,
+        "total_pickaxes": 1,
+        "round_trip": "player:0 -> container:0 -> player:1"
+      },
+      "seconds": 0.654
+    },
+    {
+      "name": "double_chest_second_half_work_area",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "inside_half": [
+          23,
+          64,
+          0
+        ],
+        "outside_half": [
+          24,
+          64,
+          0
+        ],
+        "area_max_x_exclusive": 24,
+        "failure": "outside_work_area"
+      },
+      "seconds": 0.7
+    },
+    {
+      "name": "recipe_discovery_paging_and_machine_rejection",
+      "checklist_ids": [
+        "OBS-06",
+        "ACT-15"
+      ],
+      "status": "passed",
+      "evidence": {
+        "discovered_recipes": 887,
+        "page_limit_obeyed": true,
+        "distinct_pages": true,
+        "machine_recipe_failure": "unsupported_recipe_type"
+      },
+      "seconds": 0.546
+    }
+  ],
+  "started_at": 1793738850.5183861,
+  "adapter_sha256": "769f443d519615430d11ef6a2bd44963f4eacee81c4859482a11939c27aad449",
+  "jvm_pid": 2037822,
+  "finished_at": 1793738914.6279488,
+  "jvm_stopped": true
+}

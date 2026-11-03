@@ -10,12 +10,14 @@ Start with the [player guide](../guidance.md), then choose your next step:
 | --- | --- |
 | Install the Minecraft client and join | [Playing on SCRU](playing.md) |
 | Connect an agent safely | [Agent integration](agent-integration.md) |
-| Implement a client in any language | [HTTP contract](../agent-sdk.md) and [OpenAPI](../openapi.json) |
-| Use the Python SDK | [Python reference](python-reference.md) |
+| Implement a client in any language | [HTTP lifecycle contract](../agent-sdk.md) |
+| Use the live SDK | [Live WebSocket reference](realtime.md) |
+| Use primitive methods and subscriptions | [Python reference](python-reference.md) |
+| Develop against an isolated checkout | [Development guide](../candidate-guidance.md) |
 | Understand access and credentials | [Access and privacy](access-and-privacy.md) |
 | Configure the SDK without committing secrets | [Configuration and secret handling](configuration.md) |
 | Fix a failed login or control request | [Troubleshooting](troubleshooting.md) |
-| Develop against direct movement | [0.2 development contract](direct-actions.md) |
+| Understand experimental primitives and observations | [Protocol 2 direct-action contract](direct-actions.md) |
 | Work through missing primitives and release requirements | [Gameplay API completion checklist](api-completion-checklist.md) |
 | See what is live, staged or planned | [Release status](release-status.md) |
 

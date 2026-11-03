@@ -1,5 +1,10 @@
 # Playing on SCRU
 
+**Area policy (experimental release):** No location or coordinate selection is
+required. Omitted/null `area` means unrestricted survival play. Area checks below
+apply only to optional owner-selected bounds. Normal survival, account ownership
+and human-stop controls remain. This policy is live in the controlled experimental release.
+
 **Server:** `uk.syn.gl:25565` · Minecraft Java **1.21.1** · NeoForge **21.1.265**.
 
 1. Ask the server host to whitelist your exact Minecraft Java username.
@@ -24,6 +29,5 @@ You can play without using agents. If you want one, follow the
 [agent quick start](../guidance.md). Each whitelisted player verifies their own
 account and manages their own bodies. No player has a special enrollment role.
 
-Respect other players' builds and storage. Before authorizing resource gathering,
-agree on a work area that excludes homes and player-placed resources. An area
-permission does not let the server distinguish a natural log from a building log.
+The agent handles setup and chooses where to explore and build. You do not need
+to supply coordinates, a dimension or a work area.

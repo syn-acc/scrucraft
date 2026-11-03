@@ -1,0 +1,16 @@
+{
+  "experiment": "synthetic_python_transport_not_minecraft",
+  "seconds": 8.203,
+  "cpu_seconds": 4.969,
+  "history_per_body": 350,
+  "actions": 383,
+  "errors": [],
+  "completion_ms": {
+    "p50": 47.0,
+    "p95": 94.0,
+    "max": 110.0
+  },
+  "grant_bytes": 430494,
+  "grants": 1282,
+  "wait_wakeups": 3136
+}

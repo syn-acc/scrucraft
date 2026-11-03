@@ -5,13 +5,26 @@ import pathlib
 import re
 import threading
 import time
+import logging
 from websockets.sync.server import serve
 from websockets.protocol import State
+from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 
 
 def make_server(gateway, host='127.0.0.1', port=8769):
     public_slots=threading.BoundedSemaphore(24)
     body_slots=threading.BoundedSemaphore(10)
+
+    def close_error(connection, surface, phase, error):
+        """Only static exception types and gateway error codes; never exception text or request data."""
+        if isinstance(error,ConnectionClosedOK):return
+        kind=type(error).__name__
+        code=getattr(error,'__dict__',{}).get('code')
+        safe_code=code if isinstance(code,str) and re.fullmatch(r'[a-z_]{1,60}',code) else None
+        ws_code=error.rcvd.code if isinstance(error,ConnectionClosed) and error.rcvd is not None else None
+        reason='stream_error_'+kind+('_'+safe_code if safe_code else '')
+        logging.getLogger('scru.streaming').warning('stream_closed surface=%s phase=%s exception=%s code=%s ws_code=%s',surface,phase,kind,safe_code,ws_code)
+        connection.close(1008 if getattr(error,'status',500)<500 else 1011,reason[:120])
 
     def body_stream(connection,auth):
         secret=pathlib.Path(gateway.settings()['internal_token_file']).read_text().strip()
@@ -20,11 +33,12 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         name=auth.get('agent');epoch=auth.get('body_epoch')
         if not isinstance(epoch,str) or not 1<=len(epoch)<=80:raise ValueError('invalid_epoch')
         with gateway.changed:
-            gateway.body(name)
+            name=gateway.body(name)['name']
             if name in gateway.body_connections:
                 raise ValueError('body_already_connected')
             gateway.body_connections[name]=connection
         ended=threading.Event()
+        changed=gateway.body_condition(name)
         def receive():
             try:
                 for message in connection:
@@ -33,24 +47,39 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                         break
                     with gateway.changed:
                         gateway.frame(value)
-            except Exception:
-                pass
+            except Exception as error:
+                close_error(connection,'body','receive',error)
             finally:
                 ended.set()
-                with gateway.changed:gateway.changed.notify_all()
+                with changed:changed.notify_all()
         reader=threading.Thread(target=receive,daemon=True);reader.start()
+        previous_payload=None;renew_at=0
         try:
             while not ended.is_set() and connection.state is State.OPEN:
+                issued_at_ms=time.time_ns()//1_000_000
                 with gateway.changed:
-                    revision=gateway.stream_revision
+                    revision=gateway.body_revisions.get(name,0)
                     try:reply=gateway.realtime_control(name)
                     except Exception:reply={'kind':'idle','body_epoch':epoch,'valid_for_ticks':4}
                     if reply.get('body_epoch')!=epoch:
                         reply={'kind':'idle','body_epoch':epoch,'valid_for_ticks':4}
-                connection.send(json.dumps({'type':'control','action':reply}))
-                with gateway.changed:gateway.changed.wait_for(lambda:ended.is_set() or gateway.stream_revision!=revision,timeout=.1)
+                    processed=gateway.processed_frames.get(name,{})
+                    observed_tick=processed.get('tick',-1) if processed.get('body_epoch')==epoch else -1
+                action_payload=json.dumps(reply)
+                signature=(action_payload,observed_tick)
+                if signature!=previous_payload or time.monotonic()>=renew_at:
+                    # Same-host absolute expiry survives TCP/socket backlog. Java
+                    # additionally limits remaining life with its monotonic clock.
+                    connection.send(json.dumps({'type':'control','issued_at_ms':issued_at_ms,
+                                                'expires_at_ms':issued_at_ms+200,
+                                                'observed_tick':observed_tick,'action':reply}))
+                    previous_payload=signature;renew_at=time.monotonic()+.1
+                with changed:
+                    changed.wait_for(lambda:ended.is_set() or gateway.body_revisions.get(name,0)!=revision,
+                                             timeout=max(0,renew_at-time.monotonic()))
         finally:
             ended.set();connection.close()
+            with gateway.changed:gateway.release(name,'body_disconnected')
             with gateway.changed:
                 if gateway.body_connections.get(name) is connection:gateway.body_connections.pop(name,None)
             reader.join(timeout=2)
@@ -59,8 +88,9 @@ def make_server(gateway, host='127.0.0.1', port=8769):
         token=auth.get('token');name=auth.get('agent')
         if not isinstance(token,str):raise ValueError('unauthorized')
         with gateway.changed:
-            principal=gateway.authenticate('Bearer '+token);gateway.body(name,principal)
+            principal=gateway.authenticate('Bearer '+token);name=gateway.body(name,principal)['name']
         stopped=threading.Event()
+        changed=gateway.body_condition(name)
         owned_lease=None
         send_lock=threading.Lock()
         def send(value):
@@ -86,25 +116,30 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                             result=gateway.handle(method,path,headers,value.get('body',{}))
                             if method=='POST' and path=='/v1/lease':owned_lease=result['lease_id']
                         response={'type':'response','request_id':rid,'status':200,'result':result}
+                    except (ValueError,TypeError,KeyError):
+                        response={'type':'response','request_id':rid,'status':400,'error':'invalid_request'}
                     except Exception as error:
                         response={'type':'response','request_id':rid,'status':getattr(error,'status',503),
-                                  'error':getattr(error,'code','service_unavailable')}
+                                  'error':getattr(error,'code','service_unavailable'),'retry_after':getattr(error,'retry',None)}
                     response['gateway_processing_us']=(time.perf_counter_ns()-started)//1000
                     send(response)
-            except Exception:
-                pass
+            except Exception as error:
+                close_error(connection,'player','receive',error)
             finally:
                 stopped.set()
-                with gateway.changed:gateway.changed.notify_all()
+                with changed:changed.notify_all()
         reader=threading.Thread(target=receive,daemon=True);reader.start()
         previous_id=None;previous_terrain=None;sequence=0
         try:
             while not stopped.is_set() and connection.state is State.OPEN:
                 with gateway.changed:
+                    revision=gateway.body_revisions.get(name,0)
                     principal=gateway.authenticate('Bearer '+token);body=gateway.body(name,principal)
                     if body['data'].get('removed'):break
-                    frame=gateway.snapshot(body);frame_id=frame['id'];event=None
+                    current=gateway.snapshot(body);frame_id=current['id'];event=None
                     if frame_id!=previous_id:
+                        frame=dict(current);frame['action_results']=gateway.stream_results(name)
+                        frame['action_results_truncated']=len(gateway.actions.get(name,{}))>len(frame['action_results'])
                         sequence+=1
                         # Terrain is sent initially, then only when a fresh terrain sample arrives.
                         observation=frame if previous_id is None else {k:v for k,v in frame.items() if k not in {'blocks','walkable'}}
@@ -113,15 +148,18 @@ def make_server(gateway, host='127.0.0.1', port=8769):
                         event={'type':'snapshot','sequence':sequence,'resync':previous_id is None,'observation':observation}
                         previous_id,previous_terrain=frame_id,terrain
                     if event is None:
-                        gateway.changed.wait(timeout=.1);continue
+                        changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1);continue
                 send(event)
+                with changed:
+                    changed.wait_for(lambda:stopped.is_set() or gateway.body_revisions.get(name,0)!=revision,timeout=.1)
+        except Exception as error:
+            close_error(connection,'player','snapshot',error)
         finally:
             stopped.set()
             with gateway.changed:
                 lease=gateway.leases.get(name)
                 if lease and lease['id']==owned_lease:
-                    gateway.leases.pop(name,None)
-                    gateway.stream_revision+=1;gateway.changed.notify_all()
+                    gateway.release(name,'stream_disconnected')
             connection.close();reader.join(timeout=2)
 
     def handler(connection):
@@ -136,8 +174,8 @@ def make_server(gateway, host='127.0.0.1', port=8769):
             auth=json.loads(message)
             if not isinstance(auth,dict):raise ValueError('authentication_required')
             (body_stream if internal else player_stream)(connection,auth)
-        except Exception:
-            connection.close(1008,'stream_closed_reauthenticate_or_refresh')
+        except Exception as error:
+            close_error(connection,'body' if internal else 'player','handler',error)
         finally:slots.release()
 
     return serve(handler,host,port,max_size=1048576,max_queue=4,open_timeout=5,

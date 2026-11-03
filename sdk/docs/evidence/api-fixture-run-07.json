@@ -1,0 +1,1098 @@
+{
+  "schema": 1,
+  "fixture": "isolated_neoforge",
+  "synthetic_identity": true,
+  "production_world_used": false,
+  "cases": [
+    {
+      "name": "inventory_and_held_controls",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-02",
+        "ACT-04",
+        "ACT-05",
+        "ACT-06",
+        "OBS-01",
+        "OBS-07",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slots": 42,
+        "hotbar_slots_selected": 9,
+        "components_preserved": true,
+        "stop_released_toggles": true
+      },
+      "seconds": 1.449
+    },
+    {
+      "name": "flat_navigation_while_looking",
+      "checklist_ids": [
+        "EXEC-01",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": {
+          "id": "42834afbfda348049fa30a87cbd8495a",
+          "state": "done",
+          "reason": "arrived",
+          "body_epoch": "9a2f6fb8-27eb-4422-8014-6907d1db217d",
+          "tick": 181
+        },
+        "position": [
+          8.351674703141503,
+          64.0,
+          0.45021569976327397
+        ],
+        "look_did_not_cancel_or_redirect_navigation": true
+      },
+      "seconds": 5.306
+    },
+    {
+      "name": "dig_craft_place_container_chat",
+      "checklist_ids": [
+        "ACT-07",
+        "ACT-08",
+        "ACT-12",
+        "ACT-13",
+        "ACT-14",
+        "ACT-15",
+        "ACT-16",
+        "OBS-03",
+        "OBS-04",
+        "OBS-05",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "log_consumed": 1,
+        "planks": {
+          "placed": 1,
+          "player": 1,
+          "chest": 2
+        },
+        "fixture_supplied": [
+          "one oak log block",
+          "crafting table",
+          "empty chest"
+        ],
+        "synthetic_identity_only": true
+      },
+      "seconds": 7.191
+    },
+    {
+      "name": "craft_recipe_remainders",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:cake",
+        "output": 1,
+        "bucket_remainders": 3
+      },
+      "seconds": 0.545
+    },
+    {
+      "name": "mutation_retry_conservation",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_retry_executions": 1,
+        "changed_payload_rejected": true
+      },
+      "seconds": 0.525
+    },
+    {
+      "name": "craft_full_inventory_atomic_failure",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "inventory_full",
+        "slots_unchanged": true,
+        "log_count": 2,
+        "occupied_storage_slots": 36
+      },
+      "seconds": 0.946
+    },
+    {
+      "name": "craft_mixed_tag_ingredients",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "recipe": "minecraft:chest",
+        "oak_planks_consumed": 4,
+        "birch_planks_consumed": 4,
+        "chests": 1
+      },
+      "seconds": 0.549
+    },
+    {
+      "name": "container_competing_mutation_stale_revision",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "old_revision": 1,
+        "new_revision": 2,
+        "failure": "stale_container_revision",
+        "external_mutation": "fixture console simulates another viewer",
+        "chest_stones": 2,
+        "player_stones": 0
+      },
+      "seconds": 0.797
+    },
+    {
+      "name": "container_two_native_viewers_contested_transfer_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_viewers": 2,
+        "human_or_gui_viewers": false,
+        "contested_requests": 2,
+        "successes": 1,
+        "stale_revision_failures": 1,
+        "fresh_revision_recovery": true,
+        "primary_diamonds": 1,
+        "second_diamonds": 3,
+        "chest_diamonds": 0,
+        "total_diamonds_before_fixture_cleanup": 4,
+        "fixture_second_body_removed": true
+      },
+      "seconds": 1.854
+    },
+    {
+      "name": "container_disconnect_reconcile_without_mutation_replay",
+      "checklist_ids": [
+        "ACT-14",
+        "ACT-16",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "exact_action_id_reconciled": true,
+        "native_executions": 1,
+        "moved": 2,
+        "prior_lease_replay_rejected": true,
+        "old_session_invalidated": true,
+        "player_diamonds": 3,
+        "chest_diamonds": 2,
+        "total_diamonds": 5,
+        "disconnect_timing": "after native completion, before application handle wait; no simulated lost network frame"
+      },
+      "seconds": 1.098
+    },
+    {
+      "name": "container_named_damaged_stack_conservation",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "components_preserved": true,
+        "damage": 7,
+        "total_pickaxes": 1,
+        "round_trip": "player:0 -> container:0 -> player:1"
+      },
+      "seconds": 0.602
+    },
+    {
+      "name": "double_chest_second_half_work_area",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "inside_half": [
+          23,
+          64,
+          0
+        ],
+        "outside_half": [
+          24,
+          64,
+          0
+        ],
+        "area_max_x_exclusive": 24,
+        "failure": "outside_work_area"
+      },
+      "seconds": 0.69
+    },
+    {
+      "name": "double_chest_complete_layout_second_half_conservation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "storage_slots": 54,
+        "player_slots": 36,
+        "second_menu_half_slot": 53,
+        "deposited": 3,
+        "withdrawn": 1,
+        "persisted_after_reopen": 2,
+        "player_diamonds": 1,
+        "total_diamonds": 3
+      },
+      "seconds": 0.802
+    },
+    {
+      "name": "recipe_discovery_paging_and_machine_rejection",
+      "checklist_ids": [
+        "OBS-06",
+        "ACT-15"
+      ],
+      "status": "passed",
+      "evidence": {
+        "discovered_recipes": 2735,
+        "page_limit_obeyed": true,
+        "distinct_pages": true,
+        "machine_recipe_failure": "unsupported_recipe_type",
+        "full_recipe_metadata": true,
+        "cake_bucket_remainders_described": 3,
+        "recipe_pages_revision_pinned": true,
+        "wrong_revision_rejected": true
+      },
+      "seconds": 0.748
+    },
+    {
+      "name": "craft_missing_batch_ingredient_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "requested_executions": 2,
+        "available_logs": 1,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.698
+    },
+    {
+      "name": "craft_remainder_capacity_atomicity",
+      "checklist_ids": [
+        "ACT-15",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_space_available": true,
+        "four_bottle_remainders_would_not_fit": true,
+        "all_slots_unchanged": true
+      },
+      "seconds": 0.774
+    },
+    {
+      "name": "container_blocked_and_removed",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "blocked_open_rejected": true,
+        "removed_session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 0.921
+    },
+    {
+      "name": "container_range_invalidation",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-14",
+        "OBS-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "actual_navigation_out_of_range": true,
+        "session_invalidated": true,
+        "close_reason": "out_of_reach_or_occluded"
+      },
+      "seconds": 5.25
+    },
+    {
+      "name": "container_explicit_close_and_stop",
+      "checklist_ids": [
+        "ACT-16",
+        "OBS-05",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "explicit_close_invalidates": true,
+        "reopen_has_new_id": true,
+        "old_handle_rejected": true,
+        "stop_closed_session": true,
+        "stop_reason": "stopped",
+        "cursor_fixture": "empty"
+      },
+      "seconds": 0.799
+    },
+    {
+      "name": "administrator_order_container_stop_persistence_owner_resume",
+      "checklist_ids": [
+        "ACT-13",
+        "ACT-16",
+        "EXEC-03",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "source": "administrator console synagent order through shared native recordOrder",
+        "actual_human_chat_event_verified": false,
+        "persistent_stop_closed_session": true,
+        "reconnect_denied_423_until_owner_resume": true,
+        "deliberate_owner_resume_verified": true,
+        "cursor_fixture": "empty",
+        "chest_diamonds": 1,
+        "player_diamonds": 1,
+        "total_diamonds": 2
+      },
+      "seconds": 0.801
+    },
+    {
+      "name": "container_furnace_native_slot_rules",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "output_partial_extraction": 1,
+        "output_remaining": 2,
+        "fuel_rule_enforced": true,
+        "output_insert_rejected": true,
+        "fixture_supplied_furnace_output": true,
+        "actual_smelting_or_xp_verified": false
+      },
+      "seconds": 0.76
+    },
+    {
+      "name": "large_components_bounded_observation_exact_transfer",
+      "checklist_ids": [
+        "ACT-14",
+        "OBS-01",
+        "OBS-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_component_bytes": 21349,
+        "ambient_json_omitted": true,
+        "full_metadata_hash_preserved": true,
+        "attributes_available": [
+          "count",
+          "damage",
+          "max_damage"
+        ],
+        "full_metadata_query_implemented": true,
+        "player_and_container_multichunk_unicode_reconstruction": true,
+        "empty_cursor_query": true,
+        "changed_slot_chunk_rejected": true
+      },
+      "seconds": 1.089
+    },
+    {
+      "name": "dig_hand_channel_and_explicit_cancel",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-03",
+        "ACT-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "selection_failure": "hand_busy",
+        "cancelled_dig_block_intact": true
+      },
+      "seconds": 5.236
+    },
+    {
+      "name": "dig_pickup_empty_hand_failure_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "held_item_changed",
+        "waited_native_ticks": 90,
+        "target_still_oak_log": true,
+        "injected_dirt_picked_up": 1,
+        "unearned_log_drops": 0,
+        "reconciled_result_unchanged": true
+      },
+      "seconds": 5.155
+    },
+    {
+      "name": "dig_preserves_native_redstone_start_transition",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "native_start_changed_lit_property": true,
+        "result": "broken",
+        "redstone_drop_count": 4,
+        "pickaxe_damage": 1
+      },
+      "seconds": 4.392
+    },
+    {
+      "name": "dig_stop_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "stop",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false
+      },
+      "seconds": 5.144
+    },
+    {
+      "name": "dig_lease_release_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "lease_release",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false
+      },
+      "seconds": 5.507
+    },
+    {
+      "name": "dig_grant_expiry_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "grant_expiry",
+        "outcome": "control_expired",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": false
+      },
+      "seconds": 5.138
+    },
+    {
+      "name": "dig_human_stop_cannot_destroy_later",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-02",
+        "EXEC-03",
+        "EXEC-04",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "interruption": "human_stop",
+        "outcome": "lease_changed",
+        "waited_native_ticks": 90,
+        "target_intact": true,
+        "log_drops": 0,
+        "explicit_owner_resume": true
+      },
+      "seconds": 5.198
+    },
+    {
+      "name": "entity_hostility_uses_native_enemy_marker",
+      "checklist_ids": [
+        "OBS-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "classification": {
+          "minecraft:cow": false,
+          "minecraft:phantom": true,
+          "minecraft:slime": true,
+          "minecraft:ghast": true
+        },
+        "basis": "native Enemy marker, not Monster inheritance",
+        "ai_disabled_for_fixture": true
+      },
+      "seconds": 0.548
+    },
+    {
+      "name": "drop_partial_full_and_idempotent_retry",
+      "checklist_ids": [
+        "ACT-03",
+        "EXEC-04",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "partial": 2,
+        "remaining_full_drop": 3,
+        "retry_executed_once": true,
+        "world_item_total": 5
+      },
+      "seconds": 0.75
+    },
+    {
+      "name": "inventory_invalid_arguments_and_drop_shortage",
+      "checklist_ids": [
+        "ACT-01",
+        "ACT-03",
+        "EXEC-05"
+      ],
+      "status": "passed",
+      "evidence": {
+        "invalid_arguments": 5,
+        "insufficient_count": "insufficient_items",
+        "stones_preserved": 2
+      },
+      "seconds": 0.6
+    },
+    {
+      "name": "drop_obeys_vanilla_binding_armor_slot_rule",
+      "checklist_ids": [
+        "ACT-03",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "vanilla_slot_pickup_rejected_binding_curse": "item_cannot_be_removed",
+        "armor_unchanged": true
+      },
+      "seconds": 0.59
+    },
+    {
+      "name": "swap_two_populated_hands_preserves_components",
+      "checklist_ids": [
+        "ACT-02",
+        "OBS-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "both_hands_populated": true,
+        "pick_damage": 11,
+        "diamonds": 3,
+        "two_swaps_preserve_components": true
+      },
+      "seconds": 0.656
+    },
+    {
+      "name": "dig_unbreakable_and_obstructed",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-05",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "unbreakable": "unbreakable",
+        "occluded": "out_of_reach_or_obstructed"
+      },
+      "seconds": 0.795
+    },
+    {
+      "name": "dig_tool_durability_and_natural_drop",
+      "checklist_ids": [
+        "ACT-07",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": "broken",
+        "pickaxe_broken": true,
+        "real_cobblestone_drop": 1
+      },
+      "seconds": 4.045
+    },
+    {
+      "name": "dig_revalidates_changed_target",
+      "checklist_ids": [
+        "ACT-07",
+        "EXEC-06",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "failure": "target_changed",
+        "replacement_preserved": true
+      },
+      "seconds": 0.7
+    },
+    {
+      "name": "placement_area_and_two_cell_door",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "outside_area": "outside_work_area_gateway_403",
+        "door_cells": 2,
+        "doors_consumed": 1
+      },
+      "seconds": 0.804
+    },
+    {
+      "name": "placement_multiblock_secondary_cell_bounds",
+      "checklist_ids": [
+        "ACT-08",
+        "EXEC-06",
+        "VERIFY-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "target_inside_area": true,
+        "upper_half_outside_area_rejected_natively": "outside_work_area",
+        "door_preserved": 1
+      },
+      "seconds": 0.647
+    },
+    {
+      "name": "use_on_thin_door_shape_open_close",
+      "checklist_ids": [
+        "ACT-10",
+        "OBS-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "closed_to_open_to_closed": true,
+        "both_halves_updated": true,
+        "empty_hand": true
+      },
+      "seconds": 1.115
+    },
+    {
+      "name": "held_bow_stop_without_release_side_effect",
+      "checklist_ids": [
+        "ACT-09",
+        "EXEC-03",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "stop_aborted_bow_without_firing": true,
+        "arrows_preserved": 1
+      },
+      "seconds": 0.937
+    },
+    {
+      "name": "native_food_duration_and_consumption",
+      "checklist_ids": [
+        "ACT-09",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "result": "use_finished",
+        "bread_consumed": 1,
+        "native_duration_observed": true
+      },
+      "seconds": 7.738
+    },
+    {
+      "name": "attack_target_lifetime_and_cooldown",
+      "checklist_ids": [
+        "ACT-11",
+        "OBS-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "missing_target": "entity_missing",
+        "cooldown": "attack_cooldown",
+        "neutral_mob_attack_executed": true
+      },
+      "seconds": 0.644
+    },
+    {
+      "name": "navigation_half_slab_and_raised_stair_destinations",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "slab": [
+          2.4772963463756197,
+          64.5,
+          0.5
+        ],
+        "raised": [
+          3.4678944927956663,
+          65.0,
+          0.5
+        ],
+        "stair": [
+          3.5690905996529123,
+          65.0,
+          4.5
+        ],
+        "alternate_routes_not_excluded": true
+      },
+      "seconds": 9.996
+    },
+    {
+      "name": "navigation_solid_target_and_timeout",
+      "checklist_ids": [
+        "VERIFY-01",
+        "EXEC-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "solid_target": "invalid_endpoint",
+        "short_timeout": "timeout"
+      },
+      "seconds": 1.85
+    },
+    {
+      "name": "navigation_low_ceiling_collision",
+      "checklist_ids": [
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "two_block_corridor_traversed": true,
+        "one_and_half_clearance_rejected": "timeout"
+      },
+      "seconds": 7.847
+    },
+    {
+      "name": "navigation_obstacle_inserted_during_route",
+      "checklist_ids": [
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "passed",
+      "evidence": {
+        "changed_terrain_outcome": "arrived",
+        "position": [
+          12.48435945348737,
+          64.0,
+          0.5000014036782646
+        ],
+        "collision_respected": true
+      },
+      "seconds": 8.202
+    },
+    {
+      "name": "long_action_terminal_survives_eighty_newer_actions",
+      "checklist_ids": [
+        "EXEC-01",
+        "EXEC-02",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "instant_actions_while_running": 80,
+        "terminal": "done",
+        "reason": "arrived",
+        "native_tick": 2638,
+        "reconciliation_matches": true
+      },
+      "seconds": 11.062
+    },
+    {
+      "name": "native_retry_ignores_reduced_delivery_budget_without_reexecution",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04"
+      ],
+      "status": "passed",
+      "evidence": {
+        "timeout_before": 600,
+        "timeout_retry": 580,
+        "native_result_resurfaced": "done",
+        "selected_slot_unchanged": 2,
+        "semantic_change_rejected": true,
+        "fault_injection": "fixture bridge delivery metadata only"
+      },
+      "seconds": 4.891
+    },
+    {
+      "name": "unacknowledged_full_payload_survives_eighty_newer_results",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-04",
+        "OBS-07"
+      ],
+      "status": "passed",
+      "evidence": {
+        "newer_actions": 80,
+        "full_payload_blocks": 27,
+        "offered_after_recent_window": true,
+        "fault_injection": "fixture delays full payload after partial metadata"
+      },
+      "seconds": 4.587
+    },
+    {
+      "name": "navigation_preserves_two_tick_remaining_delivery_deadline",
+      "checklist_ids": [
+        "EXEC-02",
+        "EXEC-03",
+        "VERIFY-01"
+      ],
+      "status": "passed",
+      "evidence": {
+        "remaining_delivery_ticks": 2,
+        "native_ticks_until_timeout": 1,
+        "fault_injection": "fixture simulates queue delay leaving a two-tick budget"
+      },
+      "seconds": 0.443
+    },
+    {
+      "name": "optional_area_unrestricted_native_journey",
+      "checklist_ids": [
+        "EXEC-06",
+        "VERIFY-02"
+      ],
+      "status": "passed",
+      "evidence": {
+        "area": null,
+        "outside_previous_bounds": true,
+        "planks_placed": 1,
+        "planks_in_chest": 3,
+        "fixture_policy_change_only": true
+      },
+      "seconds": 6.831
+    },
+    {
+      "name": "native_death_respawn_and_sdk_resync",
+      "checklist_ids": [
+        "EXEC-03",
+        "EXEC-04",
+        "SDK-02",
+        "VERIFY-01",
+        "VERIFY-03"
+      ],
+      "status": "failed",
+      "error": "AssertionError: {'state': {'old_epoch': '9a2f6fb8-27eb-4422-8014-6907d1db217d', 'new_epoch': 'bbf92d60-11cb-4efb-b289-09a41faa28b0', 'position': [10.5, 64.0, 0.5], 'health': 20.0, 'container': {'open': False, 'reason': 'never_opened'}, 'execution': {'active_actions': [], 'jump_requested': False, 'sneak_requested': False, 'sprint_requested': False, 'on_ground': True, 'sneaking': False, 'sprinting': False, 'using_item': False, 'use_ticks': 0}, 'diamonds': 0}, 'entities': [{'id': 48, 'type': 'corpse:corpse', 'hostile': False, 'alive': True, 'visible': False, 'distance': 10.0, 'position': [0.5, 64.0, 0.5], 'velocity': [0.0, -0.0, 0.0]}]}",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "lifecycle_gameplay_cases.py",
+          "line": 46,
+          "function": "death_and_respawn"
+        }
+      ],
+      "seconds": 16.019
+    },
+    {
+      "name": "ten_body_five_minute_instant_action_load",
+      "checklist_ids": [
+        "VERIFY-05"
+      ],
+      "status": "failed",
+      "error": "AssertionError: [{'body': 0, 'error': 'TimeoutError: Action is still pending according to the gateway', 'diagnostics': {'connected': True, 'observation_age_seconds': 0.05196324363350868, 'pending_requests': 0, 'sequence': 1446, 'last_disconnect': None, 'renewal_failure': None, 'round_trip_ms': 203.953843, 'gateway_processing_us': 162635}}, {'phase': 'slow_observer_recovery', 'error': 'ConnectionError'}, {'phase': 'slow_observer_cleanup', 'error': 'Controlling lease changed'}]",
+      "failure_at": [
+        {
+          "file": "isolated_game_fixture.py",
+          "line": 245,
+          "function": "case"
+        },
+        {
+          "file": "performance_gameplay_cases.py",
+          "line": 226,
+          "function": "measure"
+        }
+      ],
+      "seconds": 103.017
+    }
+  ],
+  "started_at": 1793743376.7346058,
+  "python_source_sha256": {
+    "agent-gateway/gateway.py": "539de6b96c818a6aa6d49c8c78b03f602f1d204a6a9b87736fe8e41580f8b5b5",
+    "agent-gateway/provisioner.py": "835b290bb6a34a522e1a1c95d630035a47a62b8c792e9109432d2e3f8184c37f",
+    "agent-gateway/streaming.py": "3820be9d350dca25deffb346720732859fc79743066f5d4a7a600f8cab80297e",
+    "sdk/scru_minecraft/__init__.py": "34bad448a7ba0fc8e694572e1357517561655d873e4ce600fce3dc003c19967c",
+    "sdk/scru_minecraft/__main__.py": "3130cd15947dd7dcdc73791507f3a89a6cc715bff9fb843d17eee0878956ccb4",
+    "sdk/scru_minecraft/realtime.py": "3501e8d70d5cce635a3cd348105f7b304e8ec0dd38b3d4197c908be97e8ae6db",
+    "tests/body_gameplay_cases.py": "201af6b4a6f0b97ea4226474e8b6ade2a19605b2892e316d1f04d1b41b7dd786",
+    "tests/container_gameplay_cases.py": "c035a46166d0d6a48b4f2f1ff41d5edb749ccad44a5ed1fed996338195b2738e",
+    "tests/gameplay_cases.py": "578f599fcd553d3913737b9f45e4c4f60d4d4c77c68aaaabe7349bebfabfd253",
+    "tests/isolated_game_fixture.py": "651dad3dcf9961adeade33c336285e7a3822b2ddd874c6c5e2e460e7129d579c",
+    "tests/lifecycle_gameplay_cases.py": "667d73006d5746afe6e8b8edce16920e0e07f86a85372732a2ca01b37c61c236",
+    "tests/performance_gameplay_cases.py": "85cab28d3e90501c646ea5ce515d0128b4f9f8e00c0e0179ead430c4cb8d9a8c",
+    "tests/result_receipt_gameplay_cases.py": "c444a231f4abc16ba7e1ad8eaacc48b6c78f61f018025e0684fd0b65e99edfe0",
+    "tests/run_java_stream_probe.py": "d6ba332da05e6a8d11a6dea3027788033d1df611bc59b38e967a003831c954d4",
+    "tests/test_controller.py": "71a0796030dd1e2de0c2f6b77fd932de5999093c3c1d0042588c8e7ddef349ae",
+    "tests/test_controller_food.py": "4b20328ac7d76cf39657ac2fc74f47f5e44ef0fadb527e942ab86db21dc5dff5",
+    "tests/test_controller_gateway.py": "a1ed793d812bf54ed9d7aeebe0642a0233afb07528d5b682b7fc9987ccaec7a6",
+    "tests/test_controller_progression.py": "7a92886f505331686620715b1c9c1daa43eb1f468eab0c4475d8e298e4b65e26",
+    "tests/test_controller_usage.py": "b124ce94b4dffea08daf32e76095919e9ba17d358d12e3831d590b4101a6ae86",
+    "tests/test_inventory_query.py": "e4f373d5e3bc116357146555fe604d826a8c191f5e20544c40c024b76b661ecf",
+    "tests/test_optional_areas.py": "e1658fe96436dbbf7c59a1ffe0c55ec9855342a3432c36784741cc1cde61819e",
+    "tests/test_primitive_contract.py": "7c7e802337a64d5b63fa93ea5c72e3b0cce89f483233202560d66ab3e2f6e723",
+    "tests/test_realtime_diagnostics.py": "401ad5b9c61db6d1510f984c2cc696d333463a0d4ec48132ccb198c8df8d49cd",
+    "tests/test_result_backpressure.py": "613b62dc47916fed48ec66aac066fe8f7238e684e4a0c2bdc217ca2fd7050980",
+    "tests/test_runtime.py": "98b932644ef162c18dbcd751e4f7a53255662f5c86133f12cfb9ce507590e935",
+    "tests/test_streaming.py": "3d05f7a0f741095ed4edfb918f9ce187be42daf8f9bdf40476f136906633ce0f"
+  },
+  "pack_lock_sha256": "a13ca88375a47b693c9ec3a6b070795bf4e4119a1dabd7700c800b51ddd70374",
+  "pack_mods": {
+    "create-1.21.1-6.0.10.jar": "ef87fe5709f1ba1f5b8bb20a2925b5afb4669e178fd6d8bf10c167759eefe37a",
+    "railways-0.2.1+neoforge-mc1.21.1.jar": "b7636c8b1b0352ed1a130dfe67f8bb574e2fc08803ed1cda4d3ea00505193914",
+    "FarmersDelight-1.21.1-1.3.4.jar": "139ad7696462c89c03eea463f805abffa552526c5dadaadae221dd9624cb197c",
+    "supplementaries-1.21.1-4.0.2-neoforge.jar": "2c2e0c98e0cc21874d8b2130bc773a2a5a6cadd854b9c8163d0e1f32e2ddffb0",
+    "moonlight-1.21.1-3.7.2-neoforge.jar": "4a9f15108607cc70273f8a0b6eb24e1e99af8eef44bc3ae8681767ca7ce21b0f",
+    "Terralith_1.21.1_v2.6.2_Neoforge.jar": "d38bd304897731b42f6c013cdc07e082e74411e80c74aabcee385251beb3b546",
+    "lithostitched-1.8.1-neoforge-21.1.jar": "e0da669fa5facc61a09b9b7bae21b322993de1fcd1eb05787adffb7309598cca",
+    "SereneSeasons-neoforge-1.21.1-10.1.0.9.jar": "ce8cf6bd31f70b794fe97d88b4cd2beb45f83387fe20c8dcf39c92121ccaa723",
+    "GlitchCore-neoforge-1.21.1-2.1.0.2.jar": "59d2a3fb3d6877e43018fd6a2b199d526074a864276a5f49091409a1cdc62fae",
+    "betterdifficulty-1.1.1.jar": "e82426df3376638bd36247824a6d8f71593196a6a793354e3e1fc7777d25180a",
+    "lootr-neoforge-1.21.1-1.11.38.127.jar": "5c74de4709d1c13b25880fdd241a89d5d9f331346d20edc76f80ccd4d99dc66c",
+    "voicechat-neoforge-1.21.1-2.6.22.jar": "63116a4d21bd57221482d971dd85822f7c723c210b60411670cdb0aa26873cac",
+    "jei-1.21.1-neoforge-19.64.0.455.jar": "f7a9de3d7ee07eed8d293a1a1a0f6afaac556eb43c103523457bd07ebb551e7b",
+    "mezz_config-1.21.1-neoforge-0.6.10-standalone.jar": "6f596cec9b531dd386ad6342c3deb5b27de4b4a4754ce30835f8ecc2e75f8703",
+    "Jade-1.21.1-NeoForge-15.10.6.jar": "276f1f65a20d04f536989c4f311949d770b52c440c23c2b904a08860f3c93810",
+    "sophisticatedbackpacks-1.21.1-3.26.18.2235.jar": "1992897b0b8a2e93ea4887bc56571a0dfb7298b4d41d164c1fd2bf7b8c8817a5",
+    "sophisticatedcore-1.21.1-1.5.21.2439.jar": "ab80131de21ee1e18d29849136b05b5509d0cadff8c8303514d6d3dbd8c9e476",
+    "sophisticatedstorage-1.21.1-1.6.11.2211.jar": "512e78f6588378d8438237984fa714ad3049b8aea55a2dec1934d4b8fb9a49ca",
+    "lithium-neoforge-0.15.4+mc1.21.1.jar": "488f33216030c1cb0baa33e59de3d657d08d5795a6c2080c8c8bbbc133fc8757",
+    "ferritecore-7.0.3-neoforge.jar": "d87ea28262715ebff45b8a82d493e6b468e7a4521bc021df5d88302196d030a8",
+    "modernfix-neoforge-5.27.27+mc1.21.1.jar": "7010aae2e837122fe8dabd5932358e2ba334fcbc62ca6530cb1cb00402d2c63b",
+    "Chunky-NeoForge-1.4.23.jar": "d72f235cf1f56f2c374f52c00bdda5034524b28142305a84cfc123a3f92ad274",
+    "spark-1.10.124-neoforge.jar": "647e8a81afbe414dba1df4ba15fd06c5d32d4cb544e68828405e8e074c2e16db",
+    "LuckPerms-NeoForge-5.4.150.jar": "f161a939c7320e8a30569c37aae2c0f5bbb3cfbd77bebb233bd0f0787a2d0ef9",
+    "corpse-neoforge-1.21.1-1.1.22.jar": "3733d86452b9ac572e924c2946e15e6b7052cc8fc990911f1c79b36ac3651b9f"
+  },
+  "pack_configuration": "fresh defaults; fixture voice service binds loopback on game port + 1",
+  "adapter_sha256": "6f1e6ad9a4b77f48002eda2f94042e49fb01f1c6ac2b62df96e6748e83be2d71",
+  "http_wss_same_origin": true,
+  "jvm_pid": 2327516,
+  "sdk_onboarding": [
+    {
+      "body": "VerifyBuilder",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "Viewer1e219f60",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad1",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad2",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad3",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad4",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad5",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad6",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad7",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad8",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    },
+    {
+      "body": "VerifyLoad9",
+      "prepare_create_and_await_ready": true,
+      "scoped_token_issued_via_http": true,
+      "observed": true,
+      "identity": "synthetic fixture owner; not real in-game enrollment"
+    }
+  ],
+  "finished_at": 1793743714.733581,
+  "jvm_stopped": true
+}

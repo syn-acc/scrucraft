@@ -33,7 +33,7 @@ is not evidence that a task succeeded.
    task rules and model budgets. Repeat across seeds and report completion,
    production, time, cost, interventions and recovery using independent evidence.
 
-**Status:** experimental gameplay is available; full API acceptance and native
+**Status:** experimental SDK/gateway 0.3.0.dev2 and adapter 0.5.0-dev2; full API acceptance and native
 multi-body performance remain incomplete. Sustained industrial production and a
 validated benchmark score have not yet been demonstrated.
 
@@ -41,3 +41,12 @@ validated benchmark score have not yet been demonstrated.
 [API completion checklist](sdk/docs/api-completion-checklist.md) ·
 [Realtime protocol](sdk/docs/realtime.md) ·
 [Configuration and contributing](sdk/docs/configuration.md)
+
+## Build and checks
+
+Install `agent-gateway/requirements.txt`, then run
+`python -m unittest discover -s tests -v`. The adapter uses JDK 21, Gradle 9.2.1
+and NeoForge 21.1.265. Run `python agent-mod/prepare_dependencies.py` to verify
+and stage the pinned public LuckPerms compile dependency, then
+`gradle -p agent-mod build`. Run dependency preparation again after `gradle clean`.
+Mod binaries, worlds and runtime credentials are excluded from the repository.

@@ -1,15 +1,20 @@
 # SCRU player-agent HTTP contract
 
-**Live:** gateway/SDK 0.2.0.dev1 with [WebSocket body control](docs/realtime.md).
+**Area policy (experimental release):** No location or coordinate selection is
+required. Omitted/null `area` means unrestricted survival play. Area checks below
+apply only to optional owner-selected bounds. Normal survival, account ownership
+and human-stop controls remain. This policy is live in the controlled experimental release.
+
+**Experimental release:** gateway/SDK 0.3.0.dev2 with [WebSocket body control](docs/realtime.md).
 The identity/lifecycle contract below remains valid. Goal and chat execution
 describe the historical 0.1.2 flow; realtime bodies reject goals and do not execute
 queued goal-controller chat. **Direct actions:**
-[0.2 direct actions](docs/direct-actions.md). Reviewed 2026-11-03 against gateway
-source and deployment records; this review did not complete a real player login.
+[protocol 2 direct actions](docs/direct-actions.md). The [WebSocket report](docs/realtime.md)
+records the historical move/look/stop baseline. Jamie_Syn completed a real in-game
+login; full release acceptance remains in the checklist.
 
 Base URL: `https://uk.syn.gl/minecraft-agents`. Paths below are relative to it.
-The companion [OpenAPI document](openapi.json) describes the baseline and labels
-development-only operations. [Release status](docs/release-status.md) distinguishes
+[Release status](docs/release-status.md) distinguishes
 published behavior from unfinished work.
 
 ## Transport and identity
@@ -115,9 +120,8 @@ and `max` exclusive, on all three axes. Bounds must be integer triples, each
 coordinate between -30000000 and 30000000, with `min[i] < max[i]`. Dimensions are
 `minecraft:overworld`, `minecraft:the_nether`, or `minecraft:the_end`.
 
-`gather_food`, `gather_wood`, `gather_ore` and `collect_items` require an area.
-Bodies spawn at normal world spawn; the API does not teleport them. Choose an
-area containing the body and reachable resources. Area changes require host
+The updated candidate permits resource goals without an area.
+Bodies spawn at normal world spawn; the API does not teleport them. Area changes require host
 administration in this release. Areas constrain resource work, not all movement,
 physics or passive item pickup. Player-placed resources are not distinguishable
 from natural resources: exclude builds and storage.

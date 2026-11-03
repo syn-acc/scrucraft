@@ -21,6 +21,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.*;
@@ -57,6 +58,7 @@ public final class SynAgents {
     private long ticks;
     private String token="";
     private String streamToken="";
+    private URI streamEndpoint=URI.create("ws://127.0.0.1:8769/internal/body");
     private boolean realtime;
     private JsonObject config=new JsonObject();
 
@@ -66,6 +68,7 @@ public final class SynAgents {
         NeoForge.EVENT_BUS.addListener(this::tick);
         NeoForge.EVENT_BUS.addListener(this::commands);
         NeoForge.EVENT_BUS.addListener(this::chat);
+        NeoForge.EVENT_BUS.addListener(this::breaking);
     }
     private void start(ServerStartedEvent e) {
         server=e.getServer();
@@ -79,6 +82,7 @@ public final class SynAgents {
                 JsonObject settings=JSON.fromJson(Files.readString(bridge),JsonObject.class);
                 realtime=settings.has("control_transport")&&settings.get("control_transport").getAsString().equals("websocket");
                 if(realtime)streamToken=Files.readString(Path.of(settings.get("token_file").getAsString())).trim();
+                if(realtime&&settings.has("websocket_url"))streamEndpoint=BodyStream.loopbackEndpoint(settings.get("websocket_url").getAsString());
                 if(realtime&&streamToken.isBlank())throw new IllegalStateException("Missing body stream credential");
             }
             var rules=server.overworld().getGameRules();
@@ -152,15 +156,17 @@ public final class SynAgents {
             }
             try {
                 String name=a.getGameProfile().getName();
-                if(realtime&&a.stream==null)a.stream=new BodyStream(http,name,a.controls.epoch,streamToken);
+                a.controls.chatSink(message->speak(name,message));
+                if(realtime&&a.stream==null)a.stream=new BodyStream(http,name,a.controls.epoch,streamToken,streamEndpoint);
                 if(realtime)a.stream.connect();
                 JsonObject plan=realtime?a.stream.poll():plans.get(name);
                 if (plan!=null && (realtime||ticks<=expiries.getOrDefault(name,0L))) act(a,plan);
                 else { a.controls.cancel("control_expired"); a.zza=0; a.xxa=0; abortMining(a); }
                 a.controls.tick(navigationDeadline);
                 // Emergency reactions run locally even when inference is down.
-                if (ticks%20==0 && a.getFoodData().getFoodLevel()<12) consume(a);
-                if(realtime&&a.stream.ready()) {
+                // Direct bodies have no hidden food/inventory composition, including after a human stop.
+                if (!realtime && ticks%20==0 && a.getFoodData().getFoodLevel()<12) consume(a);
+                if(realtime&&a.stream!=null&&a.stream.ready()) {
                     String dimension=a.level().dimension().location().toString();
                     boolean terrain=ticks>=a.terrainDue||!dimension.equals(a.terrainDimension);
                     if(a.stream.send(observation(a,!terrain))&&terrain) {
@@ -184,13 +190,18 @@ public final class SynAgents {
     private JsonObject observation(AgentPlayer a,boolean fast) {
         long began=System.nanoTime();
         JsonObject o=new JsonObject();
+        o.addProperty("captured_at_ms",System.currentTimeMillis());
         o.addProperty("body_epoch",a.controls.epoch);
         o.addProperty("partial",fast);o.addProperty("control_transport",realtime?"websocket":"http");
         o.addProperty("selected_slot",a.getInventory().selected);
-        JsonArray raw=new JsonArray();for(String op:List.of("move_to","look_at","stop"))raw.add(op);
+        o.addProperty("average_tick_ms",server.getAverageTickTimeNanos()/1_000_000.0);
+        o.addProperty("control_protocol",2);
+        JsonArray raw=new JsonArray();for(String op:PrimitiveControl.CAPABILITIES)raw.add(op);
+        o.add("execution",a.controls.state());o.add("container",a.controls.container());if(!fast)o.add("queried_blocks",a.controls.queriedBlocks());
+
         o.add("raw_capabilities",raw);o.add("action_results",a.controls.observations());
         o.addProperty("schema",1); o.addProperty("agent",a.getGameProfile().getName()); o.addProperty("job",a.job);
-        o.addProperty("tick",ticks); o.addProperty("dimension",a.level().dimension().location().toString());
+        o.addProperty("tick",ticks);o.addProperty("world_tick",a.level().getGameTime()); o.addProperty("dimension",a.level().dimension().location().toString());
         o.add("position",JSON.toJsonTree(new double[]{a.getX(),a.getY(),a.getZ()}));
         o.addProperty("health",a.getHealth()); o.addProperty("food",a.getFoodData().getFoodLevel());
         // Neutral schema-1 compatibility values: vanilla has neither mechanic.
@@ -200,7 +211,10 @@ public final class SynAgents {
         o.addProperty("sheltered",!a.level().canSeeSky(a.blockPosition()));
         o.addProperty("last_action",lastAction.getOrDefault(a.getGameProfile().getName(),"starting"));
         if(!fast)ProgressionAdapter.metadata(a,o);
-        JsonArray context=new JsonArray(); chat.forEach(context::add); o.add("chat",context);
+        JsonArray context=new JsonArray();chat.forEach(context::add);o.add("chat",context);
+        JsonArray publicChat=new JsonArray();
+        for(JsonObject message:chat){JsonObject row=new JsonObject();for(String key:List.of("id","speaker","text","at","agent"))if(message.has(key))row.add(key,message.get(key));publicChat.add(row);}
+        o.add("public_chat",publicChat);
         JsonArray teammates=new JsonArray(),humans=new JsonArray();
         for(ServerPlayer p:server.getPlayerList().getPlayers()) {
             if(p==a||p.level()!=a.level()) continue;
@@ -210,22 +224,26 @@ public final class SynAgents {
         o.add("teammates",teammates);o.add("humans",humans);
         if(!fast&&project!=null) o.add("project",project.observe(a));
         JsonArray inv=new JsonArray();
-        for (int i=0;i<a.getInventory().items.size();i++) {
-            ItemStack s=a.getInventory().getItem(i); if (s.isEmpty()) continue;
-            JsonObject row=new JsonObject(); row.addProperty("slot",i); row.addProperty("item",BuiltInRegistries.ITEM.getKey(s.getItem()).toString()); row.addProperty("count",s.getCount());
-            row.addProperty("food",s.has(DataComponents.FOOD));
-            row.addProperty("damage",s.getDamageValue());row.addProperty("max_damage",s.getMaxDamage());
-            row.addProperty("hydration",0);
-            inv.add(row);
+        for (int i=0;i<a.getInventory().getContainerSize();i++) {
+            ItemStack stack=a.getInventory().getItem(i);JsonObject row=BodyInventory.describeStack(stack,a.registryAccess());
+            row.addProperty("slot",i);row.addProperty("role",i<9?"hotbar":i<36?"main":i<40?"armor":"offhand");
+            row.addProperty("food",stack.has(DataComponents.FOOD));row.addProperty("hydration",0);inv.add(row);
         }
-        o.add("inventory",inv);
+        JsonObject cursor=BodyInventory.describeStack(a.containerMenu.getCarried(),a.registryAccess());cursor.addProperty("slot",-1);cursor.addProperty("role","cursor");inv.add(cursor);
+        o.add("inventory",inv);o.addProperty("inventory_revision",a.controls.inventoryRevision(inv));
+        JsonObject hands=new JsonObject();hands.add("main",BodyInventory.describeStack(a.getMainHandItem(),a.registryAccess()));hands.add("off",BodyInventory.describeStack(a.getOffhandItem(),a.registryAccess()));o.add("hands",hands);
         JsonArray entities=new JsonArray();
-        for (Entity ent:a.level().getEntities(a,a.getBoundingBox().inflate(16),ent->ent instanceof Monster&&(!(ent instanceof net.minecraft.world.entity.monster.EnderMan end)||end.getTarget()==a) || ent instanceof net.minecraft.world.entity.item.ItemEntity)) {
-            JsonObject row=new JsonObject(); row.addProperty("id",ent.getId()); row.addProperty("type",BuiltInRegistries.ENTITY_TYPE.getKey(ent.getType()).toString());
-            row.addProperty("hostile",ent instanceof Monster); row.add("position",JSON.toJsonTree(new double[]{ent.getX(),ent.getY(),ent.getZ()})); entities.add(row);
-            if (entities.size()>=24) break;
+        List<Entity> nearby=a.level().getEntities(a,a.getBoundingBox().inflate(16),ent->ent.isAlive());
+        nearby.sort(Comparator.comparingDouble(a::distanceToSqr));
+        for (Entity ent:nearby) {
+            JsonObject row=new JsonObject();row.addProperty("id",ent.getId());row.addProperty("type",BuiltInRegistries.ENTITY_TYPE.getKey(ent.getType()).toString());
+            row.addProperty("hostile",ent instanceof Enemy);row.addProperty("alive",ent.isAlive());row.addProperty("visible",a.hasLineOfSight(ent));row.addProperty("distance",a.distanceTo(ent));
+            row.add("position",JSON.toJsonTree(new double[]{ent.getX(),ent.getY(),ent.getZ()}));row.add("velocity",JSON.toJsonTree(new double[]{ent.getDeltaMovement().x,ent.getDeltaMovement().y,ent.getDeltaMovement().z}));
+            if(ent instanceof LivingEntity living)row.addProperty("health",living.getHealth());
+            if(ent instanceof net.minecraft.world.entity.item.ItemEntity item)row.add("stack",BodyInventory.describeStack(item.getItem(),a.registryAccess()));
+            entities.add(row);if(entities.size()>=64)break;
         }
-        o.add("entities",entities);
+        o.add("entities",entities);o.addProperty("entity_range",16);o.addProperty("entities_truncated",nearby.size()>64);
         if(fast) {o.addProperty("observation_ms",(System.nanoTime()-began)/1_000_000.0);return o;}
         JsonArray blocks=new JsonArray(),walkable=new JsonArray(),workstations=new JsonArray();
         List<JsonObject> resources=new ArrayList<>();
@@ -342,6 +360,7 @@ public final class SynAgents {
     }
     private void act(AgentPlayer a,JsonObject action) {
         String kind=action.get("kind").getAsString();
+        if(kind.equals("controls")) {abortMining(a);a.controls.grant(action);return;}
         if(kind.equals("control")) {abortMining(a);a.controls.accept(action);return;}
         a.controls.cancel("control_released");
         lastAction.put(a.getGameProfile().getName(),kind);
@@ -429,6 +448,9 @@ public final class SynAgents {
                 if(kind.equals("place_workstation"))plans.remove(a.getGameProfile().getName(),action);
             }
         }
+    }
+    private void breaking(net.neoforged.neoforge.event.level.BlockEvent.BreakEvent event) {
+        if(event.getPlayer() instanceof AgentPlayer body)body.controls.broke(event.getPos());
     }
     private void abortMining(AgentPlayer a) {
         miningStopped.remove(a.getGameProfile().getName());

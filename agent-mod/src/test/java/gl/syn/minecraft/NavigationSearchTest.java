@@ -9,6 +9,7 @@ public final class NavigationSearchTest {
         },new NavigationSearch.Cell(0,128,0),new NavigationSearch.Cell(4,128,0),cap);
     }
     public static void main(String[] args) {
+        NavigationGroundTest.main(args);
         Set<NavigationSearch.Cell> cells=new HashSet<>();
         for(int x=0;x<=4;x++)for(int z=0;z<=1;z++)cells.add(new NavigationSearch.Cell(x,128,z));
         cells.remove(new NavigationSearch.Cell(2,128,0));

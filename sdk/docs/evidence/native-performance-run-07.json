@@ -1,0 +1,103 @@
+{
+  "seconds": 42.410375233739614,
+  "bodies": 10,
+  "actions_per_second_per_body": 5,
+  "fixture_resource_limits": {
+    "cpu_percent": 150,
+    "jvm_heap_mib": 1536,
+    "service_memory_mib": 2400,
+    "tasks": 512
+  },
+  "measurement": "loopback SDK send through gateway to actual Java terminal result",
+  "failures": [
+    {
+      "body": 0,
+      "error": "TimeoutError: Action is still pending according to the gateway",
+      "diagnostics": {
+        "connected": true,
+        "observation_age_seconds": 0.05196324363350868,
+        "pending_requests": 0,
+        "sequence": 1446,
+        "last_disconnect": null,
+        "renewal_failure": null,
+        "round_trip_ms": 203.953843,
+        "gateway_processing_us": 162635
+      }
+    },
+    {
+      "phase": "slow_observer_recovery",
+      "error": "ConnectionError"
+    },
+    {
+      "phase": "slow_observer_cleanup",
+      "error": "Controlling lease changed"
+    }
+  ],
+  "slow_observer": {
+    "agent": "VerifyBuilder",
+    "lease_operations": 0,
+    "requested_receive_buffer_bytes": 4096,
+    "max_queue": 1,
+    "resume_frame_limit": 256,
+    "resume_timeout_seconds": 10,
+    "actual_receive_buffer_bytes": 8192,
+    "initial_tick": 4407,
+    "initial_sequence": 1,
+    "application_unread_seconds": 42.41145762056112,
+    "state_before_resume": "OPEN",
+    "client_socket_closed": true,
+    "controlling_lease_preserved": false
+  },
+  "per_body_counts": [
+    17,
+    51,
+    44,
+    50,
+    61,
+    52,
+    58,
+    53,
+    52,
+    55
+  ],
+  "per_body_tps": [
+    14.453332316887979,
+    18.212299611642777,
+    17.54995656067246,
+    18.132839435837933,
+    17.65826543104641,
+    17.762269882161522,
+    17.920504698378164,
+    17.84382096850203,
+    18.450577991480326,
+    17.62925249124307
+  ],
+  "ack_ms": {
+    "p50": 46.678,
+    "p95": 132.566,
+    "p99": 412.06,
+    "max": 471.552
+  },
+  "completion_ms": {
+    "p50": 438.978,
+    "p95": 3106.542,
+    "p99": 4904.335,
+    "max": 7429.565
+  },
+  "observation_gap_ms": {
+    "p50": 82.305,
+    "p95": 272.84,
+    "p99": 455.149,
+    "max": 788.029
+  },
+  "rolling_average_tick_ms": {
+    "p50": 1.68,
+    "p95": 2.471,
+    "p99": 2.53,
+    "max": 2.554
+  },
+  "checklist_ids": [
+    "VERIFY-05"
+  ],
+  "source": "api-fixture-run-07.json"
+}

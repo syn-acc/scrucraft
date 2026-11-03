@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scru-minecraft"
-version = "0.2.0.dev1"
+version = "0.3.0.dev2"
 description = "Bring-your-own-model client for the SCRU Industrial Survival SMP agent gateway"
 requires-python = ">=3.10"
 dependencies = []
